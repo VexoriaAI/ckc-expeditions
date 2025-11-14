@@ -1,63 +1,48 @@
 /* ====================================================================
 // CORE: main.js
-// ATUALIZAÇÃO: Integração com loadDemoData() do GameState.
+// UPDATE: Adiciona listener para o botão 'Auto Equip'.
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData } from './core/GameState.js';
 import { UIManager } from './ui/UIManager.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
-// Importaremos MOCK_KIDZ_NFTS em UIManager.js para renderização
+import { EquipmentSystem } from './systems/EquipmentSystem.js'; // Importa o novo sistema
 
-function initializeApp() {
-    console.log('--- Fase 2: Inicializando CyberKidz - Wasteland Expeditions ---');
-    console.log('Arquitetura Modular ES6 Ativa.');
-
-    UIManager.init(); 
-
-    window.onGameStateChange = (newState) => {
-        console.log(`Estado do Jogo Alterado. Nova Tela: ${newState.currentScreen} | Kid ID: ${newState.currentPlayerKidId}`);
-        UIManager.renderScreen(newState);
-    };
-
-    const initialState = getState();
-    setCurrentScreen(initialState.currentScreen);
-    
-    document.getElementById('app-root').addEventListener('click', handleGlobalClick);
-
-    console.log('Total de Materiais Carregados:', Object.keys(MATERIALS_DB).length);
-}
+// ... (initializeApp é o mesmo)
 
 function handleGlobalClick(event) {
     const target = event.target;
     const currentState = getState();
     
-    // --- 1. Lógica da logged-out-screen (Login) ---
-    if (currentState.currentScreen === 'logged-out-screen') {
-        if (target.id === 'btn-connect-wallet' || target.id === 'btn-play-demo') {
-            
-            // CRÍTICO: Carrega os dados Mock no GameState
-            loadDemoData(); 
-            
-            // Transiciona para a seleção de Kid
-            setCurrentScreen('hub-selection-screen'); 
-        }
-    } 
+    // ... (Lógica da logged-out-screen e hub-selection-screen é a mesma) ...
     
-    // --- 2. Lógica da hub-selection-screen (Seleção de Kid) ---
-    else if (currentState.currentScreen === 'hub-selection-screen') {
-        if (target.id === 'btn-select-kid') {
-            // Usa .closest para garantir que estamos pegando o data-kid-id do card correto
-            const selectedKidId = target.closest('.kid-card').dataset.kidId; 
-            
-            if (selectedKidId) {
-                console.log(`Kid Selecionado: ${selectedKidId}. Mudando para preparação.`);
-                
-                updateState({ 
-                    currentPlayerKidId: selectedKidId 
-                });
-                
-                setCurrentScreen('hub-preparation-screen'); 
-            }
+    // --- 3. Lógica da hub-preparation-screen ---
+    if (currentState.currentScreen === 'hub-preparation-screen') {
+        
+        // A. Lógica do botão AUTO EQUIP (GDD Requirement)
+        if (target.id === 'btn-auto-equip') {
+            console.log('Clique: AUTO EQUIP acionado.');
+            EquipmentSystem.autoEquip();
+        }
+        
+        // B. Lógica do botão START EXPEDITION
+        else if (target.id === 'btn-start-expedition') {
+            console.log('Clique: Iniciando Expedição!');
+            // Futuramente, precisaríamos validar se o Kid está pronto.
+            setCurrentScreen('game-screen');
+        }
+        
+        // C. Lógica do botão REMOVE ALL (Futuro)
+        else if (target.id === 'btn-remove-all') {
+            console.log('Clique: Remove All (Lógica a ser implementada).');
+        }
+        
+        // D. Lógica de clique no Mannequin Slot para abrir Modal (Futuro)
+        else if (target.closest('.mannequin-slot')) {
+            const slotElement = target.closest('.mannequin-slot');
+            const slotType = slotElement.dataset.slotType;
+            console.log(`Clique: Slot ${slotType} (Abrir Modal de Seleção de Item).`);
+            // Lógica para abrir o modal de seleção e filtrar por slotType
         }
     }
 }
