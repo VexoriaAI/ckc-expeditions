@@ -35,8 +35,13 @@ export const INITIAL_STATE = {
     // 5. UI State
     activeWorkshopTab: 'refine',
     activeInventoryTab: 'equipments',
+
+    // (NOVO) UI State para o Workshop EMBED
+    embedTargetEquipmentId: null, // Armazena o instance_id do equipamento selecionado
+    embedTargetComponentId: null, // Armazena o instance_id do componente selecionado
+    embedTargetSlotIndex: null, // Armazena o índice (0, 1, 2...) do slot selecionado
     
-    // 6. (NOVO) Hub Selection Filters
+    // Hub Selection Filters
     hubSelectionFilters: {
         searchQuery: '',
         selectedTribes: [], // Array para 'select multiple'
