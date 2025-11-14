@@ -1,127 +1,95 @@
 /* ====================================================================
-// SRC/UI/UIMANAGER.JS (Os Braços)
-// Controla toda a renderização de HTML no DOM.
+// UI: UIManager.js
+// Os Braços/Olhos - Único módulo autorizado a manipular o DOM.
+// Mapeia o estado (state.currentScreen) para o conteúdo HTML da tela.
 // ==================================================================== */
 
-import GameState from '../core/GameState.js';
-// Importa os DBs necessários para RENDERIZAR dados
-import { TRIBES } from '../../database/tribes.js';
+let appRoot; // Referência à div <main id="app-root">
 
-// Cache de elementos HTML que NUNCA mudam
-const DOM = {
-    appRoot: document.getElementById('app-root'),
-    header: {
-        tezeriumDisplay: document.getElementById('tezerium-display'),
-        tezeriumBalance: document.getElementById('tezerium-balance'),
-        headerConnectBtn: document.getElementById('header-connect-btn'),
-        connectionStatus: document.getElementById('connection-status')
-    }
-    // (Vamos adicionar os Modais aqui depois)
-};
-
-// --- Templates de Tela (O HTML de cada tela) ---
-
-const screens = {
-    'logged-out-screen': () => `
-        <section id="logged-out-screen" class="screen" style="display: block;">
-            <div class="landing-container panel">
-                <img src="images/game-logo.png" alt="Logo" id="game-logo">
-                <h2>WELCOME</h2><p>Connect your wallet.</p>
-                <div class="landing-actions">
-                    <button id="body-connect-btn" class="action-btn">Connect Wallet</button>
-                    <button id="demo-game-btn" class="action-btn demo-btn">Play Demo</button>
-                </div>
-            </div>
-        </section>
-    `,
-    
-    'hub-selection-screen': () => `
-        <section id="hub-selection-screen" class="screen" style="display: block;">
-            <div class="hub-container">
-                <h2>SELECT YOUR KID</h2>
-                <div class="filter-toolbar panel">
-                    <input type="text" id="filter-search" placeholder="Search by Name or ID...">
-                    <select id="filter-tribe"><option value="all">All Tribes</option></select>
-                    <select id="filter-items-per-page"><option value="10">10</option></select>
-                    <button id="filter-reset-btn" class="action-btn small-btn">Reset</button>
-                </div>
-                <div id="nft-selection-grid" class="nft-grid">
-                    </div>
-                <p id="nft-grid-placeholder" style="display: none;">No Kids found.</p>
-                <div id="pagination-controls" class="pagination-controls panel">
-                    <button id="pagination-prev" disabled>Prev</button>
-                    <span id="pagination-info">Page 1 of 1</span>
-                    <button id="pagination-next" disabled>Next</button>
-                </div>
-            </div>
-        </section>
-    `
-    // (Vamos adicionar 'hub-preparation-screen' e 'game-screen' aqui)
-};
-
-// --- Funções de Renderização Específicas ---
-
-function renderHubSelectionGrid() {
-    const grid = document.getElementById('nft-selection-grid');
-    if (!grid) return;
-
-    const kids = GameState.get().player.kidz; // Pega os kids do estado
-    grid.innerHTML = ''; // Limpa
-    
-    if (kids.length === 0) {
-        document.getElementById('nft-grid-placeholder').style.display = 'block';
-        return;
-    }
-    
-    kids.forEach(kid => {
-        const card = document.createElement('div');
-        card.className = 'nft-card panel';
-        const tribeName = kid.tribe ? kid.tribe.name : "Unknown";
-        card.innerHTML = `
-            <img src="${kid.placeholderImg}" onerror="this.src='images/kid-placeholder.png'">
-            <h4>${kid.name}</h4><p>ID: ${kid.id}</p><p>${tribeName}</p>
-            <button class="action-btn select-kid-btn" data-kid-id="${kid.id}">Manage</button>
-        `;
-        grid.appendChild(card);
-    });
-    
-    // Popula o filtro de tribos (só precisa fazer isso uma vez)
-    const tribeFilter = document.getElementById('filter-tribe');
-    if (tribeFilter && tribeFilter.options.length <= 1) {
-        Object.values(TRIBES).forEach(t => tribeFilter.innerHTML += `<option value="${t.name}">${t.name}</option>`);
-    }
-}
-
-// --- Funções Públicas do Módulo ---
-
-const UIManager = {
-    // Função principal: Lida com a troca de telas
-    renderCurrentScreen: () => {
-        const screenId = GameState.get().currentScreen;
-        
-        // Pega o template HTML da tela
-        const screenTemplate = screens[screenId];
-        
-        if (screenTemplate) {
-            // Desenha o HTML no "palco"
-            DOM.appRoot.innerHTML = screenTemplate();
-            
-            // Pós-renderização: Se a tela for o hub, preenche o grid
-            if (screenId === 'hub-selection-screen') {
-                renderHubSelectionGrid();
-            }
-        } else {
-            DOM.appRoot.innerHTML = `<p>Erro: Tela "${screenId}" não encontrada.</p>`;
+/**
+ * Inicializa o UIManager, buscando o container principal da aplicação.
+ */
+export const UIManager = {
+    init: function() {
+        appRoot = document.getElementById('app-root');
+        if (!appRoot) {
+            console.error("Erro CRÍTICO: Não foi encontrado o elemento #app-root.");
         }
     },
-    
-    // Atualiza o header (ex: Tezerium, status)
-    updateHeader: () => {
-        DOM.header.tezeriumDisplay.style.visibility = 'visible';
-        DOM.header.tezeriumBalance.textContent = GameState.getPlayerTezerium();
-        DOM.header.headerConnectBtn.style.display = 'none';
-        DOM.header.connectionStatus.style.display = 'inline';
+
+    /**
+     * Limpa o container principal e renderiza o conteúdo da tela baseado no estado.
+     * @param {object} state - O estado atual do jogo (retorno de GameState.getState()).
+     */
+    renderScreen: function(state) {
+        if (!appRoot) return; // Proteção
+
+        const screenId = state.currentScreen;
+        let htmlContent = '';
+
+        // Limpa o conteúdo anterior
+        appRoot.innerHTML = '';
+        
+        switch (screenId) {
+            case 'logged-out-screen':
+                htmlContent = this.renderLoggedOutScreen(state);
+                break;
+            case 'hub-selection-screen':
+                htmlContent = this.renderHubSelectionScreen(state);
+                break;
+            // Outras telas virão aqui: hub-preparation-screen, game-screen
+            default:
+                htmlContent = `<h2>[ERRO] Tela não encontrada: ${screenId}</h2><p>Verifique o GameState.js.</p>`;
+        }
+
+        // Insere o novo conteúdo no DOM e anexa a tela atual como um data-attribute.
+        appRoot.innerHTML = htmlContent;
+        appRoot.dataset.currentScreen = screenId;
+    },
+
+    // --- Funções de Renderização de Telas ---
+
+    /**
+     * Renderiza a Tela 1: logged-out-screen (Conexão e Demonstração).
+     */
+    renderLoggedOutScreen: function(state) {
+        const status = state.isWalletConnected ? 'Conectada' : 'Desconectada';
+        return `
+            <div class="screen logged-out-screen">
+                <img src="assets/ui/game-logo.png" alt="CyberKidz Logo" class="logo">
+                <h1>CyberKidz Club - Expedições</h1>
+                <p>Status da Carteira: <strong>${status}</strong> (Tezos)</p>
+                <button id="btn-connect-wallet" class="btn-primary">Connect Wallet</button>
+                <button id="btn-play-demo" class="btn-secondary">Play Demo</button>
+            </div>
+        `;
+    },
+
+    /**
+     * Renderiza a Tela 2: hub-selection-screen (Seleção do Kid).
+     */
+    renderHubSelectionScreen: function(state) {
+        // NOTA: Aqui, no futuro, buscaremos os dados reais de inventário (playerInventory.equipment)
+        // e usaremos o MockWallet.js para mostrar os NFTs do jogador.
+        
+        // Exemplo simples para a Fase 2 (Apenas um placeholder)
+        return `
+            <div class="screen hub-selection-screen">
+                <h2>Selecione o CyberKid para Expedição</h2>
+                <div class="kid-grid-container">
+                    <div class="kid-card placeholder" data-kid-id="DEMO_KID_ID">
+                        <img src="assets/characters/kid_combat_sprite.png" alt="Kid Placeholder">
+                        <h3>CyberKid #1234 (Volcanic)</h3>
+                        <p>Power Score: 85</p>
+                        <button id="btn-select-kid" data-kid-id="DEMO_KID_ID" class="btn-select">SELECIONAR E PREPARAR</button>
+                    </div>
+                    
+                    <div class="kid-card placeholder">
+                        <p>NFT Card 2 (Vazio)</p>
+                    </div>
+                </div>
+                <button id="btn-back-to-login" onclick="window.location.reload()" class="btn-secondary mt-4">VOLTAR</button>
+            </div>
+        `;
     }
 };
-
-export default UIManager;
