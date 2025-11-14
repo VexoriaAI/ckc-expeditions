@@ -3,12 +3,14 @@
 // Gerencia o estado de todo o jogo.
 // ==================================================================== */
 
-// Importa dados brutos para inicialização
+// Importa os dados brutos para inicialização
 import { MOCK_WALLET } from '../../database/mock_wallet.js';
 import { EQUIPMENT_DB } from '../../database/equipment.js';
+import { COMPONENTS_DB } from '../../database/components.js';
 
-// Função auxiliar para gerar inventário inicial (baseada na V5.1)
+// Função auxiliar para gerar inventário inicial
 function generateStartingInventory() {
+    if (!EQUIPMENT_DB) return [];
     return Object.values(EQUIPMENT_DB).map((item, index) => {
         const slots = Array(item.slots_total || 3).fill({ component: null });
         return {
@@ -19,53 +21,64 @@ function generateStartingInventory() {
     });
 }
 
-// O estado inicial do jogo
+// O estado inicial privado
 const state = {
     currentScreen: 'logged-out-screen',
     player: {
         tezerium: 1000,
         inventory: {
-            materials: { "mat_scrap": 100, "mat_water": 50 },
-            components: { "comp_def_1": 2, "comp_dmg_1": 2 },
-            equipment: [] // Preenchido no login
+            materials: { "mat_scrap": 100, "mat_water": 50, "mat_metal": 10 },
+            components: { "comp_def_1": 5, "comp_dmg_1": 5 },
+            equipment: []
         },
-        kidz: [] // Preenchido no login
+        kidz: []
     },
     hub: {
         activeKidId: null,
-        pagination: { currentPage: 1, itemsPerPage: 10, totalPages: 1 },
+        pagination: { currentPage: 1, itemsPerPage: 10, totalPages: 1, filteredKidz: [] },
         tabs: { activeMainTab: 'inventory', activeInvSubTab: 'inv-equipments', activeWsSubTab: 'ws-refine' },
         embed: { slotGear: null, slotComponent: null },
         itemModalContext: null
     },
-    // ... (outros estados como 'expedition' e 'combat' virão aqui)
+    expedition: {
+        // ... (será preenchido quando o jogo começar)
+    },
+    combat: {
+        // ... (será preenchido quando o combate começar)
+    }
 };
 
-// --- Funções "Mutators" ---
-// Funções públicas que o cérebro (main.js) pode chamar para MUDAR o estado
+// Funções públicas ("Mutations") que o Cérebro (main.js) pode chamar
+const GameState = {
+    // Getter para ler o estado
+    get: () => state,
 
-function initializeWallet() {
-    state.player.kidz = JSON.parse(JSON.stringify(MOCK_WALLET)); // Clona a carteira
-    state.player.inventory.equipment = generateStartingInventory(); // Gera equipamentos
-    console.log("GameState: Wallet Initialized.", state.player);
-}
+    // Função para inicializar os dados do jogador
+    initializeWallet: () => {
+        state.player.kidz = JSON.parse(JSON.stringify(MOCK_WALLET));
+        state.player.inventory.equipment = generateStartingInventory();
+        console.log("GameState: Carteira e Inventário inicializados.");
+    },
 
-function setScreen(screenId) {
-    state.currentScreen = screenId;
-    console.log(`GameState: Screen changed to ${screenId}`);
-}
-
-function getPlayerTezerium() {
-    return state.player.tezerium;
-}
-
-// Exporta o estado (como 'getter') e as funções que podem mudá-lo
-export const GameState = {
-    state, // Acesso "somente leitura" ao estado
+    // Função para mudar de tela
+    setScreen: (screenId) => {
+        state.currentScreen = screenId;
+    },
     
-    // Funções de Ação
-    initializeWallet,
-    setScreen,
-    getPlayerTezerium
-    // ... (vamos adicionar mais funções como 'setActiveKid', 'startExpedition' aqui)
+    // Função para definir o Kid ativo
+    setActiveKid: (kidId) => {
+        state.hub.activeKidId = kidId;
+        console.log(`GameState: Kid Ativo definido como ${kidId}`);
+    },
+    
+    // Getter para um dado específico
+    getPlayerTezerium: () => {
+        return state.player.tezerium;
+    }
+    
+    // (Vamos adicionar mais funções aqui conforme necessário, 
+    //  como 'startExpedition', 'endCombat', etc.)
 };
+
+// Exporta o módulo para que o Cérebro possa importá-lo
+export default GameState;
