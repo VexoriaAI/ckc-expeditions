@@ -2,6 +2,7 @@
 // DATABASE: MOCK_WALLET
 // Simula o conteúdo da carteira Tezos do jogador (NFTs, Inventário inicial, Token Tezerium).
 // Exporta todos os dados como 'const' conforme o GDD.
+// Language: English
 // ==================================================================== */
 
 // --- Estruturas de Dados Essenciais ---
@@ -33,7 +34,7 @@ export const MOCK_KIDZ_NFTS = [
         name: 'Cypher (Protótipo)',
         tribe: 'NOCTURNALS',
         level: 10,
-        spritePath: 'assets/characters/nocturnals_kid_1.png',
+        spritePath: 'assets/characters/nocturnals_1.png', // <-- ATUALIZADO
         baseStats: {
             maxHP: 100,
             attack: 8,
@@ -47,7 +48,7 @@ export const MOCK_KIDZ_NFTS = [
         name: 'Vulk (Forja)',
         tribe: 'VOLCANICS',
         level: 8,
-        spritePath: 'assets/characters/volcanics_kid_2.png',
+        spritePath: 'assets/characters/volcanics_1.png', // <-- ATUALIZADO
         baseStats: {
             maxHP: 120,
             attack: 6,
@@ -81,7 +82,7 @@ export const MOCK_INVENTORY = {
         },
         {
             instance_id: 102, 
-            item_id: 'eq_proto_weapon', // Exemplo de arma
+            item_id: 'eq_rust_weapon', // Exemplo de arma
             slots: [
                 { component_id: null, isLocked: false, isUnlockable: false },
                 { component_id: null, isLocked: true, isUnlockable: false },
@@ -93,7 +94,7 @@ export const MOCK_INVENTORY = {
     // Componentes: Usam a estrutura [ { instance_id, item_id } ]
     components: [
         { instance_id: 201, item_id: 'comp_def_1' }, 
-        { instance_id: 202, item_id: 'comp_dmg_2' },
+        { instance_id: 202, item_id: 'comp_dmg_1' },
         { instance_id: 203, item_id: 'comp_def_1' } // Componentes duplicados usam instance_id diferentes
     ],
 
