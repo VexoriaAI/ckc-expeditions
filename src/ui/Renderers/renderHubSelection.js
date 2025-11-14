@@ -1,11 +1,10 @@
 /* ====================================================================
 // RENDERER: renderHubSelection.js
-// Exporta a função para renderizar a tela de seleção de Kid,
-// incluindo a lógica de filtro e paginação.
+// PATH CORRECTION: ../../database/ and ../../systems/
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
-import { calculatePowerScore } from '../systems/StatCalculationSystem.js';
+import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 
 /**
  * Renders the Hub Selection screen (Kid NFT grid, filters, pagination).
@@ -17,7 +16,7 @@ export const renderHubSelectionScreen = (state) => {
     const filters = state.hubSelectionFilters;
     
     // 1. Lógica de Filtro e Ordenação
-    let filteredKidz = [...kidzData]; // Copia para evitar mutação do estado
+    let filteredKidz = [...kidzData]; 
 
     // Search Query
     if (filters.searchQuery) {
