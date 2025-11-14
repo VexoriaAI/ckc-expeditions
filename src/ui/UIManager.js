@@ -1,7 +1,6 @@
 /* ====================================================================
 // UI: UIManager.js
-// The Arms/Eyes - The only module authorized to manipulate the DOM.
-// Maps the state (state.currentScreen) to the HTML content.
+// UPDATE: Integrates the CRAFT tab, rendering Crafting recipes.
 // Language: English
 // ==================================================================== */
 
@@ -12,6 +11,7 @@ import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
 import { RECIPES_DB } from '../../database/recipes.js';
 import { MATERIALS_DB } from '../../database/materials.js';
 import { COMPONENTS_DB } from '../../database/components.js';
+import { SHOP_ITEMS_DB } from '../../database/crafting_rules.js';
 
 let appRoot; 
 
@@ -34,7 +34,6 @@ const renderMannequinSlots = (equippedItems) => {
 
     for (const slotType of EQUIPMENT_SLOTS) {
         const item = equippedMap[slotType];
-        // Placeholder icon path (assuming assets/ui/icon_type.png exists)
         const itemIconPath = item ? EQUIPMENT_DB[item.item_id].iconPath : `assets/ui/icon_${slotType}.png`;
         const itemName = item ? EQUIPMENT_DB[item.item_id].name : `Empty (${slotType.toUpperCase()})`;
         
@@ -48,21 +47,26 @@ const renderMannequinSlots = (equippedItems) => {
     return slotsHTML;
 };
 
-// --- RENDER UTILITY: Refine Tab ---
+// --- RENDER UTILITY: Refine Tab (Reutilizado) ---
 const renderRefineTab = (state) => {
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'REFINE');
-    const playerMaterials = state.playerInventory.materials;
+    const playerInventory = state.playerInventory;
     let recipesHTML = '';
 
     for (const recipe of recipes) {
         const outputItemData = MATERIALS_DB[recipe.output.itemId] || COMPONENTS_DB[recipe.output.itemId];
         const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
         
-        const inputHTML = Object.keys(recipe.inputMaterials).map(matId => {
+        let allInputsAvailable = true;
+        const inputSections = [];
+
+        // 1. Render Material Inputs
+        const materialInputs = Object.keys(recipe.inputMaterials).map(matId => {
             const required = recipe.inputMaterials[matId];
-            const owned = playerMaterials[matId] || 0;
+            const owned = playerInventory.materials[matId] || 0;
             const matData = MATERIALS_DB[matId];
             const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
             
             return `
                 <span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">
@@ -71,9 +75,9 @@ const renderRefineTab = (state) => {
                 </span>
             `;
         }).join(' + ');
-        
-        // Determine if the recipe can be executed (simple check based on HTML class)
-        const canRefine = !inputHTML.includes('missing');
+        if (materialInputs) inputSections.push(materialInputs);
+
+        const inputHTML = inputSections.join(' + ');
 
         recipesHTML += `
             <div class="recipe-card refine-recipe" data-recipe-id="${recipe.recipeId}">
@@ -90,8 +94,8 @@ const renderRefineTab = (state) => {
                 <button 
                     id="btn-execute-refine" 
                     data-recipe-id="${recipe.recipeId}"
-                    class="btn-sm btn-primary ${canRefine ? '' : 'disabled'}"
-                    ${canRefine ? '' : 'disabled'}
+                    class="btn-sm btn-primary ${allInputsAvailable ? '' : 'disabled'}"
+                    ${allInputsAvailable ? '' : 'disabled'}
                 >
                     REFINE
                 </button>
@@ -102,8 +106,75 @@ const renderRefineTab = (state) => {
     return `<div class="refine-list">${recipesHTML}</div>`;
 };
 
+// --- RENDER UTILITY: Craft Tab (NOVO) ---
+const renderCraftTab = (state) => {
+    const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'CRAFT');
+    const playerInventory = state.playerInventory;
+    let recipesHTML = '';
 
-// --- UIManager Public Interface ---
+    for (const recipe of recipes) {
+        const outputItemData = EQUIPMENT_DB[recipe.output.itemId];
+        const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
+        
+        let allInputsAvailable = true;
+        const inputSections = [];
+
+        // 1. Render Material Inputs
+        const materialInputs = Object.keys(recipe.inputMaterials).map(matId => {
+            const required = recipe.inputMaterials[matId];
+            const owned = playerInventory.materials[matId] || 0;
+            const matData = MATERIALS_DB[matId];
+            const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
+            
+            return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${matData.name}: ${owned}/${required}</span>`;
+        }).join(' + ');
+        if (materialInputs) inputSections.push(materialInputs);
+
+        // 2. Render Shop Item Inputs (Simples, para exemplo)
+        const shopItemInputs = Object.keys(recipe.inputShopItems).map(itemId => {
+            const required = recipe.inputShopItems[itemId];
+            const owned = playerInventory.shopItems[itemId] || 0;
+            const itemData = SHOP_ITEMS_DB[itemId];
+            const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
+            
+            return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${itemData.name}: ${owned}/${required}</span>`;
+        }).join(' + ');
+        if (shopItemInputs) inputSections.push(shopItemInputs);
+
+
+        const inputHTML = inputSections.join('<br>'); // Use line break for clarity in a complex recipe list
+
+        recipesHTML += `
+            <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
+                <h4>${recipe.name}</h4>
+                <div class="recipe-io">
+                    <div class="input-section">${inputHTML}</div>
+                    <span class="arrow-separator">→</span>
+                    <div class="output-section">
+                        <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                        <span>${outputItemData.name} (${recipe.output.rarity || 'Common'})</span>
+                    </div>
+                </div>
+                
+                <button 
+                    id="btn-execute-craft" 
+                    data-recipe-id="${recipe.recipeId}"
+                    class="btn-sm btn-success ${allInputsAvailable ? '' : 'disabled'}"
+                    ${allInputsAvailable ? '' : 'disabled'}
+                >
+                    CRAFT
+                </button>
+            </div>
+        `;
+    }
+
+    return `<div class="craft-list">${recipesHTML}</div>`;
+};
+
+
+// --- UIManager Public Interface (renderHubPreparationScreen Update) ---
 
 export const UIManager = {
     init: function() {
@@ -208,11 +279,16 @@ export const UIManager = {
         `;
         
         // Workshop Tab Logic
-        const activeWorkshopTab = 'refine'; 
+        // NOTE: In a complete implementation, this should be read from GameState
+        const activeWorkshopTab = 'craft'; // Changed to 'craft' for immediate testing
         let workshopContent = '';
+        
         if (activeWorkshopTab === 'refine') {
             workshopContent = renderRefineTab(state);
+        } else if (activeWorkshopTab === 'craft') {
+            workshopContent = renderCraftTab(state);
         }
+        // else if ('embed') { ... }
 
         return `
             <div class="screen hub-preparation-screen container-fluid">
