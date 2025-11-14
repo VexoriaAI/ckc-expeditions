@@ -1,40 +1,28 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// PATH CORRECTION: ../../database/ and ../../systems/
+// PATH CORRECTION: ../../../database/ and ../../systems/
 // ==================================================================== */
 
-import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
+import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { calculateFinalStats, calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
-// Importa os renderers modulares
 import { renderMannequinSlots } from './renderMannequin.js';
 import { renderRefineTab, renderCraftTab } from './renderWorkshop.js';
 
-// Helper local
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-/**
- * Renders the Hub Preparation screen (Character Sheet, Workshop, Inventory).
- * @param {object} state - The current GameState.
- * @returns {string} HTML content for the screen.
- */
 export const renderHubPreparationScreen = (state) => {
     const kidId = state.currentPlayerKidId;
     const kidStaticData = getKidDataById(kidId);
+    if (!kidStaticData) return `<h2>Error: Kid Data not found for ID: ${kidId}</h2>`;
 
-    if (!kidStaticData) {
-        return `<h2>Error: Kid Data not found for ID: ${kidId}</h2>`;
-    }
-
-    // --- Cálculos de Stats ---
     const equippedItems = EquipmentSystem.getEquippedItems();
     const finalStats = calculateFinalStats(kidStaticData, equippedItems);
     const totalPowerScore = calculatePowerScore(finalStats);
 
-    // --- Renderização dos Componentes da UI ---
     const mannequinHTML = renderMannequinSlots(equippedItems);
 
     const statsSummaryHTML = `
@@ -79,36 +67,26 @@ export const renderHubPreparationScreen = (state) => {
         workshopContent = "<h4>EMBED Interface (To be implemented)</h4>";
     }
 
-    // --- Montagem Final da Tela ---
     return `
         <div class="screen hub-preparation-screen">
-            
             <div class="page-title-bar">
                 <h1>Expedition Prep</h1>
                 <button id="btn-back-to-selection" class="action-btn btn-secondary btn-sm">Back to Selection</button>
             </div>
-
             <div class="preparation-container">
                 <div class="character-sheet-col">
-                    
                     ${kidInfoBoxHTML}
-
                     <div class="mannequin-controls">
                         <button id="btn-auto-equip" class="action-btn btn-info btn-sm">AUTO EQUIP</button>
                         <button id="btn-remove-all" class="action-btn btn-sm btn-primary">REMOVE ALL</button>
                     </div>
-                    
                     <div class="equipment-mannequin">
                         ${mannequinHTML}
                     </div>
-
                     ${statsSummaryHTML}
-                    
                     <button id="btn-start-expedition" class="action-btn btn-success">START EXPEDITION</button>
                 </div>
-
                 <div class="inventory-workshop-col">
-                    
                     <div class="inventory-panel panel">
                         <h3>Inventory</h3>
                         <div class="tabs" id="inventory-tabs">
@@ -121,7 +99,6 @@ export const renderHubPreparationScreen = (state) => {
                             <p>[Inventory List (To be implemented)]</p>
                         </div>
                     </div>
-
                     <div class="workshop-panel panel">
                         <h3>Workshop</h3>
                         <div class="tabs" id="workshop-tabs">
