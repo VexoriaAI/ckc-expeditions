@@ -1,15 +1,10 @@
 /* ====================================================================
 // RENDERER: renderHeader.js
-// PATH CORRECTION: ../../database/
+// PATH CORRECTION: ../../../database/ (para a raiz do projeto)
 // ==================================================================== */
 
-import { MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
+import { MOCK_TEZERIUM_BALANCE } from '../../../database/mock_wallet.js'; 
 
-/**
- * Renders the global header based on wallet connection state.
- * @param {object} state - The current GameState.
- * @returns {string} HTML content for the header.
- */
 export const renderHeader = (state) => {
     let headerRight = '';
     let headerLeft = '';
