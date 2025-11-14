@@ -1,70 +1,109 @@
-import { TRIBES } from './tribes.js';
 /* ====================================================================
-// DATABASE: MOCK WALLET
-// Simula uma carteira conectada com NFTs (Kidz) para teste.
-// Depende de: database/tribes.js (para a constante TRIBES)
+// DATABASE: MOCK_WALLET
+// Simula o conteúdo da carteira Tezos do jogador (NFTs, Inventário inicial, Token Tezerium).
+// Exporta todos os dados como 'const' conforme o GDD.
 // ==================================================================== */
 
-export const MOCK_WALLET = [
-    { 
-        id: '#313', 
-        name: 'Blue Mutant', 
-        tribe: TRIBES.RADIOACTIVES, 
-        expeditions: 5, 
-        equipped: { 
-            helmet: 'h1', 
-            weapon: 'w1', 
-            accessory: null, 
-            armor: null, 
-            gloves: null, 
-            implant: null, 
-            boots: null 
-        } 
+// --- Estruturas de Dados Essenciais ---
+
+/**
+ * @typedef {object} KidNFT - Simula um NFT do CyberKidz.
+ * @property {string} id - O ID da instância NFT (Token ID).
+ * @property {string} name - Nome ou Título do Kid.
+ * @property {string} tribe - Tribo à qual pertence (VOLCANICS, NOCTURNALS, etc.).
+ * @property {number} level - Nível de experiência.
+ * @property {string} spritePath - Caminho para a imagem visual do Kid.
+ * @property {object} baseStats - Atributos iniciais do Kid (sem equipamento).
+ */
+
+/**
+ * @typedef {object} InventoryItem - Simula um item único com estado (Equipamento ou Componente).
+ * @property {number} instance_id - ID único da instância no inventário (não é o Token ID da NFT).
+ * @property {string} item_id - Referência ao ID no database correspondente (ex: 'eq_rust_helmet').
+ * @property {object} [slots] - Apenas para Equipamentos: Estado dos slots de embed.
+ */
+
+
+// --- Mock Data ---
+
+// 1. DADOS MOCK: Lista de CyberKidz NFTs
+export const MOCK_KIDZ_NFTS = [
+    {
+        id: 'CKID-DEMO-001',
+        name: 'Cypher (Protótipo)',
+        tribe: 'NOCTURNALS',
+        level: 10,
+        spritePath: 'assets/characters/nocturnals_kid_1.png',
+        baseStats: {
+            maxHP: 100,
+            attack: 8,
+            defense: 5,
+            speed: 5, // Usado para MP (Movimento)
+            AP: 2,    // Ações por turno/rodada
+        }
     },
-    { 
-        id: '#222', 
-        name: 'Demo Nocturnal', 
-        tribe: TRIBES.NOCTURNALS, 
-        expeditions: 2, 
-        equipped: { 
-            helmet: null, 
-            weapon: null, 
-            accessory: null, 
-            armor: null, 
-            gloves: null, 
-            implant: null, 
-            boots: null 
-        } 
-    },
-    { 
-        id: '#111', 
-        name: 'Demo Volcanic', 
-        tribe: TRIBES.VOLCANICS, 
-        expeditions: 10, 
-        equipped: { 
-            helmet: null, 
-            weapon: 'w1', 
-            accessory: null, 
-            armor: null, 
-            gloves: null, 
-            implant: null, 
-            boots: null 
-        } 
-    },
-    // Kidz extras para testar paginação e filtros
-    { id: '#444', name: 'Swamp Kid', tribe: TRIBES.REPTILIANS, expeditions: 0, equipped: {} },
-    { id: '#555', name: 'Miner', tribe: TRIBES.UNDERGROUNDERS, expeditions: 1, equipped: {} },
-    { id: '#001', name: 'Rookie-1', tribe: TRIBES.VOLCANICS, expeditions: 0, equipped: {} },
-    { id: '#002', name: 'Rookie-2', tribe: TRIBES.VOLCANICS, expeditions: 0, equipped: {} },
-    { id: '#003', name: 'Rookie-3', tribe: TRIBES.NOCTURNALS, expeditions: 0, equipped: {} },
-    { id: '#004', name: 'Rookie-4', tribe: TRIBES.RADIOACTIVES, expeditions: 0, equipped: {} },
-    { id: '#005', name: 'Rookie-5', tribe: TRIBES.REPTILIANS, expeditions: 0, equipped: {} },
-    { id: '#006', name: 'Rookie-6', tribe: TRIBES.UNDERGROUNDERS, expeditions: 0, equipped: {} },
-    { id: '#007', name: 'Rookie-7', tribe: TRIBES.VOLCANICS, expeditions: 0, equipped: {} },
-    { id: '#008', name: 'Rookie-8', tribe: TRIBES.NOCTURNALS, expeditions: 0, equipped: {} },
-    { id: '#009', name: 'Rookie-9', tribe: TRIBES.RADIOACTIVES, expeditions: 0, equipped: {} },
-    { id: '#010', name: 'Rookie-10', tribe: TRIBES.REPTILIANS, expeditions: 0, equipped: {} },
-    { id: '#011', name: 'Rookie-11', tribe: TRIBES.UNDERGROUNDERS, expeditions: 0, equipped: {} }
+    {
+        id: 'CKID-DEMO-002',
+        name: 'Vulk (Forja)',
+        tribe: 'VOLCANICS',
+        level: 8,
+        spritePath: 'assets/characters/volcanics_kid_2.png',
+        baseStats: {
+            maxHP: 120,
+            attack: 6,
+            defense: 10,
+            speed: 3,
+            AP: 2,
+        }
+    }
 ];
 
-export const DEMO_KID_ID = '#313';
+// 2. DADOS MOCK: Inventário Inicial
+export const MOCK_INVENTORY = {
+    // Materiais: Usam a estrutura { item_id: quantidade }
+    materials: {
+        'mat_scrap': 150,
+        'mat_metal': 25,
+        'mat_polymer': 50,
+        'mat_water': 10
+    },
+
+    // Equipamentos: Usam a estrutura [ { instance_id, item_id, slots } ]
+    equipment: [
+        {
+            instance_id: 101, 
+            item_id: 'eq_rust_helmet', // Exemplo de item (A ser definido em equipment.js)
+            slots: [ // 3 slots (GDD)
+                { component_id: null, isLocked: false, isUnlockable: false }, // Slot 1: Vazio e Destravado
+                { component_id: 'comp_def_1', isLocked: false, isUnlockable: false }, // Slot 2: Preenchido (A ser definido em components.js)
+                { component_id: null, isLocked: true, isUnlockable: true } // Slot 3: Travado, mas pode ser destravado
+            ]
+        },
+        {
+            instance_id: 102, 
+            item_id: 'eq_proto_weapon', // Exemplo de arma
+            slots: [
+                { component_id: null, isLocked: false, isUnlockable: false },
+                { component_id: null, isLocked: true, isUnlockable: false },
+                { component_id: null, isLocked: true, isUnlockable: false }
+            ]
+        }
+    ],
+
+    // Componentes: Usam a estrutura [ { instance_id, item_id } ]
+    components: [
+        { instance_id: 201, item_id: 'comp_def_1' }, 
+        { instance_id: 202, item_id: 'comp_dmg_2' },
+        { instance_id: 203, item_id: 'comp_def_1' } // Componentes duplicados usam instance_id diferentes
+    ],
+
+    // Itens de Loja (Consumíveis): Usam a estrutura { item_id: quantidade }
+    shopItems: {
+        'ap_refill': 3,
+        'slot_unlock_token': 1
+    },
+
+};
+
+// 3. DADOS MOCK: Saldo de Token Tezerium (Moeda de Consumo)
+export const MOCK_TEZERIUM_BALANCE = 500;
