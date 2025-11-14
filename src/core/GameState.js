@@ -1,82 +1,43 @@
 /* ====================================================================
 // CORE: GameState.js
-// O Coração - Singleton que armazena o estado atual de todo o jogo.
-// É a única fonte de verdade (Single Source of Truth) para os dados dinâmicos.
+// ATUALIZAÇÃO: Adiciona função para carregar dados mock (demo).
 // ==================================================================== */
 
-// Estado inicial (Schema Base)
+import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; // Importa dados mock
+
+// Estado inicial... (estrutura idêntica ao passo anterior)
 const INITIAL_STATE = {
-    // 1. Controle de Fluxo
-    currentScreen: 'logged-out-screen', // 
+    // ... (restante do INITIAL_STATE)
     isWalletConnected: false,
-
-    // 2. Dados do Jogador
-    currentPlayerKidId: null, // ID do Kid NFT selecionado (usado na hub-preparation-screen) [cite: 271]
-
-    // 3. Inventário (Estrutura definida pelo GDD)
+    currentPlayerKidId: null, 
     playerInventory: {
-        // Formato: { item_id: quantidade } (para materiais empilháveis)
-        materials: {}, // [cite: 291]
-        
-        // Formato: [ { instance_id: 1, item_id: 'eq_id', slots: [...] } ] (para itens únicos com estado)
-        equipment: [], // [cite: 291] 
-        components: [], // [cite: 291]
-        
-        // Itens consumíveis (ex: AP Refill)
-        shopItems: {}, // [cite: 291]
+        materials: {}, 
+        equipment: [], 
+        components: [], 
+        shopItems: {}, 
     },
-
-    // 4. Dados da Expedição (Preenchidos ao iniciar a game-screen)
-    expedition: {
-        kidStats: null, // Stats calculados do Kid + Equipamentos
-        currentLocation: null,
-        AP: 0, // Pontos de Ação [cite: 316]
-        MP: 0, // Pontos de Movimento [cite: 314]
-        log: [],
-    }
+    // ...
 };
 
-// A instância real do estado que será manipulada
-let gameState = { ...INITIAL_STATE };
+// ... (definição de gameState, getState, updateState, setCurrentScreen, resetState)
 
 /**
- * Retorna uma cópia (apenas para leitura) do estado atual do jogo.
- * @returns {object} O estado atual.
+ * Carrega dados de demonstração (MOCK) para simular um jogador logado.
  */
-export const getState = () => {
-    // Retorna uma cópia para evitar modificações acidentais fora das funções de update
-    return JSON.parse(JSON.stringify(gameState));
-};
-
-/**
- * Atualiza o estado do jogo com novas propriedades.
- * Usado para modificações mais complexas (ex: adicionar um item ao inventário).
- * @param {object} updates - Objeto contendo as chaves e novos valores para o estado.
- */
-export const updateState = (updates) => {
-    // Lógica para mesclar o estado de forma profunda, se necessário.
-    // Por enquanto, uma mesclagem rasa é suficiente:
-    gameState = { ...gameState, ...updates };
+export const loadDemoData = () => {
+    console.log('GameState: Carregando dados de DEMONSTRAÇÃO (MOCK_WALLET).');
     
-    // CRÍTICO: Notificar o UIManager sobre a mudança de estado após qualquer update
-    // (Esta função de notificação será anexada em main.js para evitar dependência circular)
-    if (window.onGameStateChange) {
-        window.onGameStateChange(gameState);
-    }
-};
+    // 1. Adiciona os Kids (NFTs) à uma nova propriedade do estado.
+    // Isso simula os NFTs que o jogador possui.
+    gameState.playerKidz = MOCK_KIDZ_NFTS;
 
-/**
- * Função utilitária para mudar apenas a tela.
- * @param {string} screenId - O ID da nova tela (ex: 'hub-selection-screen').
- */
-export const setCurrentScreen = (screenId) => {
-    updateState({ currentScreen: screenId });
-};
+    // 2. Carrega o inventário inicial
+    gameState.playerInventory = MOCK_INVENTORY;
 
-/**
- * Reinicia o estado para os valores iniciais (útil para logout ou fim de jogo).
- */
-export const resetState = () => {
-    gameState = { ...INITIAL_STATE };
-    setCurrentScreen(INITIAL_STATE.currentScreen);
+    // 3. Define o primeiro Kid da lista como o Kid inicialmente selecionado para a tela de Seleção
+    // NOTA: O GDD diz que a tela deve ser 'hub-selection-screen' primeiro. 
+    // Vamos manter o currentPlayerKidId como null, e setar 'isWalletConnected' para true.
+    gameState.isWalletConnected = true;
+
+    // A notificação ao UIManager será feita pelo setCurrentScreen em main.js
 };
