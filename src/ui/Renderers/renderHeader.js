@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderHeader.js
-// Exporta a função para renderizar o cabeçalho global.
+// PATH CORRECTION: ../../database/
 // ==================================================================== */
 
 import { MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
