@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderMannequin.js
-// Exporta a função para renderizar o Mannequin de 7 slots.
+// PATH CORRECTION: ../../database/
 // ==================================================================== */
 
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
