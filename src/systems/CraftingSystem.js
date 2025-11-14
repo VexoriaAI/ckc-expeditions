@@ -1,6 +1,7 @@
 /* ====================================================================
 // SYSTEM: CraftingSystem.js
-// PATH CORRECTION: ../../database/ (para a raiz do projeto)
+// UPDATE: processCraftAction agora usa SLOTS_BY_RARITY e 
+// SLOT_UNLOCK_RULES para criar slots dinamicamente.
 // ==================================================================== */
 
 import { getState, updateState } from '../core/GameState.js';
@@ -8,32 +9,62 @@ import { RECIPES_DB } from '../../database/recipes.js';
 import { EQUIPMENT_DB } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
 import { MATERIALS_DB } from '../../database/materials.js';
-import { RARITY_MULTIPLIERS, SYNERGY_MAP } from '../../database/crafting_rules.js';
+// Importa as novas regras de criação de slot
+import { 
+    RARITY_MULTIPLIERS, 
+    SYNERGY_MAP, 
+    SLOTS_BY_RARITY, 
+    SLOT_UNLOCK_RULES 
+} from '../../database/crafting_rules.js';
 
+/**
+ * Generates a globally unique ID for a new item instance.
+ * @returns {number} A unique ID.
+ */
 const generateInstanceId = () => {
     return Date.now() + Math.floor(Math.random() * 100000);
 };
 
+/**
+ * Checks if the player's inventory meets all requirements for a recipe.
+ * @param {object} playerInventory - The current playerInventory object from GameState.
+ * @param {object} recipe - The recipe object from RECIPES_DB.
+ * @returns {object} { success: boolean, message: string }
+ */
 const checkInventoryInputs = (playerInventory, recipe) => {
     const { inputMaterials, inputComponents, inputShopItems } = recipe;
+    // 1. Check Materials
     for (const matId in inputMaterials) {
         const requiredAmount = inputMaterials[matId];
         const ownedAmount = playerInventory.materials[matId] || 0;
-        if (ownedAmount < requiredAmount) return { success: false, message: `Missing Material: ${MATERIALS_DB[matId]?.name || matId.toUpperCase()}` };
+        if (ownedAmount < requiredAmount) {
+            return { success: false, message: `Missing required Material: ${MATERIALS_DB[matId]?.name || matId.toUpperCase()}. Required: ${requiredAmount}, Owned: ${ownedAmount}` };
+        }
     }
+    // 2. Check Shop Items
     for (const itemId in inputShopItems) {
         const requiredAmount = inputShopItems[itemId];
         const ownedAmount = playerInventory.shopItems[itemId] || 0;
-        if (ownedAmount < requiredAmount) return { success: false, message: `Missing Shop Item: ${itemId.toUpperCase()}` };
+        if (ownedAmount < requiredAmount) {
+            return { success: false, message: `Missing required Shop Item: ${itemId.toUpperCase()}. Required: ${requiredAmount}, Owned: ${ownedAmount}` };
+        }
     }
+    // 3. Check Components
     for (const compId in inputComponents) {
         const requiredAmount = inputComponents[compId];
         const ownedInstances = playerInventory.components.filter(c => c.item_id === compId).length;
-        if (ownedInstances < requiredAmount) return { success: false, message: `Missing Component: ${COMPONENTS_DB[compId]?.name || compId.toUpperCase()}` };
+        if (ownedInstances < requiredAmount) {
+            return { success: false, message: `Missing required Component: ${COMPONENTS_DB[compId]?.name || compId.toUpperCase()}. Required: ${requiredAmount}, Owned: ${ownedInstances}` };
+        }
     }
     return { success: true, message: "Inputs check passed." };
 };
 
+/**
+ * Mutates the player's inventory by subtracting all required inputs.
+ * @param {object} playerInventory - The current playerInventory object (mutated by reference).
+ * @param {object} recipe - The recipe object.
+ */
 const consumeInputs = (playerInventory, recipe) => {
     const { inputMaterials, inputComponents, inputShopItems } = recipe;
     for (const matId in inputMaterials) playerInventory.materials[matId] -= inputMaterials[matId];
@@ -47,12 +78,16 @@ const consumeInputs = (playerInventory, recipe) => {
     }
 };
 
+// --- Main Exported Crafting System ---
+
 export const CraftingSystem = {
     
     processRefineAction: function(recipeId) {
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
-        if (!recipe || recipe.type !== 'REFINE') return { success: false, message: 'Invalid or non-REFINE recipe ID.' };
+        if (!recipe || recipe.type !== 'REFINE') {
+            return { success: false, message: 'Invalid or non-REFINE recipe ID.' };
+        }
         const check = checkInventoryInputs(state.playerInventory, recipe);
         if (!check.success) return check;
 
@@ -73,35 +108,70 @@ export const CraftingSystem = {
         return { success: true, message: `Successfully refined ${outputAmount}x ${outputItemId}.` };
     },
 
-    processCraftAction: function(recipeId, rarity = 'COMMON') {
+    /**
+     * Executes the 'CRAFT' action: creates a new unique Equipment instance.
+     * (ATUALIZADO para usar as novas regras de Rarity/Tier/Slot)
+     * @param {string} recipeId - ID of the recipe to execute.
+     * @returns {object} { success: boolean, message: string }
+     */
+    processCraftAction: function(recipeId) {
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
-        if (!recipe || recipe.type !== 'CRAFT') return { success: false, message: 'Invalid or non-CRAFT recipe ID.' };
+        
+        if (!recipe || recipe.type !== 'CRAFT') {
+            return { success: false, message: 'Invalid or non-CRAFT recipe ID.' };
+        }
         const equipmentStaticData = EQUIPMENT_DB[recipe.output.itemId];
-        if (!equipmentStaticData) return { success: false, message: 'Crafting output equipment ID not found in database.' };
+        if (!equipmentStaticData) {
+            return { success: false, message: 'Crafting output equipment ID not found in database.' };
+        }
         const check = checkInventoryInputs(state.playerInventory, recipe);
-        if (!check.success) return check;
+        if (!check.success) {
+            return check;
+        }
 
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
         consumeInputs(newInventory, recipe);
-        const selectedRarity = rarity.toUpperCase();
-        const rarityData = RARITY_MULTIPLIERS[selectedRarity] || RARITY_MULTIPLIERS.COMMON;
-        const initialSlots = Array.from({ length: equipmentStaticData.slots_total }, (_, index) => ({
-            component_id: null,
-            isLocked: index >= equipmentStaticData.slots_unlocked,
-            isUnlockable: index >= equipmentStaticData.slots_unlocked, 
-        }));
+
+        // --- (LÓGICA DE CRIAÇÃO ATUALIZADA) ---
+        const baseRarity = equipmentStaticData.base_rarity || 'COMMON';
+        const baseTier = equipmentStaticData.tier || 1;
+        
+        // 1. Define o total de slots baseado na raridade (ex: 'COMMON' -> 2)
+        const totalSlots = SLOTS_BY_RARITY[baseRarity];
+        
+        // 2. Constrói os slots dinamicamente
+        const initialSlots = [];
+        for (let i = 0; i < totalSlots; i++) {
+            // Verifica qual Tier é necessário para destravar este slot (índice i)
+            const requiredTier = SLOT_UNLOCK_RULES[i]; // ex: Slot 1 (i=1) precisa de Tier 3
+            
+            initialSlots.push({
+                component_id: null,
+                // O slot está travado se o Tier base do item for MENOR que o Tier requerido
+                isLocked: baseTier < requiredTier, 
+            });
+        }
+
+        // 3. Cria a nova instância do item
         const newEquipment = {
             instance_id: generateInstanceId(),
             item_id: equipmentStaticData.id,
             isEquipped: false, 
-            slots: initialSlots,
-            rarity: selectedRarity, 
-            rarity_bonus: rarityData.score_multiplier,
+            rarity: baseRarity, // Define a raridade inicial
+            tier: baseTier,     // Define o tier inicial
+            slots: initialSlots, // Adiciona os slots calculados
         };
+        // --- Fim da Lógica Atualizada ---
+
         newInventory.equipment.push(newEquipment);
         updateState({ playerInventory: newInventory });
-        return { success: true, message: `Successfully crafted new ${selectedRarity} ${equipmentStaticData.name}!`, newEquipment: newEquipment };
+        
+        return { 
+            success: true, 
+            message: `Successfully crafted new ${baseRarity} ${equipmentStaticData.name}!`, 
+            newEquipment: newEquipment 
+        };
     },
     
     embedComponent: function(equipmentInstanceId, componentInstanceId, slotIndex) {
@@ -113,9 +183,16 @@ export const CraftingSystem = {
 
         if (!equipment) return { success: false, message: 'Equipment instance not found in inventory.' };
         if (!component) return { success: false, message: 'Component instance not found in inventory.' };
+        
         const targetSlot = equipment.slots[slotIndex];
         if (!targetSlot) return { success: false, message: 'Invalid slot index.' };
-        if (targetSlot.isLocked) return { success: false, message: 'Slot is locked. Cannot embed.' };
+        
+        // (ATUALIZADO) Verifica se o slot está travado pelo TIER
+        const requiredTier = SLOT_UNLOCK_RULES[slotIndex];
+        if (equipment.tier < requiredTier) {
+            return { success: false, message: `Slot is locked. Requires Item Tier ${requiredTier}.`};
+        }
+        
         if (targetSlot.component_id !== null) return { success: false, message: 'Slot is already filled.' };
 
         const equipmentData = EQUIPMENT_DB[equipment.item_id];
