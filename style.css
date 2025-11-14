@@ -1,7 +1,8 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V2.2)
-// UPDATE: Alinha o visual do Filtro/Paginação (Hub Selection) 
-// com o protótipo da Fase 1 (dark inset style).
+// STYLE.CSS - FASE 2 (V2.3)
+// UPDATE: Ajusta o layout do Filtro/Paginação (Hub Selection)
+// - Corrige o tamanho dos botões (Reset, Prev, Next)
+// - Aumenta o seletor de Tribo
 // ==================================================================== */
 :root {
     --color-bg-dark: #1a1a2e;
@@ -112,10 +113,10 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 /* ================== TELA 2: Hub Selection ================== */
 .hub-container { max-width: 1400px; margin: 0 auto; }
 
-/* (NOVO CSS) Filter Toolbar (Fase 1 Style) */
+/* (CSS CORRIGIDO) Filter Toolbar (Fase 1 Style) */
 .filter-toolbar {
-    background-color: rgba(0,0,0,0.2); /* Fundo escuro embutido */
-    border: 1px solid #333; /* Borda sutil */
+    background-color: rgba(0,0,0,0.2);
+    border: 1px solid #333;
     box-shadow: none;
     padding: 15px;
     display: flex;
@@ -130,20 +131,27 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
     color: var(--color-text-light);
     padding: 10px;
     border-radius: 5px;
-    flex-grow: 1;
 }
-.filter-toolbar select {
-    height: 45px; /* Altura padrão para dropdowns */
+/* (CORREÇÃO) Ajuste de tamanho dos filtros */
+.filter-toolbar input#filter-search-name {
+    flex-grow: 2; /* Mais espaço para o search */
 }
-.filter-toolbar select[multiple] {
-    height: 100px; /* Altura para o select multiple */
+.filter-toolbar select#filter-tribe {
+    flex-grow: 2; /* (CORREÇÃO) Mais espaço para o select multiple */
+    height: 100px;
     padding: 5px;
 }
-.filter-toolbar #btn-filter-reset {
-    background-color: var(--color-accent-red); /* Botão Reset vermelho (Fase 1) */
-    color: var(--color-text-light);
+.filter-toolbar select#filter-sort-by,
+.filter-toolbar select#filter-items-per-page {
+    flex-grow: 1; /* Espaço normal */
+    height: 45px;
+    min-width: 150px; /* Garante que não fiquem muito pequenos */
+}
+.filter-toolbar .action-btn {
+    width: auto; /* (CORREÇÃO) Sobrescreve width: 100% */
     flex-grow: 0;
-    padding: 10px 15px;
+    flex-shrink: 0;
+    padding: 10px 15px; /* Padding do botão Reset (Fase 1) */
 }
 
 /* NFT Grid */
@@ -155,10 +163,10 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .kid-card p { padding: 0 15px; font-size: 0.9em; margin-bottom: 5px; }
 .kid-card .action-btn { margin: 15px; width: calc(100% - 30px); }
 
-/* (NOVO CSS) Pagination Controls (Fase 1 Style) */
+/* (CSS CORRIGIDO) Pagination Controls (Fase 1 Style) */
 .pagination-controls {
-    background-color: rgba(0,0,0,0.2); /* Fundo escuro embutido */
-    border: 1px solid #333; /* Borda sutil */
+    background-color: rgba(0,0,0,0.2);
+    border: 1px solid #333;
     box-shadow: none;
     padding: 10px 15px;
     display: flex;
@@ -169,9 +177,12 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
     border-radius: 5px;
 }
 .pagination-controls .action-btn {
-    background-color: #333; /* Botões cinzas escuros */
-    color: var(--color-text-dim);
+    width: auto; /* (CORREÇÃO) Sobrescreve width: 100% */
+    min-width: 120px; /* (CORREÇÃO) Define largura mínima para PREV/NEXT */
     flex-grow: 0;
+    flex-shrink: 0;
+    background-color: #333;
+    color: var(--color-text-dim);
 }
 .pagination-controls .action-btn:hover:not(:disabled) {
     background-color: #444;
@@ -182,6 +193,8 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
     opacity: 0.5;
 }
 .pagination-controls span {
+    flex-grow: 1; /* (CORREÇÃO) Ocupa o espaço central */
+    text-align: center; /* (CORREÇÃO) Centraliza o texto */
     font-weight: bold;
     color: var(--color-text-dim);
 }
@@ -266,7 +279,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .recipe-input-item img { width: 20px; height: 20px; object-fit: contain; }
 .recipe-input-item.missing { color: var(--color-accent-red); font-weight: bold; border: 1px dashed var(--color-accent-red); }
 .recipe-input-item.available { color: var(--color-accent-green); border: 1px solid var(--color-accent-green); }
-.recipe-card .action-btn { margin-top: 10px; width: 50%; max-width: 150px; align-self: flex-end; }
+.recipe-card .action-btn { margin-top: 10px; width: auto; min-width: 120px; align-self: flex-end; }
 
 
 /* Responsividade */
