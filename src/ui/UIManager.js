@@ -1,10 +1,10 @@
 /* ====================================================================
 // UI: UIManager.js
-// UPDATE: Implements all layout changes from user feedback.
-// (New Header, Kid Info Box, moved buttons, clickable tabs).
+// UPDATE: Corrige o ReferenceError importando MOCK_TEZERIUM_BALANCE.
 // ==================================================================== */
 
-import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js';
+// Importa MOCK_TEZERIUM_BALANCE para o header
+import { MOCK_KIDZ_NFTS, MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
 import { calculateFinalStats, calculatePowerScore } from '../systems/StatCalculationSystem.js';
 import { EquipmentSystem } from '../systems/EquipmentSystem.js';
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
@@ -19,15 +19,156 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-// --- RENDER UTILITIES (Refine, Craft, Mannequin) ---
-// (As funções renderRefineTab, renderCraftTab, e renderMannequinSlots 
-// são as mesmas da resposta anterior, omitidas aqui para brevidade, 
-// MAS DEVEM ESTAR PRESENTES NO SEU ARQUIVO FINAL)
+// --- RENDER UTILITY: Mannequin ---
+const renderMannequinSlots = (equippedItems) => {
+    let slotsHTML = '';
+    
+    const equippedMap = equippedItems.reduce((map, item) => {
+        const staticData = EQUIPMENT_DB[item.item_id];
+        if (staticData) {
+            map[staticData.slot] = item;
+        }
+        return map;
+    }, {});
 
-// (COLE AQUI AS FUNÇÕES: renderMannequinSlots, renderRefineTab, renderCraftTab)
-// ... (Omitido - cole o código da resposta anterior)
+    for (const slotType of EQUIPMENT_SLOTS) {
+        const item = equippedMap[slotType];
+        const itemIconPath = item ? EQUIPMENT_DB[item.item_id].iconPath : `assets/ui/icon_${slotType}.png`;
+        const itemName = item ? EQUIPMENT_DB[item.item_id].name : `Empty (${slotType.toUpperCase()})`;
+        
+        slotsHTML += `
+            <div class="mannequin-slot" data-slot-type="${slotType}" data-equipped-instance-id="${item ? item.instance_id : ''}">
+                <img src="${itemIconPath}" alt="${itemName}">
+                <span class="slot-name">${itemName}</span>
+            </div>
+        `;
+    }
+    return slotsHTML;
+};
 
-// --- (NOVO) RENDER UTILITY: Header ---
+// --- RENDER UTILITY: Refine Tab ---
+const renderRefineTab = (state) => {
+    const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'REFINE');
+    const playerInventory = state.playerInventory;
+    let recipesHTML = '';
+
+    for (const recipe of recipes) {
+        const outputItemData = MATERIALS_DB[recipe.output.itemId] || COMPONENTS_DB[recipe.output.itemId];
+        const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
+        
+        let allInputsAvailable = true;
+        
+        const inputHTML = Object.keys(recipe.inputMaterials).map(matId => {
+            const required = recipe.inputMaterials[matId];
+            const owned = playerInventory.materials[matId] || 0;
+            const matData = MATERIALS_DB[matId];
+            const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
+            
+            return `
+                <span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">
+                    <img src="${matData.iconPath}" alt="${matData.name}" title="${matData.name}">
+                    ${owned}/${required}
+                </span>
+            `;
+        }).join(' + ');
+        
+        recipesHTML += `
+            <div class="recipe-card refine-recipe" data-recipe-id="${recipe.recipeId}">
+                <h4>${recipe.name}</h4>
+                <div class="recipe-io">
+                    <div class="input-section">${inputHTML}</div>
+                    <span class="arrow-separator">→</span>
+                    <div class="output-section">
+                        <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                        <span>${recipe.output.amount}x ${outputItemData.name}</span>
+                    </div>
+                </div>
+                
+                <button 
+                    id="btn-execute-refine" 
+                    data-recipe-id="${recipe.recipeId}"
+                    class="btn-sm action-btn btn-primary ${allInputsAvailable ? '' : 'disabled'}"
+                    ${allInputsAvailable ? '' : 'disabled'}
+                >
+                    REFINE
+                </button>
+            </div>
+        `;
+    }
+
+    return `<div class="refine-list">${recipesHTML}</div>`;
+};
+
+// --- RENDER UTILITY: Craft Tab ---
+const renderCraftTab = (state) => {
+    const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'CRAFT');
+    const playerInventory = state.playerInventory;
+    let recipesHTML = '';
+
+    for (const recipe of recipes) {
+        const outputItemData = EQUIPMENT_DB[recipe.output.itemId];
+        const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
+        
+        let allInputsAvailable = true;
+        const inputSections = [];
+
+        // 1. Render Material Inputs
+        const materialInputs = Object.keys(recipe.inputMaterials).map(matId => {
+            const required = recipe.inputMaterials[matId];
+            const owned = playerInventory.materials[matId] || 0;
+            const matData = MATERIALS_DB[matId];
+            const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
+            
+            return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${matData.name}: ${owned}/${required}</span>`;
+        }).join(' + ');
+        if (materialInputs) inputSections.push(materialInputs);
+
+        // 2. Render Shop Item Inputs 
+        const shopItemInputs = Object.keys(recipe.inputShopItems).map(itemId => {
+            const required = recipe.inputShopItems[itemId];
+            const owned = playerInventory.shopItems[itemId] || 0;
+            const itemData = SHOP_ITEMS_DB[itemId];
+            const isAvailable = owned >= required;
+            if (!isAvailable) allInputsAvailable = false;
+            
+            return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${itemData.name}: ${owned}/${required}</span>`;
+        }).join(' + ');
+        if (shopItemInputs) inputSections.push(shopItemInputs);
+
+
+        const inputHTML = inputSections.join('<br>'); 
+
+        recipesHTML += `
+            <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
+                <h4>${recipe.name}</h4>
+                <div class="recipe-io">
+                    <div class="input-section">${inputHTML}</div>
+                    <span class="arrow-separator">→</span>
+                    <div class="output-section">
+                        <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                        <span>${outputItemData.name} (${recipe.output.rarity || 'Common'})</span>
+                    </div>
+                </div>
+                
+                <button 
+                    id="btn-execute-craft" 
+                    data-recipe-id="${recipe.recipeId}"
+                    class="btn-sm action-btn btn-success ${allInputsAvailable ? '' : 'disabled'}"
+                    ${allInputsAvailable ? '' : 'disabled'}
+                >
+                    CRAFT
+                </button>
+            </div>
+        `;
+    }
+
+    return `<div class="craft-list">${recipesHTML}</div>`;
+};
+
+
+// --- RENDER UTILITY: Header (Corrigido) ---
 const renderHeader = (state) => {
     let headerRight = '';
     let headerLeft = '';
@@ -42,11 +183,11 @@ const renderHeader = (state) => {
             <div class="wallet-info">
                 <span>CKID-DEMO-001</span>
             </div>
-            <button id="btn-logout" class="action-btn btn-sm">LOG OUT</button>`;
+            <button id="btn-logout" class="action-btn btn-sm btn-primary">LOG OUT</button>`;
     } else {
         // Estado Deslogado
         headerRight = `
-            <button id="btn-connect-wallet" class="action-btn btn-sm">CONNECT WALLET</button>`;
+            <button id="btn-connect-wallet" class="action-btn btn-sm btn-primary">CONNECT WALLET</button>`;
     }
 
     return `
@@ -75,10 +216,6 @@ export const UIManager = {
 
         const screenId = state.currentScreen;
         let htmlContent = '';
-        
-        // 1. Renderiza o Header Global (NOVO)
-        // O Header agora é renderizado ANTES da div 'app-root' (em index.html)
-        // Vamos renderizá-lo DENTRO do app-root por enquanto para simplicidade.
         
         appRoot.innerHTML = ''; // Limpa a tela
         
@@ -134,7 +271,7 @@ export const UIManager = {
                 <img src="${kid.spritePath}" alt="${kid.name}">
                 <h4>${kid.name} (#${kid.id})</h4>
                 <p>Tribe: <strong>${kid.tribe}</strong> | Level: ${kid.level}</p>
-                <button id="btn-select-kid" class="action-btn">SELECT AND PREPARE</button>
+                <button id="btn-select-kid" class="action-btn btn-primary">SELECT AND PREPARE</button>
             </div>
         `).join('');
 
@@ -180,7 +317,6 @@ export const UIManager = {
             </div>
         `;
         
-        // (NOVO) Kid Info Box
         const kidInfoBoxHTML = `
             <div class="kid-info-box panel">
                 <div class="kid-image">
@@ -195,7 +331,6 @@ export const UIManager = {
             </div>
         `;
         
-        // (NOVO) Workshop Tab Logic (Lendo do GameState)
         const activeWorkshopTab = state.activeWorkshopTab || 'refine'; 
         const activeInventoryTab = state.activeInventoryTab || 'equipments';
         let workshopContent = '';
@@ -224,7 +359,7 @@ export const UIManager = {
 
                         <div class="mannequin-controls">
                             <button id="btn-auto-equip" class="action-btn btn-info btn-sm">AUTO EQUIP</button>
-                            <button id="btn-remove-all" class="action-btn btn-sm">REMOVE ALL</button>
+                            <button id="btn-remove-all" class="action-btn btn-sm btn-primary">REMOVE ALL</button>
                         </div>
                         
                         <div class="equipment-mannequin">
@@ -274,7 +409,7 @@ export const UIManager = {
             <div class="screen game-screen">
                 <h2>Expedition in Progress!</h2>
                 <p>Kid: #${state.currentPlayerKidId} is on the map.</p>
-                <button id="btn-end-expedition" class="action-btn">Return to HUB</button>
+                <button id="btn-end-expedition" class="action-btn btn-primary">Return to HUB</button>
             </div>
         `;
     }
