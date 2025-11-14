@@ -1,126 +1,116 @@
 /* ====================================================================
 // SRC/MAIN.JS (O Cérebro)
-// Ponto de entrada. Importa dados, inicializa o estado e anexa listeners.
+// Ponto de entrada. Anexa listeners e coordena os módulos.
 // ==================================================================== */
 
-// --- 1. IMPORTAÇÕES ---
-// Importa o Coração (Estado)
-import { GameState } from './core/GameState.js';
+// Importa o Coração (Estado) e os Braços (UI)
+import GameState from './core/GameState.js';
+import UIManager from './ui/UIManager.js';
 
-// (Importa os "Braços" - Vamos criar este arquivo no próximo passo)
-// import { UIManager } from './ui/UIManager.js';
-
-// (Importa os Dados - Apenas para logar, o GameState já os usou)
-import { MOCK_WALLET } from '../database/mock_wallet.js';
-console.log(`Main.js: ${MOCK_WALLET.length} Kidz carregados do DB.`);
-
-
-// --- 2. CACHE DO DOM ---
-// Pega referências dos elementos que NUNCA mudam (Header, Modais, etc)
+// --- 1. CACHE DO DOM ---
+// Cacheia apenas elementos GLOBAIS e o 'palco'
 const DOM = {
     header: {
-        tezeriumDisplay: document.getElementById('tezerium-display'),
-        tezeriumBalance: document.getElementById('tezerium-balance'),
-        headerConnectBtn: document.getElementById('header-connect-btn'),
-        connectionStatus: document.getElementById('connection-status')
+        headerConnectBtn: document.getElementById('header-connect-btn')
     },
-    // O "app-root" é onde vamos desenhar as telas
     appRoot: document.getElementById('app-root'),
-    
-    // Telas (Vamos gerenciá-las via UI Manager depois)
-    // Por enquanto, vamos simular a lógica de login
+    modals: {
+        // (Vamos cachear os modais aqui)
+    }
 };
 
-console.log("Main.js: DOM Cacheado.");
-
 /* ==================================================================== */
-/* 3. LÓGICA DE NAVEGAÇÃO INICIAL (Temporária)
-/* ==================================================================== */
-
-// Esta é uma simulação do que o UIManager.js fará
-// Isso é temporário para testar o fluxo de login
-function renderCurrentScreen() {
-    const screen = GameState.state.currentScreen;
-    
-    // Limpa a tela
-    DOM.appRoot.innerHTML = ''; 
-    
-    if (screen === 'logged-out-screen') {
-        // Desenha a tela de login (HTML injetado)
-        DOM.appRoot.innerHTML = `
-            <section id="logged-out-screen" class="screen" style="display: block;">
-                <div class="landing-container panel">
-                    <img src="images/game-logo.png" alt="Logo" id="game-logo">
-                    <h2>WELCOME</h2><p>Connect your wallet.</p>
-                    <div class="landing-actions">
-                        <button id="body-connect-btn" class="action-btn">Connect Wallet</button>
-                        <button id="demo-game-btn" class="action-btn demo-btn">Play Demo</button>
-                    </div>
-                </div>
-            </section>
-        `;
-        // Anexa listeners para os botões que acabamos de criar
-        document.getElementById('body-connect-btn').addEventListener('click', handleConnectWallet);
-        document.getElementById('demo-game-btn').addEventListener('click', handleDemoGame);
-
-    } else if (screen === 'hub-selection-screen') {
-        // Desenha a tela de seleção (HTML injetado)
-        DOM.appRoot.innerHTML = `
-            <section id="hub-selection-screen" class="screen" style="display: block;">
-                <div class="hub-container">
-                    <h2>SELECT YOUR KID</h2>
-                    <div class="nft-grid">
-                        <div class="nft-card panel">Card de Kid 1 (WIP)</div>
-                        <div class="nft-card panel">Card de Kid 2 (WIP)</div>
-                    </div>
-                </div>
-            </section>
-        `;
-        // (Anexaríamos os cliques do grid aqui)
-    }
-}
-
-/* ==================================================================== */
-/* 4. HANDLERS (O que os botões fazem)
+/* 2. HANDLERS (O que os cliques fazem)
 /* ==================================================================== */
 
 function handleConnectWallet() {
-    console.log("Handler: Connect Wallet Clicado");
+    console.log("Handler: Connect Wallet");
     
-    // 1. Lógica (Coração)
+    // 1. Atualiza o Estado
     GameState.initializeWallet();
     GameState.setScreen('hub-selection-screen');
     
-    // 2. UI (Braços)
-    DOM.header.tezeriumDisplay.style.visibility = 'visible';
-    DOM.header.tezeriumBalance.textContent = GameState.getPlayerTezerium();
-    DOM.header.headerConnectBtn.style.display = 'none';
-    DOM.header.connectionStatus.style.display = 'inline';
+    // 2. Atualiza a UI
+    UIManager.updateHeader();
+    UIManager.renderCurrentScreen();
     
-    // 3. Renderizar a nova tela
-    renderCurrentScreen(); 
+    // 3. Anexa listeners para a NOVA tela (Delegação)
+    attachHubSelectionListeners();
 }
 
 function handleDemoGame() {
-    console.log("Handler: Play Demo Clicado");
-    // (Lógica futura)
-    handleConnectWallet(); // Por enquanto, faz o mesmo que o login
+    console.log("Handler: Play Demo");
+    GameState.initializeWallet();
+    
+    // (Lógica futura para encontrar o Kid Demo)
+    const demoKidId = GameState.get().player.kidz[0].id; 
+    
+    GameState.setActiveKid(demoKidId);
+    GameState.setScreen('game-screen'); // Pula direto para o jogo
+    
+    UIManager.updateHeader();
+    UIManager.renderCurrentScreen();
+    // (Anexar listeners da tela de Jogo)
 }
 
+function handleKidSelect(kidId) {
+    console.log(`Handler: Kid ${kidId} selecionado`);
+    
+    // 1. Atualiza o Estado
+    GameState.setActiveKid(kidId);
+    GameState.setScreen('hub-preparation-screen');
+    
+    // 2. Renderiza
+    UIManager.renderCurrentScreen(); 
+    // (Anexar listeners da tela de Preparação)
+}
+
+
 /* ==================================================================== */
-/* 5. INICIALIZAÇÃO
+/* 3. ANEXAÇÃO DE LISTENERS (Onde a mágica acontece)
+/* ==================================================================== */
+
+// Anexa listeners globais que existem desde o início
+function attachGlobalListeners() {
+    DOM.header.headerConnectBtn.addEventListener('click', handleConnectWallet);
+    
+    // O appRoot "ouve" cliques em botões que ainda não existem
+    DOM.appRoot.addEventListener('click', (e) => {
+        // Botões da Tela de Login
+        if (e.target.id === 'body-connect-btn') handleConnectWallet();
+        if (e.target.id === 'demo-game-btn') handleDemoGame();
+    });
+}
+
+// Anexa listeners específicos da Tela de Seleção
+function attachHubSelectionListeners() {
+    const grid = document.getElementById('nft-selection-grid');
+    if (!grid) return;
+    
+    // Delegação de evento: Ouve cliques no grid
+    grid.addEventListener('click', (e) => {
+        const kidButton = e.target.closest('.select-kid-btn');
+        if (kidButton) {
+            handleKidSelect(kidButton.dataset.kidId);
+        }
+    });
+    
+    // (Anexar listeners dos filtros aqui)
+}
+
+
+/* ==================================================================== */
+/* 4. INICIALIZAÇÃO
 /* ==================================================================== */
 
 function initialize() {
-    console.log("Main.js: Anexando listeners...");
-
-    // Anexa listeners aos botões PERMANENTES (do index.html)
-    DOM.header.headerConnectBtn.addEventListener('click', handleConnectWallet);
+    console.log("Main.js: Anexando listeners globais...");
+    attachGlobalListeners();
     
-    // Renderiza a primeira tela
-    renderCurrentScreen();
+    // Renderiza a primeira tela (Login)
+    UIManager.renderCurrentScreen();
     
-    console.log("Game_V2 Inicializado.");
+    console.log("Game V2 (Modular) Inicializado.");
 }
 
 // Inicia o jogo!
