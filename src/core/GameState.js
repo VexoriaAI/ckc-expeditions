@@ -1,43 +1,64 @@
 /* ====================================================================
 // CORE: GameState.js
-// ATUALIZAÇÃO: Adiciona função para carregar dados mock (demo).
+// UPDATE: Adiciona lógica de pré-processamento para inicializar chaves dinâmicas
+// (como isEquipped) nos itens do inventário mock.
 // ==================================================================== */
 
-import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; // Importa dados mock
+import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
-// Estado inicial... (estrutura idêntica ao passo anterior)
+// Estado inicial... (estrutura idêntica)
 const INITIAL_STATE = {
-    // ... (restante do INITIAL_STATE)
+    currentScreen: 'logged-out-screen',
     isWalletConnected: false,
-    currentPlayerKidId: null, 
+    currentPlayerKidId: null,
     playerInventory: {
         materials: {}, 
         equipment: [], 
         components: [], 
         shopItems: {}, 
     },
-    // ...
+    expedition: {
+        kidStats: null, 
+        currentLocation: null,
+        AP: 0, 
+        MP: 0, 
+        log: [],
+    },
+    playerKidz: [], // Array para armazenar os NFTs Kidz do jogador
 };
 
-// ... (definição de gameState, getState, updateState, setCurrentScreen, resetState)
+let gameState = { ...INITIAL_STATE };
+// ... (getState, updateState, setCurrentScreen, resetState são os mesmos)
 
 /**
  * Carrega dados de demonstração (MOCK) para simular um jogador logado.
  */
 export const loadDemoData = () => {
-    console.log('GameState: Carregando dados de DEMONSTRAÇÃO (MOCK_WALLET).');
+    console.log('GameState: Loading DEMO data (MOCK_WALLET) and initializing dynamic keys.');
     
-    // 1. Adiciona os Kids (NFTs) à uma nova propriedade do estado.
-    // Isso simula os NFTs que o jogador possui.
+    // 1. Carrega Kids (NFTs)
     gameState.playerKidz = MOCK_KIDZ_NFTS;
 
-    // 2. Carrega o inventário inicial
-    gameState.playerInventory = MOCK_INVENTORY;
+    // 2. Pré-processa e Carrega o Inventário
+    
+    // Inicializa o novo objeto de inventário
+    const processedInventory = {
+        materials: MOCK_INVENTORY.materials,
+        components: MOCK_INVENTORY.components,
+        shopItems: MOCK_INVENTORY.shopItems,
+        
+        // CRÍTICO: Processa equipamentos para adicionar a chave dinâmica isEquipped
+        equipment: MOCK_INVENTORY.equipment.map(item => ({
+            ...item,
+            // Adiciona a chave de estado dinâmico, sempre false ao carregar
+            isEquipped: false 
+        }))
+    };
+    
+    gameState.playerInventory = processedInventory;
 
-    // 3. Define o primeiro Kid da lista como o Kid inicialmente selecionado para a tela de Seleção
-    // NOTA: O GDD diz que a tela deve ser 'hub-selection-screen' primeiro. 
-    // Vamos manter o currentPlayerKidId como null, e setar 'isWalletConnected' para true.
+    // 3. Simula conexão de carteira
     gameState.isWalletConnected = true;
 
-    // A notificação ao UIManager será feita pelo setCurrentScreen em main.js
+    // A notificação ao UIManager será disparada pelo setCurrentScreen em main.js
 };
