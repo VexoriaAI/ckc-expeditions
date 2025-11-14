@@ -1,6 +1,6 @@
 /* ====================================================================
 // UI: UIManager.js
-// UPDATE: Integrates the CRAFT tab, rendering Crafting recipes.
+// UPDATE: Includes rendering logic for both REFINE and CRAFT tabs.
 // Language: English
 // ==================================================================== */
 
@@ -47,7 +47,7 @@ const renderMannequinSlots = (equippedItems) => {
     return slotsHTML;
 };
 
-// --- RENDER UTILITY: Refine Tab (Reutilizado) ---
+// --- RENDER UTILITY: Refine Tab ---
 const renderRefineTab = (state) => {
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'REFINE');
     const playerInventory = state.playerInventory;
@@ -58,10 +58,8 @@ const renderRefineTab = (state) => {
         const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
         
         let allInputsAvailable = true;
-        const inputSections = [];
-
-        // 1. Render Material Inputs
-        const materialInputs = Object.keys(recipe.inputMaterials).map(matId => {
+        
+        const inputHTML = Object.keys(recipe.inputMaterials).map(matId => {
             const required = recipe.inputMaterials[matId];
             const owned = playerInventory.materials[matId] || 0;
             const matData = MATERIALS_DB[matId];
@@ -75,10 +73,7 @@ const renderRefineTab = (state) => {
                 </span>
             `;
         }).join(' + ');
-        if (materialInputs) inputSections.push(materialInputs);
-
-        const inputHTML = inputSections.join(' + ');
-
+        
         recipesHTML += `
             <div class="recipe-card refine-recipe" data-recipe-id="${recipe.recipeId}">
                 <h4>${recipe.name}</h4>
@@ -94,7 +89,7 @@ const renderRefineTab = (state) => {
                 <button 
                     id="btn-execute-refine" 
                     data-recipe-id="${recipe.recipeId}"
-                    class="btn-sm btn-primary ${allInputsAvailable ? '' : 'disabled'}"
+                    class="btn-sm action-btn ${allInputsAvailable ? '' : 'disabled'}"
                     ${allInputsAvailable ? '' : 'disabled'}
                 >
                     REFINE
@@ -106,7 +101,7 @@ const renderRefineTab = (state) => {
     return `<div class="refine-list">${recipesHTML}</div>`;
 };
 
-// --- RENDER UTILITY: Craft Tab (NOVO) ---
+// --- RENDER UTILITY: Craft Tab ---
 const renderCraftTab = (state) => {
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'CRAFT');
     const playerInventory = state.playerInventory;
@@ -131,7 +126,7 @@ const renderCraftTab = (state) => {
         }).join(' + ');
         if (materialInputs) inputSections.push(materialInputs);
 
-        // 2. Render Shop Item Inputs (Simples, para exemplo)
+        // 2. Render Shop Item Inputs 
         const shopItemInputs = Object.keys(recipe.inputShopItems).map(itemId => {
             const required = recipe.inputShopItems[itemId];
             const owned = playerInventory.shopItems[itemId] || 0;
@@ -144,7 +139,7 @@ const renderCraftTab = (state) => {
         if (shopItemInputs) inputSections.push(shopItemInputs);
 
 
-        const inputHTML = inputSections.join('<br>'); // Use line break for clarity in a complex recipe list
+        const inputHTML = inputSections.join('<br>'); 
 
         recipesHTML += `
             <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
@@ -161,7 +156,7 @@ const renderCraftTab = (state) => {
                 <button 
                     id="btn-execute-craft" 
                     data-recipe-id="${recipe.recipeId}"
-                    class="btn-sm btn-success ${allInputsAvailable ? '' : 'disabled'}"
+                    class="btn-sm action-btn success-btn ${allInputsAvailable ? '' : 'disabled'}"
                     ${allInputsAvailable ? '' : 'disabled'}
                 >
                     CRAFT
@@ -174,7 +169,7 @@ const renderCraftTab = (state) => {
 };
 
 
-// --- UIManager Public Interface (renderHubPreparationScreen Update) ---
+// --- UIManager Public Interface ---
 
 export const UIManager = {
     init: function() {
@@ -215,13 +210,18 @@ export const UIManager = {
 
     renderLoggedOutScreen: function(state) {
         const status = state.isWalletConnected ? 'Connected' : 'Disconnected';
+        // HTML ajustado para se adequar ao novo CSS (logged-out-screen)
         return `
-            <div class="screen logged-out-screen">
-                <img src="assets/ui/game-logo.png" alt="CyberKidz Logo" class="logo">
-                <h1>CyberKidz Club - Expeditions</h1>
-                <p>Wallet Status: <strong>${status}</strong> (Tezos)</p>
-                <button id="btn-connect-wallet" class="btn-primary">Connect Wallet</button>
-                <button id="btn-play-demo" class="btn-secondary">Play Demo</button>
+            <div class="screen logged-out-screen" id="logged-out-screen">
+                <div class="landing-container panel">
+                    <img src="assets/ui/game-logo.png" alt="CyberKidz Logo" id="game-logo">
+                    <h2>CyberKidz Club - Expeditions</h2>
+                    <p>Wallet Status: <span id="connection-status">${status}</span> (Tezos)</p>
+                    <div class="landing-actions">
+                        <button id="btn-connect-wallet" class="action-btn">Connect Wallet</button>
+                        <button id="btn-play-demo" class="action-btn demo-btn">Play Demo</button>
+                    </div>
+                </div>
             </div>
         `;
     },
@@ -230,18 +230,18 @@ export const UIManager = {
         const kidzData = state.playerKidz || []; 
         
         const kidCardsHTML = kidzData.map(kid => `
-            <div class="kid-card" data-kid-id="${kid.id}">
+            <div class="kid-card panel" data-kid-id="${kid.id}">
                 <img src="${kid.spritePath}" alt="${kid.name}">
-                <h3>${kid.name} (#${kid.id})</h3>
+                <h4>${kid.name} (#${kid.id})</h4>
                 <p>Tribe: <strong>${kid.tribe}</strong> | Level: ${kid.level}</p>
-                <button id="btn-select-kid" class="btn-select">SELECT AND PREPARE</button>
+                <button id="btn-select-kid" class="action-btn">SELECT AND PREPARE</button>
             </div>
         `).join('');
 
         return `
-            <div class="screen hub-selection-screen">
+            <div class="screen hub-selection-screen hub-container">
                 <h2>Select CyberKid for Expedition</h2>
-                <div class="kid-grid-container">
+                <div class="nft-grid">
                     ${kidCardsHTML}
                 </div>
             </div>
@@ -263,7 +263,7 @@ export const UIManager = {
         const mannequinHTML = renderMannequinSlots(equippedItems);
 
         const statsSummaryHTML = `
-            <div class="stats-summary-card">
+            <div class="stats-summary-card panel">
                 <h4>FINAL STATS:</h4>
                 <div class="power-score-badge">Power Score: <span>${totalPowerScore}</span></div>
                 <ul>
@@ -278,9 +278,8 @@ export const UIManager = {
             </div>
         `;
         
-        // Workshop Tab Logic
-        // NOTE: In a complete implementation, this should be read from GameState
-        const activeWorkshopTab = 'craft'; // Changed to 'craft' for immediate testing
+        // Workshop Tab Logic: Set default tab to 'craft' for testing
+        const activeWorkshopTab = 'craft'; 
         let workshopContent = '';
         
         if (activeWorkshopTab === 'refine') {
@@ -288,42 +287,52 @@ export const UIManager = {
         } else if (activeWorkshopTab === 'craft') {
             workshopContent = renderCraftTab(state);
         }
-        // else if ('embed') { ... }
 
         return `
-            <div class="screen hub-preparation-screen container-fluid">
-                <h1>Expedition Prep - ${kidStaticData.name} (#${kidId})</h1>
-                <div class="row">
-                    <div class="col-4 character-sheet-col">
+            <div class="screen hub-preparation-screen preparation-container">
+                <header id="main-header">
+                    <h1>Expedition Prep - ${kidStaticData.name} (#${kidId})</h1>
+                    <div id="tezerium-display">Tezerium: <span>500</span></div>
+                </header>
+                <div class="row preparation-container">
+                    <div class="character-sheet-col" id="character-sheet-panel">
                         <h3>Character Sheet: ${kidStaticData.tribe}</h3>
                         
-                        <div class="mannequin-container">
+                        <div class="equipment-mannequin">
                             ${mannequinHTML}
                         </div>
 
                         ${statsSummaryHTML}
                         
                         <div class="d-flex justify-content-between mt-3">
-                            <button id="btn-auto-equip" class="btn-info">AUTO EQUIP</button>
-                            <button id="btn-remove-all" class="btn-warning">REMOVE ALL</button>
+                            <button id="btn-auto-equip" class="action-btn small-btn demo-btn">AUTO EQUIP</button>
+                            <button id="btn-remove-all" class="action-btn small-btn">REMOVE ALL</button>
                         </div>
                         
-                        <button id="btn-start-expedition" class="btn-success btn-lg mt-3">START EXPEDITION</button>
+                        <button id="btn-start-expedition" class="action-btn success-btn">START EXPEDITION</button>
                     </div>
 
-                    <div class="col-8 inventory-workshop-col">
-                        <div class="inventory-panel">
+                    <div class="inventory-workshop-col">
+                        <div class="inventory-panel panel">
                             <h3>Inventory</h3>
-                            <p>[Inventory Tabs and Item Lists to be implemented]</p>
+                            <div class="tabs">
+                                <button class="tab-btn active" data-tab="equipments">Equipments</button>
+                                <button class="tab-btn" data-tab="components">Components</button>
+                                <button class="tab-btn" data-tab="materials">Materials</button>
+                                <button class="tab-btn" data-tab="shop-items">Shop Items</button>
+                            </div>
+                            <div class="item-grid-container">
+                                <p>[Inventory List to be implemented]</p>
+                            </div>
                         </div>
 
-                        <div class="workshop-panel mt-4">
+                        <div class="workshop-panel panel mt-4">
                             <h3>Workshop</h3>
-                            <ul class="nav nav-tabs" id="workshop-tabs">
-                                <li class="nav-item"><a class="nav-link ${activeWorkshopTab === 'refine' ? 'active' : ''}" data-tab="refine">REFINE</a></li>
-                                <li class="nav-item"><a class="nav-link ${activeWorkshopTab === 'craft' ? 'active' : ''}" data-tab="craft">CRAFT</a></li>
-                                <li class="nav-item"><a class="nav-link ${activeWorkshopTab === 'embed' ? 'active' : ''}" data-tab="embed">EMBED</a></li>
-                            </ul>
+                            <div class="tabs" id="workshop-tabs">
+                                <button class="tab-btn ${activeWorkshopTab === 'refine' ? 'active' : ''}" data-tab="refine">REFINE</button>
+                                <button class="tab-btn ${activeWorkshopTab === 'craft' ? 'active' : ''}" data-tab="craft">CRAFT</button>
+                                <button class="tab-btn ${activeWorkshopTab === 'embed' ? 'active' : ''}" data-tab="embed">EMBED</button>
+                            </div>
                             <div id="workshop-content" class="tab-content">
                                 ${workshopContent}
                             </div>
@@ -339,7 +348,7 @@ export const UIManager = {
             <div class="screen game-screen">
                 <h2>Expedition in Progress!</h2>
                 <p>Kid: #${state.currentPlayerKidId} is on the map.</p>
-                <button id="btn-end-expedition" class="btn-danger">Return to HUB</button>
+                <button id="btn-end-expedition" class="action-btn">Return to HUB</button>
             </div>
         `;
     }
