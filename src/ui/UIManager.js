@@ -1,8 +1,6 @@
 /* ====================================================================
 // UI: UIManager.js
-// VERSÃO COMPLETA (CORRIGIDA)
-// Funde a lógica de Filtro/Paginação com todas as funções auxiliares 
-// (Refine, Craft, Mannequin) e correções de layout.
+// UPDATE: Adiciona o botão "Store" ao lado do Tezerium display.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS, MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
@@ -20,7 +18,7 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-// --- RENDER UTILITY: Mannequin (CORRIGIDO P/ ICON 32x32) ---
+// --- RENDER UTILITY: Mannequin ---
 const renderMannequinSlots = (equippedItems) => {
     let slotsHTML = '';
     
@@ -180,24 +178,33 @@ const renderCraftTab = (state) => {
     return `<div class="craft-list">${recipesHTML}</div>`;
 };
 
-// --- RENDER UTILITY: Header ---
+// --- RENDER UTILITY: Header (ATUALIZADO) ---
 const renderHeader = (state) => {
     let headerRight = '';
     let headerLeft = '';
+    const tezeriumIcon = 'assets/ui/icon_tezerium.png'; 
+    const storeIcon = 'assets/ui/icon_store.png'; // (NOVO) Assumindo que este é o ícone da loja
 
     if (state.isWalletConnected) {
-        // Logged In State
+        // Estado Logado
         headerLeft = `
             <div class="tezerium-display">
-                Tezerium: <span>${MOCK_TEZERIUM_BALANCE || 500}</span>
-            </div>`;
+                <img src="${tezeriumIcon}" alt="Tezerium" class="tezerium-icon">
+                Tezerium: <span>${MOCK_TEZERIUM_BALANCE || 1000}</span>
+            </div>
+            <button id="btn-store" class="action-btn btn-secondary btn-sm store-btn">
+                <img src="${storeIcon}" alt="Store Icon">
+                <span>Store</span>
+            </button>
+            `;
         headerRight = `
             <div class="wallet-info">
-                <span>CKID-DEMO-001</span>
+                <span class="wallet-status-label">Connected</span>
+                <span class="wallet-address">KT1FjFG1QrqPCWqYvQcdC4rJz7dEY45eybmf</span>
             </div>
             <button id="btn-logout" class="action-btn btn-sm btn-primary">LOG OUT</button>`;
     } else {
-        // Logged Out State
+        // Estado Deslogado
         headerRight = `
             <button id="btn-connect-wallet" class="action-btn btn-sm btn-primary">CONNECT WALLET</button>`;
     }
@@ -230,12 +237,12 @@ export const UIManager = {
         const screenId = state.currentScreen;
         let htmlContent = '';
         
-        appRoot.innerHTML = ''; // Clear screen
+        appRoot.innerHTML = ''; // Limpa a tela
         
-        // Render the global header first
+        // Renderiza o Header primeiro
         appRoot.innerHTML = renderHeader(state);
 
-        // Render the screen content
+        // Renderiza o conteúdo da tela
         switch (screenId) {
             case 'logged-out-screen':
                 htmlContent = this.renderLoggedOutScreen(state);
@@ -249,11 +256,15 @@ export const UIManager = {
             case 'game-screen': 
                 htmlContent = this.renderGameScreen(state);
                 break;
+            // (NOVO) Placeholder da Loja
+            case 'store-screen':
+                htmlContent = `<div class="screen store-screen"><h2>Store (Placeholder)</h2><p>Store items will be displayed here.</p><button id="btn-back-to-hub" class="action-btn btn-secondary">Back to Hub</button></div>`;
+                break;
             default:
                 htmlContent = `<h2>[ERROR] Screen Not Found: ${screenId}</h2>`;
         }
         
-        appRoot.innerHTML += htmlContent; // Add screen content AFTER header
+        appRoot.innerHTML += htmlContent; // Adiciona o conteúdo da tela DEPOIS do header
         appRoot.dataset.currentScreen = screenId;
     },
 
@@ -273,7 +284,7 @@ export const UIManager = {
         `;
     },
 
-    // --- (ATUALIZADO) HUB SELECTION SCREEN (Com Filtros e Paginação) ---
+    // --- HUB SELECTION SCREEN (Com Filtros e Paginação) ---
     renderHubSelectionScreen: function(state) {
         const kidzData = state.playerKidz || []; 
         const filters = state.hubSelectionFilters;
@@ -326,7 +337,7 @@ export const UIManager = {
 
         // 4. Renderização dos Controles de Filtro
         const filterControlsHTML = `
-            <div class="filter-toolbar panel">
+            <div class="filter-toolbar">
                 <input type="text" id="filter-search-name" placeholder="Search by name..." value="${filters.searchQuery}">
                 
                 <select id="filter-tribe" multiple>
@@ -355,7 +366,7 @@ export const UIManager = {
         
         // 5. Renderização dos Controles de Paginação
         const paginationControlsHTML = `
-            <div class="pagination-controls panel">
+            <div class="pagination-controls">
                 <button id="btn-page-prev" class="action-btn btn-sm" ${filters.currentPage === 1 ? 'disabled' : ''}>Previous</button>
                 <span>Page ${filters.currentPage} of ${totalPages} (${totalItems} items)</span>
                 <button id="btn-page-next" class="action-btn btn-sm" ${filters.currentPage >= totalPages ? 'disabled' : ''}>Next</button>
