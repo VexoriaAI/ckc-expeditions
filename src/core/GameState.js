@@ -36,29 +36,33 @@ let gameState = { ...INITIAL_STATE };
 export const loadDemoData = () => {
     console.log('GameState: Loading DEMO data (MOCK_WALLET) and initializing dynamic keys.');
     
-    // 1. Carrega Kids (NFTs)
     gameState.playerKidz = MOCK_KIDZ_NFTS;
 
     // 2. Pré-processa e Carrega o Inventário
-    
-    // Inicializa o novo objeto de inventário
     const processedInventory = {
         materials: MOCK_INVENTORY.materials,
         components: MOCK_INVENTORY.components,
         shopItems: MOCK_INVENTORY.shopItems,
         
-        // CRÍTICO: Processa equipamentos para adicionar a chave dinâmica isEquipped
+        // CRÍTICO: Processa equipamentos para adicionar a chave dinâmica isEquipped: false
         equipment: MOCK_INVENTORY.equipment.map(item => ({
             ...item,
-            // Adiciona a chave de estado dinâmico, sempre false ao carregar
             isEquipped: false 
         }))
     };
+    
+    // Simulação de estado salvo: Equipar o primeiro item do inventário (Helmet)
+    if (processedInventory.equipment.length > 0) {
+        // Encontra o primeiro capacete na lista mock e o marca como equipado
+        const helmetIndex = processedInventory.equipment.findIndex(item => item.item_id.includes('helmet'));
+        if (helmetIndex !== -1) {
+             processedInventory.equipment[helmetIndex].isEquipped = true;
+             console.log(`Demo: Item ${processedInventory.equipment[helmetIndex].item_id} set as equipped for initial state.`);
+        }
+    }
     
     gameState.playerInventory = processedInventory;
 
     // 3. Simula conexão de carteira
     gameState.isWalletConnected = true;
-
-    // A notificação ao UIManager será disparada pelo setCurrentScreen em main.js
 };
