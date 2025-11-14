@@ -1,7 +1,8 @@
 /* ====================================================================
 // UI: UIManager.js
-// UPDATE: Corrige o bug de ícones estourados no Mannequin.
-// Adiciona as classes .empty-slot e .equipped-slot para CSS.
+// VERSÃO COMPLETA (CORRIGIDA)
+// Funde a lógica de Filtro/Paginação com todas as funções auxiliares 
+// (Refine, Craft, Mannequin) e correções de layout.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS, MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
@@ -19,7 +20,7 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-// --- RENDER UTILITY: Mannequin (CORRIGIDO) ---
+// --- RENDER UTILITY: Mannequin (CORRIGIDO P/ ICON 32x32) ---
 const renderMannequinSlots = (equippedItems) => {
     let slotsHTML = '';
     
@@ -92,7 +93,7 @@ const renderRefineTab = (state) => {
                     <div class="input-section">${inputHTML}</div>
                     <span class="arrow-separator">→</span>
                     <div class="output-section">
-                        <img src="${outputItemData.iconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                        <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
                         <span>${recipe.output.amount}x ${outputItemData.name}</span>
                     </div>
                 </div>
@@ -179,14 +180,13 @@ const renderCraftTab = (state) => {
     return `<div class="craft-list">${recipesHTML}</div>`;
 };
 
-
 // --- RENDER UTILITY: Header ---
 const renderHeader = (state) => {
     let headerRight = '';
     let headerLeft = '';
 
     if (state.isWalletConnected) {
-        // Estado Logado
+        // Logged In State
         headerLeft = `
             <div class="tezerium-display">
                 Tezerium: <span>${MOCK_TEZERIUM_BALANCE || 500}</span>
@@ -197,7 +197,7 @@ const renderHeader = (state) => {
             </div>
             <button id="btn-logout" class="action-btn btn-sm btn-primary">LOG OUT</button>`;
     } else {
-        // Estado Deslogado
+        // Logged Out State
         headerRight = `
             <button id="btn-connect-wallet" class="action-btn btn-sm btn-primary">CONNECT WALLET</button>`;
     }
@@ -212,6 +212,7 @@ const renderHeader = (state) => {
             </div>
         </header>`;
 };
+
 
 // --- UIManager Public Interface ---
 
@@ -229,12 +230,12 @@ export const UIManager = {
         const screenId = state.currentScreen;
         let htmlContent = '';
         
-        appRoot.innerHTML = ''; // Limpa a tela
+        appRoot.innerHTML = ''; // Clear screen
         
-        // Renderiza o Header primeiro
+        // Render the global header first
         appRoot.innerHTML = renderHeader(state);
 
-        // Renderiza o conteúdo da tela
+        // Render the screen content
         switch (screenId) {
             case 'logged-out-screen':
                 htmlContent = this.renderLoggedOutScreen(state);
@@ -252,13 +253,11 @@ export const UIManager = {
                 htmlContent = `<h2>[ERROR] Screen Not Found: ${screenId}</h2>`;
         }
         
-        // Adiciona o conteúdo da tela DEPOIS do header
-        appRoot.innerHTML += htmlContent; 
+        appRoot.innerHTML += htmlContent; // Add screen content AFTER header
         appRoot.dataset.currentScreen = screenId;
     },
 
     renderLoggedOutScreen: function(state) {
-        // O header já é renderizado por renderScreen()
         return `
             <div class="screen logged-out-screen" id="logged-out-screen">
                 <div class="landing-container panel">
@@ -274,30 +273,109 @@ export const UIManager = {
         `;
     },
 
+    // --- (ATUALIZADO) HUB SELECTION SCREEN (Com Filtros e Paginação) ---
     renderHubSelectionScreen: function(state) {
-        // O header já é renderizado por renderScreen()
         const kidzData = state.playerKidz || []; 
+        const filters = state.hubSelectionFilters;
         
-        const kidCardsHTML = kidzData.map(kid => `
+        // 1. Lógica de Filtro e Ordenação
+        let filteredKidz = kidzData;
+
+        // Search Query
+        if (filters.searchQuery) {
+            filteredKidz = filteredKidz.filter(kid => 
+                kid.name.toLowerCase().includes(filters.searchQuery.toLowerCase())
+            );
+        }
+
+        // Tribe (Multiple)
+        if (filters.selectedTribes.length > 0) {
+            filteredKidz = filteredKidz.filter(kid => 
+                filters.selectedTribes.includes(kid.tribe)
+            );
+        }
+
+        // Sort
+        filteredKidz.sort((a, b) => {
+            if (filters.sortBy === 'power') {
+                const powerA = calculatePowerScore(a.baseStats);
+                const powerB = calculatePowerScore(b.baseStats);
+                return powerB - powerA; // Descending
+            }
+            // Default: 'level'
+            return b.level - a.level; // Descending
+        });
+
+        // 2. Lógica de Paginação
+        const totalItems = filteredKidz.length;
+        const totalPages = Math.ceil(totalItems / filters.itemsPerPage);
+        const startIndex = (filters.currentPage - 1) * filters.itemsPerPage;
+        const endIndex = startIndex + filters.itemsPerPage;
+        const paginatedKidz = filteredKidz.slice(startIndex, endIndex);
+        
+        // 3. Renderização dos Cards (Apenas itens paginados)
+        const kidCardsHTML = paginatedKidz.map(kid => `
             <div class="kid-card panel" data-kid-id="${kid.id}">
                 <img src="${kid.spritePath}" alt="${kid.name}">
                 <h4>${kid.name} (#${kid.id})</h4>
                 <p>Tribe: <strong>${kid.tribe}</strong> | Level: ${kid.level}</p>
+                <p>Power: ${calculatePowerScore(kid.baseStats)}</p>
                 <button id="btn-select-kid" class="action-btn btn-primary">SELECT AND PREPARE</button>
             </div>
         `).join('');
 
+        // 4. Renderização dos Controles de Filtro
+        const filterControlsHTML = `
+            <div class="filter-toolbar panel">
+                <input type="text" id="filter-search-name" placeholder="Search by name..." value="${filters.searchQuery}">
+                
+                <select id="filter-tribe" multiple>
+                    <option value="VOLCANICS" ${filters.selectedTribes.includes('VOLCANICS') ? 'selected' : ''}>Volcanics</option>
+                    <option value="NOCTURNALS" ${filters.selectedTribes.includes('NOCTURNALS') ? 'selected' : ''}>Nocturnals</option>
+                    <option value="UNDERGROUNDERS" ${filters.selectedTribes.includes('UNDERGROUNDERS') ? 'selected' : ''}>Undergrounders</option>
+                    <option value="REPTILIANS" ${filters.selectedTribes.includes('REPTILIANS') ? 'selected' : ''}>Reptilians</option>
+                    <option value="RADIOACTIVES" ${filters.selectedTribes.includes('RADIOACTIVES') ? 'selected' : ''}>Radioactives</option>
+                </select>
+                
+                <select id="filter-sort-by">
+                    <option value="level" ${filters.sortBy === 'level' ? 'selected' : ''}>Sort by Level</option>
+                    <option value="power" ${filters.sortBy === 'power' ? 'selected' : ''}>Sort by Power</option>
+                </select>
+                
+                <select id="filter-items-per-page">
+                    <option value="5" ${filters.itemsPerPage == 5 ? 'selected' : ''}>5 per page</option>
+                    <option valueValue="10" ${filters.itemsPerPage == 10 ? 'selected' : ''}>10 per page</option>
+                    <option value="20" ${filters.itemsPerPage == 20 ? 'selected' : ''}>20 per page</option>
+                    <option value="50" ${filters.itemsPerPage == 50 ? 'selected' : ''}>50 per page</option>
+                </select>
+                
+                <button id="btn-filter-reset" class="action-btn btn-secondary btn-sm">Reset</button>
+            </div>
+        `;
+        
+        // 5. Renderização dos Controles de Paginação
+        const paginationControlsHTML = `
+            <div class="pagination-controls panel">
+                <button id="btn-page-prev" class="action-btn btn-sm" ${filters.currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                <span>Page ${filters.currentPage} of ${totalPages} (${totalItems} items)</span>
+                <button id="btn-page-next" class="action-btn btn-sm" ${filters.currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+            </div>
+        `;
+
+        // 6. Montagem Final
         return `
             <div class="screen hub-selection-screen hub-container">
+                ${filterControlsHTML}
                 <div class="nft-grid">
-                    ${kidCardsHTML}
+                    ${kidCardsHTML.length > 0 ? kidCardsHTML : '<p>No CyberKidz found matching filters.</p>'}
                 </div>
+                ${paginationControlsHTML}
             </div>
         `;
     },
 
+    // --- HUB PREPARATION SCREEN (Layout Corrigido) ---
     renderHubPreparationScreen: function(state) {
-        // O header já é renderizado por renderScreen()
         const kidId = state.currentPlayerKidId;
         const kidStaticData = getKidDataById(kidId);
 
@@ -416,7 +494,6 @@ export const UIManager = {
     },
     
     renderGameScreen: function(state) {
-        // O header já é renderizado por renderScreen()
         return `
             <div class="screen game-screen">
                 <h2>Expedition in Progress!</h2>
