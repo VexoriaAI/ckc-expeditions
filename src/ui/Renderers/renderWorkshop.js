@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderWorkshop.js
-// Exporta as funções para renderizar as abas do Workshop (Refine, Craft).
+// PATH CORRECTION: ../../database/
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../database/recipes.js';
