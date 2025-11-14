@@ -1,3 +1,4 @@
+import { TRIBES } from './tribes.js';
 /* ====================================================================
 // DATABASE: MOCK WALLET
 // Simula uma carteira conectada com NFTs (Kidz) para teste.
