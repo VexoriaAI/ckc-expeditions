@@ -1,117 +1,67 @@
 /* ====================================================================
-// SRC/MAIN.JS (O Cérebro)
-// Ponto de entrada. Anexa listeners e coordena os módulos.
+// CORE: main.js
+// O Cérebro - Ponto de entrada da aplicação.
+// Responsável por: Inicializar módulos, coordenar o fluxo de telas e anexar listeners.
 // ==================================================================== */
 
-// Importa o Coração (Estado) e os Braços (UI)
-import GameState from './core/GameState.js';
-import UIManager from './ui/UIManager.js';
+import { getState, setCurrentScreen } from './core/GameState.js';
+import { UIManager } from './ui/UIManager.js'; // Será criado no próximo passo
+import { MATERIALS_DB } from '../database/materials.js'; // Exemplo de importação de um DB
 
-// --- 1. CACHE DO DOM ---
-// Cacheia apenas elementos GLOBAIS e o 'palco'
-const DOM = {
-    header: {
-        headerConnectBtn: document.getElementById('header-connect-btn')
-    },
-    appRoot: document.getElementById('app-root'),
-    modals: {
-        // (Vamos cachear os modais aqui)
+/**
+ * Função responsável por iniciar a aplicação.
+ */
+function initializeApp() {
+    console.log('--- Fase 2: Inicializando CyberKidz - Wasteland Expeditions ---');
+    console.log('Arquitetura Modular ES6 Ativa.');
+
+    // 1. Inicializa o UIManager (Ele se prepara para desenhar)
+    UIManager.init(); 
+
+    // 2. Anexa o mecanismo de notificação de mudança de estado (Estado -> UI)
+    // Usamos uma propriedade global para que o GameState.js possa chamar esta função 
+    // sem criar uma dependência circular de módulos (GameState importando UIManager).
+    window.onGameStateChange = (newState) => {
+        console.log('Estado do Jogo Alterado. Nova Tela:', newState.currentScreen);
+        UIManager.renderScreen(newState);
+    };
+
+    // 3. Define a primeira tela (inicia o ciclo de renderização)
+    // O GameState.js já tem 'logged-out-screen' como padrão.
+    const initialState = getState();
+    setCurrentScreen(initialState.currentScreen);
+    
+    // 4. Anexa Event Listeners Globais (exemplo)
+    document.getElementById('app-root').addEventListener('click', handleGlobalClick);
+
+    // Exemplo de como usar os dados importados:
+    console.log('Total de Materiais Carregados:', Object.keys(MATERIALS_DB).length);
+}
+
+/**
+ * Trata eventos de clique em toda a aplicação. 
+ * Esta é a principal forma como a UI interage com a Lógica/Estado.
+ * @param {Event} event - O objeto do evento de clique.
+ */
+function handleGlobalClick(event) {
+    const target = event.target;
+    
+    // Exemplo: Gerenciamento de cliques que mudam a tela (do logged-out-screen)
+    if (target.id === 'btn-connect-wallet') {
+        // Lógica futura: Tentar conectar a carteira
+        console.log('Clique: Conectar Carteira');
+        // Por enquanto, apenas simula a mudança para a próxima tela
+        setCurrentScreen('hub-selection-screen'); 
+    } else if (target.id === 'btn-play-demo') {
+        console.log('Clique: Jogar Demonstração');
+        // Lógica futura: Carregar dados de demonstração
+        setCurrentScreen('hub-selection-screen');
     }
-};
-
-/* ==================================================================== */
-/* 2. HANDLERS (O que os cliques fazem)
-/* ==================================================================== */
-
-function handleConnectWallet() {
-    console.log("Handler: Connect Wallet");
     
-    // 1. Atualiza o Estado
-    GameState.initializeWallet();
-    GameState.setScreen('hub-selection-screen');
-    
-    // 2. Atualiza a UI
-    UIManager.updateHeader();
-    UIManager.renderCurrentScreen();
-    
-    // 3. Anexa listeners para a NOVA tela (Delegação)
-    attachHubSelectionListeners();
-}
-
-function handleDemoGame() {
-    console.log("Handler: Play Demo");
-    GameState.initializeWallet();
-    
-    // (Lógica futura para encontrar o Kid Demo)
-    const demoKidId = GameState.get().player.kidz[0].id; 
-    
-    GameState.setActiveKid(demoKidId);
-    GameState.setScreen('game-screen'); // Pula direto para o jogo
-    
-    UIManager.updateHeader();
-    UIManager.renderCurrentScreen();
-    // (Anexar listeners da tela de Jogo)
-}
-
-function handleKidSelect(kidId) {
-    console.log(`Handler: Kid ${kidId} selecionado`);
-    
-    // 1. Atualiza o Estado
-    GameState.setActiveKid(kidId);
-    GameState.setScreen('hub-preparation-screen');
-    
-    // 2. Renderiza
-    UIManager.renderCurrentScreen(); 
-    // (Anexar listeners da tela de Preparação)
+    // **Atenção:** Mais listeners específicos para outras telas serão anexados ou 
+    // delegados conforme o UIManager renderiza os elementos.
 }
 
 
-/* ==================================================================== */
-/* 3. ANEXAÇÃO DE LISTENERS (Onde a mágica acontece)
-/* ==================================================================== */
-
-// Anexa listeners globais que existem desde o início
-function attachGlobalListeners() {
-    DOM.header.headerConnectBtn.addEventListener('click', handleConnectWallet);
-    
-    // O appRoot "ouve" cliques em botões que ainda não existem
-    DOM.appRoot.addEventListener('click', (e) => {
-        // Botões da Tela de Login
-        if (e.target.id === 'body-connect-btn') handleConnectWallet();
-        if (e.target.id === 'demo-game-btn') handleDemoGame();
-    });
-}
-
-// Anexa listeners específicos da Tela de Seleção
-function attachHubSelectionListeners() {
-    const grid = document.getElementById('nft-selection-grid');
-    if (!grid) return;
-    
-    // Delegação de evento: Ouve cliques no grid
-    grid.addEventListener('click', (e) => {
-        const kidButton = e.target.closest('.select-kid-btn');
-        if (kidButton) {
-            handleKidSelect(kidButton.dataset.kidId);
-        }
-    });
-    
-    // (Anexar listeners dos filtros aqui)
-}
-
-
-/* ==================================================================== */
-/* 4. INICIALIZAÇÃO
-/* ==================================================================== */
-
-function initialize() {
-    console.log("Main.js: Anexando listeners globais...");
-    attachGlobalListeners();
-    
-    // Renderiza a primeira tela (Login)
-    UIManager.renderCurrentScreen();
-    
-    console.log("Game V2 (Modular) Inicializado.");
-}
-
-// Inicia o jogo!
-initialize();
+// Inicia o aplicativo quando o DOM estiver completamente carregado
+document.addEventListener('DOMContentLoaded', initializeApp);
