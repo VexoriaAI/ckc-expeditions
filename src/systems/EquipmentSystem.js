@@ -1,13 +1,12 @@
 /* ====================================================================
 // SYSTEM: EquipmentSystem.js
-// Logic for managing equipment, including equipping/unequipping items 
-// and the critical 'Auto Equip' function.
+// V2: Alterando importação de GameState para namespace (*) para evitar 
+// Uncaught SyntaxError (problemas de cache/caminho no servidor).
 // Language: English
 // ==================================================================== */
 
-// IMPORTS CORRIGIDOS: Verifique se o caminho ../core/GameState.js está correto 
-// e se as exportações no GameState.js estão intactas.
-import { getState, updateState } from '../core/GameState.js';
+// Corrigido: Importa GameState inteiro para evitar erro de exportação nomeada
+import * as GameState from '../core/GameState.js';
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
 import { calculateFinalStats, calculatePowerScore } from './StatCalculationSystem.js';
@@ -47,7 +46,7 @@ export const EquipmentSystem = {
      * Mutates the GameState.
      */
     autoEquip: function() {
-        const state = getState();
+        const state = GameState.getState(); // Acesso via namespace
         const equipmentInventory = state.playerInventory.equipment;
         const kidId = state.currentPlayerKidId;
         
@@ -104,7 +103,7 @@ export const EquipmentSystem = {
         // 4. Update the GameState if changes occurred
         if (changesMade) {
             // Must update the entire playerInventory to ensure immutability standards
-            updateState({ 
+            GameState.updateState({ // Acesso via namespace
                 playerInventory: { 
                     ...state.playerInventory, 
                     equipment: equipmentInventory // Pass the modified array
@@ -118,7 +117,7 @@ export const EquipmentSystem = {
      * @returns {Array<object>} Array of equipped InventoryItem instances.
      */
     getEquippedItems: function() {
-        const state = getState();
+        const state = GameState.getState(); // Acesso via namespace
         return state.playerInventory.equipment.filter(item => item.isEquipped);
     },
 
