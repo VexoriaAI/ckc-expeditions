@@ -1,11 +1,12 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: Adds state for active tabs (Workshop/Inventory)
+// UPDATE: Adds state for Hub Selection filters and pagination.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
-const INITIAL_STATE = {
+// Exportamos o INITIAL_STATE para uso na função Reset
+export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
     isWalletConnected: false,
@@ -31,9 +32,18 @@ const INITIAL_STATE = {
         log: [],
     },
     
-    // 5. UI State (NOVO)
+    // 5. UI State
     activeWorkshopTab: 'refine',
     activeInventoryTab: 'equipments',
+    
+    // 6. (NOVO) Hub Selection Filters
+    hubSelectionFilters: {
+        searchQuery: '',
+        selectedTribes: [], // Array para 'select multiple'
+        sortBy: 'level',    // 'level' ou 'power'
+        itemsPerPage: 5,
+        currentPage: 1,
+    }
 };
 
 let gameState = { ...INITIAL_STATE };
@@ -43,6 +53,16 @@ export const getState = () => {
 };
 
 export const updateState = (updates) => {
+    // Deep merge a nested state object like hubSelectionFilters
+    if (updates.hubSelectionFilters) {
+        gameState.hubSelectionFilters = {
+            ...gameState.hubSelectionFilters,
+            ...updates.hubSelectionFilters
+        };
+        // Remove it from the main update object to avoid overwriting
+        delete updates.hubSelectionFilters;
+    }
+
     gameState = { ...gameState, ...updates };
     
     if (window.onGameStateChange) {
@@ -55,12 +75,10 @@ export const setCurrentScreen = (screenId) => {
 };
 
 export const resetState = () => {
-    // Mantém os playerKidz se estiverem logados, mas reseta o resto
     const kidz = gameState.playerKidz;
-    gameState = { ...INITIAL_STATE, playerKidz: kidz };
+    gameState = { ...INITIAL_STATE, playerKidz: kidz, isWalletConnected: gameState.isWalletConnected };
     
-    // Se o logout for completo (sem kidz), use INITIAL_STATE puro
-    if (kidz.length === 0) {
+    if (!gameState.isWalletConnected) {
         gameState = { ...INITIAL_STATE };
     }
     
