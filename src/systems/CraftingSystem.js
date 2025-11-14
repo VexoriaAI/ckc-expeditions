@@ -9,6 +9,7 @@ import { getState, updateState } from '../core/GameState.js';
 import { RECIPES_DB } from '../../database/recipes.js';
 import { EQUIPMENT_DB } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
+import { MATERIALS_DB } from '../../database/materials.js';
 import { RARITY_MULTIPLIERS } from '../../database/crafting_rules.js';
 
 /**
@@ -44,6 +45,7 @@ const checkInventoryInputs = (playerInventory, recipe) => {
         const requiredAmount = inputShopItems[itemId];
         const ownedAmount = playerInventory.shopItems[itemId] || 0;
         if (ownedAmount < requiredAmount) {
+            // Note: SHOP_ITEMS_DB is not imported here, relying on itemId string. Need to ensure SHOP_ITEMS_DB is imported/available if custom error is needed.
             return { success: false, message: `Missing required Shop Item: ${itemId.toUpperCase()}. Required: ${requiredAmount}, Owned: ${ownedAmount}` };
         }
     }
@@ -129,7 +131,7 @@ export const CraftingSystem = {
         const { itemId: outputItemId, amount: outputAmount } = recipe.output;
         
         // Add output to the corresponding inventory part
-        if (newInventory.materials.hasOwnProperty(outputItemId) || outputItemId.startsWith('mat_')) {
+        if (MATERIALS_DB.hasOwnProperty(outputItemId) || outputItemId.startsWith('mat_')) {
              // Output is a Material (stackable)
              newInventory.materials[outputItemId] = (newInventory.materials[outputItemId] || 0) + outputAmount;
         } else if (COMPONENTS_DB.hasOwnProperty(outputItemId)) {
@@ -157,7 +159,7 @@ export const CraftingSystem = {
     /**
      * Executes the 'CRAFT' action: creates a new unique Equipment instance.
      * @param {string} recipeId - ID of the recipe to execute.
-     * @param {string} [rarity='COMMON'] - Desired rarity (influences generated stats/score).
+     * @param {string} [rarity='COMMON'] - Desired rarity (defaults to COMMON, can be specified for testing).
      * @returns {object} { success: boolean, message: string, newEquipment: object | null }
      */
     processCraftAction: function(recipeId, rarity = 'COMMON') {
@@ -183,26 +185,26 @@ export const CraftingSystem = {
         consumeInputs(newInventory, recipe);
 
         // 2. Generate New Equipment Instance
-        const rarityData = RARITY_MULTIPLIERS[rarity] || RARITY_MULTIPLIERS.COMMON;
+        const selectedRarity = rarity.toUpperCase();
+        const rarityData = RARITY_MULTIPLIERS[selectedRarity] || RARITY_MULTIPLIERS.COMMON;
         const newInstanceId = generateInstanceId();
         
-        // Build the base slots (all locked except the first one)
+        // Build the base slots (all locked except the first unlocked slot count)
         const initialSlots = Array.from({ length: equipmentStaticData.slots_total }, (_, index) => ({
             component_id: null,
             isLocked: index >= equipmentStaticData.slots_unlocked,
-            isUnlockable: index >= equipmentStaticData.slots_unlocked, // Future logic based on item level
+            isUnlockable: index >= equipmentStaticData.slots_unlocked, 
         }));
 
         // Build the new item (InventoryItem schema)
         const newEquipment = {
             instance_id: newInstanceId,
             item_id: equipmentStaticData.id,
-            isEquipped: false, // Always starts unequipped
+            isEquipped: false, 
             slots: initialSlots,
-            // Dynamic stats/rarity (can be saved on the instance if needed for future logic)
-            rarity: rarity, 
+            rarity: selectedRarity, 
             rarity_bonus: rarityData.score_multiplier,
-            // Custom stats logic (Future: implement stat_bonus_min/max randomness here)
+            // Future: Apply rarity stat bonus randomness here
         };
 
         // 3. Add to Inventory
@@ -213,15 +215,23 @@ export const CraftingSystem = {
         
         return { 
             success: true, 
-            message: `Successfully crafted new ${rarity} ${equipmentStaticData.name}!`, 
+            message: `Successfully crafted new ${selectedRarity} ${equipmentStaticData.name}!`, 
             newEquipment: newEquipment 
         };
     },
     
     // -----------------------------------------------------------
-    // LÓGICA FUTURA: embedComponent(equipmentInstanceId, componentInstanceId, slotIndex)
-    // LÓGICA FUTURA: processUpgradeAction(itemInstanceId, recipeId)
-    // LÓGICA FUTURA: createUniqueWeapon(materials, consumables) (IA/Mythic)
+    /**
+     * Executes the 'EMBED' action: inserts a Component into an Equipment slot.
+     * @param {number} equipmentInstanceId - The unique ID of the equipment being modified.
+     * @param {number} componentInstanceId - The unique ID of the component being consumed.
+     * @param {number} slotIndex - The index (0-based) of the slot to fill.
+     * @returns {object} { success: boolean, message: string }
+     */
+    embedComponent: function(equipmentInstanceId, componentInstanceId, slotIndex) {
+        // LÓGICA A SER IMPLEMENTADA NO PRÓXIMO PASSO
+        return { success: false, message: "EMBED logic not yet implemented." };
+    },
     // -----------------------------------------------------------
     
 };
