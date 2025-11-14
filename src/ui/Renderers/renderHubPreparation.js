@@ -1,7 +1,6 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// Exporta a função para renderizar a tela de preparação.
-// Este arquivo importa outros renderers (Mannequin, Workshop).
+// PATH CORRECTION: ../../database/ and ../../systems/
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
