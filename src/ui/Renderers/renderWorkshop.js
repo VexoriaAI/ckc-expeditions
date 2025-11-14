@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderWorkshop.js
-// PATH CORRECTION: ../../../database/
+// UPDATE: Adiciona a função 'renderEmbedTab' para a UI do Workshop.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
@@ -8,7 +8,11 @@ import { MATERIALS_DB } from '../../../database/materials.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { EQUIPMENT_DB } from '../../../database/equipment.js';
 import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js';
+import { getState } from '../../core/GameState.js'; // (NOVO) Importa getState para ler o inventário
+import { calculateFinalStats, calculatePowerScore } from '../../systems/StatCalculationSystem.js';
+import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; // (NOVO) Para o preview de stats
 
+// --- RENDER UTILITY: Refine Tab ---
 export const renderRefineTab = (state) => {
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'REFINE');
     const playerInventory = state.playerInventory;
@@ -57,6 +61,7 @@ export const renderRefineTab = (state) => {
     return `<div class="refine-list">${recipesHTML}</div>`;
 };
 
+// --- RENDER UTILITY: Craft Tab ---
 export const renderCraftTab = (state) => {
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'CRAFT');
     const playerInventory = state.playerInventory;
@@ -111,4 +116,126 @@ export const renderCraftTab = (state) => {
         `;
     }
     return `<div class="craft-list">${recipesHTML}</div>`;
+};
+
+
+// --- (NOVO) RENDER UTILITY: Embed Tab ---
+/**
+ * Renders the UI for the Embed (component) tab.
+ * @param {object} state - The current GameState.
+ * @returns {string} HTML content for the Embed tab.
+ */
+export const renderEmbedTab = (state) => {
+    const { 
+        embedTargetEquipmentId, 
+        embedTargetComponentId, 
+        embedTargetSlotIndex,
+        playerInventory 
+    } = state;
+
+    let equipmentSlotHTML = '';
+    let componentSlotHTML = '';
+    let previewHTML = '';
+    let executeButtonDisabled = true;
+
+    // --- 1. Renderiza o Slot de Equipamento ---
+    if (embedTargetEquipmentId) {
+        const item = playerInventory.equipment.find(e => e.instance_id === embedTargetEquipmentId);
+        const itemData = EQUIPMENT_DB[item.item_id];
+        equipmentSlotHTML = `
+            <div class="embed-item-card panel" data-instance-id="${item.instance_id}">
+                <img src="${itemData.iconPath}" alt="${itemData.name}">
+                <h4>${itemData.name}</h4>
+                <p>${itemData.description}</p>
+                <button id="btn-remove-embed-equip" class="action-btn btn-xs btn-primary">Remove</button>
+            </div>
+        `;
+    } else {
+        equipmentSlotHTML = `
+            <div id="btn-select-embed-equip" class="embed-slot-placeholder panel">
+                +
+                <span>Select Equipment</span>
+                <p>Choose an item from your inventory to modify.</p>
+            </div>
+        `;
+    }
+
+    // --- 2. Renderiza o Slot de Componente ---
+    // (O GDD diz: "O [Component Slot] deve estar desabilitado até que o [Gear Slot] esteja preenchido.")
+    const isComponentSlotDisabled = !embedTargetEquipmentId;
+    
+    if (embedTargetComponentId) {
+        const item = playerInventory.components.find(c => c.instance_id === embedTargetComponentId);
+        const itemData = COMPONENTS_DB[item.item_id];
+        componentSlotHTML = `
+            <div class="embed-item-card panel" data-instance-id="${item.instance_id}">
+                <img src="${itemData.iconPath}" alt="${itemData.name}">
+                <h4>${itemData.name}</h4>
+                <p>${itemData.description}</p>
+                <button id="btn-remove-embed-comp" class="action-btn btn-xs btn-primary">Remove</button>
+            </div>
+        `;
+    } else {
+        componentSlotHTML = `
+            <div id="btn-select-embed-comp" class="embed-slot-placeholder panel ${isComponentSlotDisabled ? 'disabled' : ''}">
+                +
+                <span>Select Component</span>
+                <p>${isComponentSlotDisabled ? 'Select equipment first' : 'Choose a component to embed'}</p>
+            </div>
+        `;
+    }
+    
+    // --- 3. Renderiza o Preview (Se ambos estiverem selecionados) ---
+    if (embedTargetEquipmentId && embedTargetComponentId && embedTargetSlotIndex !== null) {
+        executeButtonDisabled = false; // Habilita o botão
+        
+        // (Lógica de Stats "Antes e Depois")
+        const kidData = MOCK_KIDZ_NFTS[0]; // Usa o primeiro Kid mockado para stats base
+        const currentEquipped = [{ instance_id: embedTargetEquipmentId }]; // Simula o item equipado
+        
+        // "Antes"
+        const statsBefore = calculateFinalStats(kidData, currentEquipped);
+
+        // "Depois" (Simula o item com o componente)
+        const itemAfter = JSON.parse(JSON.stringify(playerInventory.equipment.find(e => e.instance_id === embedTargetEquipmentId)));
+        itemAfter.slots[embedTargetSlotIndex].component_id = COMPONENTS_DB[playerInventory.components.find(c => c.instance_id === embedTargetComponentId).item_id].id;
+        const statsAfter = calculateFinalStats(kidData, [itemAfter]);
+        
+        previewHTML = `
+            <div class="embed-preview panel">
+                <h4>Stats Preview (Base: ${kidData.name})</h4>
+                <div class="stats-comparison">
+                    <div class="stats-col stats-before">
+                        <strong>BEFORE</strong>
+                        <p>HP: ${statsBefore.maxHP}</p>
+                        <p>Attack: ${statsBefore.attack}</p>
+                        <p>Defense: ${statsBefore.defense}</p>
+                    </div>
+                    <div class="stats-col stats-after">
+                        <strong>AFTER</strong>
+                        <p>HP: ${statsAfter.maxHP}</p>
+                        <p>Attack: ${statsAfter.attack}</p>
+                        <p>Defense: ${statsAfter.defense}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // --- 4. Montagem Final ---
+    return `
+        <div class="embed-ui">
+            ${equipmentSlotHTML}
+            <span class="arrow-separator">+</span>
+            ${componentSlotHTML}
+        </div>
+        ${previewHTML}
+        <button 
+            id="btn-execute-embed" 
+            class="action-btn btn-success"
+            ${executeButtonDisabled ? 'disabled' : ''}
+        >
+            Embed Component
+        </button>
+    `;
 };
