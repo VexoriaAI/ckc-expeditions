@@ -1,7 +1,7 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Adds listeners for Filters (Input/Change) and
-// Pagination (Click).
+// UPDATE: Adiciona listeners para o botão "Store" e 
+// navegação de volta da loja.
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE } from './core/GameState.js';
@@ -23,11 +23,11 @@ function initializeApp() {
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
-    // Attach Global Listeners (Event Delegation)
+    // Attach Global Listeners
     const appRoot = document.getElementById('app-root');
     appRoot.addEventListener('click', handleGlobalClick);
-    appRoot.addEventListener('input', handleGlobalInput);   // (NOVO) Para Search Input
-    appRoot.addEventListener('change', handleGlobalChange); // (NOVO) Para Select Dropdowns
+    appRoot.addEventListener('input', handleGlobalInput);
+    appRoot.addEventListener('change', handleGlobalChange);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
 }
@@ -43,6 +43,13 @@ function handleGlobalClick(event) {
     if (target.id === 'btn-logout') {
         resetState(); 
         return; 
+    }
+    // (NOVO) Botão da Loja
+    if (target.id === 'btn-store') {
+        // Armazena a tela atual para podermos voltar
+        updateState({ previousScreen: currentState.currentScreen }); 
+        setCurrentScreen('store-screen');
+        return;
     }
     
     // --- 2. logged-out-screen Logic ---
@@ -63,7 +70,7 @@ function handleGlobalClick(event) {
                 setCurrentScreen('hub-preparation-screen'); 
             }
         }
-        // (NOVO) Pagination
+        // Pagination
         else if (target.id === 'btn-page-next') {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage + 1 } });
@@ -72,9 +79,8 @@ function handleGlobalClick(event) {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage - 1 } });
         }
-        // (NOVO) Filter Reset
+        // Filter Reset
         else if (target.id === 'btn-filter-reset') {
-            // Reseta apenas os filtros, mantendo a página atual
             updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
         }
     }
@@ -132,15 +138,22 @@ function handleGlobalClick(event) {
             setCurrentScreen('hub-selection-screen'); 
         }
     }
+    
+    // --- 6. (NOVO) store-screen Logic ---
+    else if (currentState.currentScreen === 'store-screen') {
+        if (target.id === 'btn-back-to-hub') {
+            // Volta para a tela anterior (Hub Selection ou Hub Prep)
+            setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
+        }
+    }
 }
 
 /**
- * (NOVO) Handles INPUT events (e.g., typing in search bar)
+ * Handles INPUT events (e.g., typing in search bar)
  */
 function handleGlobalInput(event) {
     const target = event.target;
     if (target.id === 'filter-search-name') {
-        // Atualiza o searchQuery e reseta para a página 1
         updateState({ 
             hubSelectionFilters: { searchQuery: target.value, currentPage: 1 } 
         });
@@ -148,11 +161,11 @@ function handleGlobalInput(event) {
 }
 
 /**
- * (NOVO) Handles CHANGE events (e.g., select dropdowns)
+ * Handles CHANGE events (e.g., select dropdowns)
  */
 function handleGlobalChange(event) {
     const target = event.target;
-    const currentState = getState(); // Pega o estado atual para mesclagem
+    const currentState = getState(); 
 
     if (target.id === 'filter-sort-by') {
         updateState({ 
@@ -165,7 +178,6 @@ function handleGlobalChange(event) {
         });
     }
     else if (target.id === 'filter-tribe') {
-        // Lida com 'select multiple'
         const selectedOptions = Array.from(target.selectedOptions).map(option => option.value);
         updateState({ 
             hubSelectionFilters: { selectedTribes: selectedOptions, currentPage: 1 } 
