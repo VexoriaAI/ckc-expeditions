@@ -3,7 +3,7 @@
 // Define os stats base, slots e sinergia para cada equipamento.
 // ==================================================================== */
 
-const EQUIPMENT_DB = {
+export const EQUIPMENT_DB = {
 
     // --- RUSTIC SET (INICIAL) ---
     "eq_rust_helmet": { id: "eq_rust_helmet", name: "Rustic Helmet", slot: "helmet", synergy: "defense", base_stats: { hp: 10, defense: 2 }, slots_total: 3, slots_unlocked: 1, icon: 'images/icons/equipment/eq_rust_helmet.png' },
