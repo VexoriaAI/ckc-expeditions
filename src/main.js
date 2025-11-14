@@ -1,7 +1,6 @@
 /* ====================================================================
 // CORE: main.js
-// The Brain - Entry point of the application.
-// Responsible for: Initializing modules, coordinating screen flow, and attaching listeners.
+// UPDATE: Adds listener for the 'CRAFT' action.
 // Language: English
 // ==================================================================== */
 
@@ -19,20 +18,16 @@ function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
 
-    // 1. Initialize UIManager (The Arms/Eyes)
     UIManager.init(); 
 
-    // 2. Attach the state change notification mechanism (State -> UI)
     window.onGameStateChange = (newState) => {
         console.log(`State Changed. New Screen: ${newState.currentScreen} | Kid ID: ${newState.currentPlayerKidId}`);
         UIManager.renderScreen(newState);
     };
 
-    // 3. Set the initial screen (triggers the first render cycle)
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
-    // 4. Attach Global Event Listener (Event Delegation)
     document.getElementById('app-root').addEventListener('click', handleGlobalClick);
 
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
@@ -72,26 +67,19 @@ function handleGlobalClick(event) {
     // --- 3. hub-preparation-screen Logic ---
     else if (currentState.currentScreen === 'hub-preparation-screen') {
         
-        // A. Equipment Actions
+        // A. Equipment Actions (Auto Equip / Start Expedition)
         if (target.id === 'btn-auto-equip') {
             EquipmentSystem.autoEquip();
-        } else if (target.id === 'btn-remove-all') {
-            console.log('Click: Remove All (Logic to be implemented).');
         } else if (target.id === 'btn-start-expedition') {
             setCurrentScreen('game-screen');
-        } else if (target.closest('.mannequin-slot')) {
-            const slotElement = target.closest('.mannequin-slot');
-            const slotType = slotElement.dataset.slotType;
-            console.log(`Click: Slot ${slotType} (Open Item Selection Modal).`);
-        }
+        } 
         
-        // B. Workshop Actions (Refine Tab)
+        // B. Workshop Actions (REFINE)
         else if (target.id === 'btn-execute-refine') {
             const recipeId = target.dataset.recipeId;
             if (recipeId) {
                 const result = CraftingSystem.processRefineAction(recipeId);
                 
-                // Temporary feedback
                 if (result.success) {
                     alert(`SUCCESS: ${result.message}`);
                 } else {
@@ -100,11 +88,18 @@ function handleGlobalClick(event) {
             }
         }
 
-        // C. Tab Switching Logic (Future: to manage activeWorkshopTab in GameState)
-        else if (target.closest('#workshop-tabs a')) {
-             const tabId = target.dataset.tab;
-             // Future: updateState({ activeWorkshopTab: tabId });
-             console.log(`Switching Workshop Tab to: ${tabId} (Not yet fully implemented)`);
+        // C. Workshop Actions (CRAFT) - NOVO LISTENER
+        else if (target.id === 'btn-execute-craft') {
+            const recipeId = target.dataset.recipeId;
+            if (recipeId) {
+                const result = CraftingSystem.processCraftAction(recipeId, 'RARE'); // Testando com raridade RARE
+                
+                if (result.success) {
+                    alert(`SUCCESS: ${result.message} New Instance ID: ${result.newEquipment.instance_id}`);
+                } else {
+                    alert(`FAILURE: ${result.message}`);
+                }
+            }
         }
     }
 
