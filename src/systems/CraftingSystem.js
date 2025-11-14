@@ -1,31 +1,19 @@
 /* ====================================================================
 // SYSTEM: CraftingSystem.js
-// UPDATE: Implementa a lógica de 'embedComponent' com checagem
-// de sinergia (SYNERGY_MAP).
+// PATH CORRECTION: ../database/ and ../core/
 // ==================================================================== */
 
 import { getState, updateState } from '../core/GameState.js';
-import { RECIPES_DB } from '../../database/recipes.js';
-import { EQUIPMENT_DB } from '../../database/equipment.js';
-import { COMPONENTS_DB } from '../../database/components.js';
-import { MATERIALS_DB } from '../../database/materials.js';
-// Importa as regras de Sinergia
-import { RARITY_MULTIPLIERS, SYNERGY_MAP } from '../../database/crafting_rules.js';
+import { RECIPES_DB } from '../database/recipes.js';
+import { EQUIPMENT_DB } from '../database/equipment.js';
+import { COMPONENTS_DB } from '../database/components.js';
+import { MATERIALS_DB } from '../database/materials.js';
+import { RARITY_MULTIPLIERS, SYNERGY_MAP } from '../database/crafting_rules.js';
 
-/**
- * Generates a globally unique ID for a new item instance.
- * @returns {number} A unique ID.
- */
 const generateInstanceId = () => {
     return Date.now() + Math.floor(Math.random() * 100000);
 };
 
-/**
- * Checks if the player's inventory meets all requirements for a recipe.
- * @param {object} playerInventory - The current playerInventory object from GameState.
- * @param {object} recipe - The recipe object from RECIPES_DB.
- * @returns {object} { success: boolean, message: string }
- */
 const checkInventoryInputs = (playerInventory, recipe) => {
     const { inputMaterials, inputComponents, inputShopItems } = recipe;
 
@@ -59,11 +47,6 @@ const checkInventoryInputs = (playerInventory, recipe) => {
     return { success: true, message: "Inputs check passed." };
 };
 
-/**
- * Mutates the player's inventory by subtracting all required inputs.
- * @param {object} playerInventory - The current playerInventory object (mutated by reference).
- * @param {object} recipe - The recipe object.
- */
 const consumeInputs = (playerInventory, recipe) => {
     const { inputMaterials, inputComponents, inputShopItems } = recipe;
     
@@ -99,11 +82,6 @@ const consumeInputs = (playerInventory, recipe) => {
 
 export const CraftingSystem = {
     
-    /**
-     * Executes the 'REFINE' action.
-     * @param {string} recipeId - ID of the recipe to execute.
-     * @returns {object} { success: boolean, message: string }
-     */
     processRefineAction: function(recipeId) {
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
@@ -143,12 +121,6 @@ export const CraftingSystem = {
         };
     },
 
-    /**
-     * Executes the 'CRAFT' action.
-     * @param {string} recipeId - ID of the recipe to execute.
-     * @param {string} [rarity='COMMON'] - Desired rarity.
-     * @returns {object} { success: boolean, message: string }
-     */
     processCraftAction: function(recipeId, rarity = 'COMMON') {
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
@@ -198,19 +170,10 @@ export const CraftingSystem = {
         };
     },
     
-    // --- (NOVO) LÓGICA DE EMBED ---
-    /**
-     * Executes the 'EMBED' action: inserts a Component into an Equipment slot.
-     * @param {number} equipmentInstanceId - The unique ID of the equipment being modified.
-     * @param {number} componentInstanceId - The unique ID of the component being consumed.
-     * @param {number} slotIndex - The index (0-based) of the slot to fill.
-     * @returns {object} { success: boolean, message: string }
-     */
     embedComponent: function(equipmentInstanceId, componentInstanceId, slotIndex) {
         const state = getState();
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
 
-        // 1. Encontrar os itens no inventário
         const equipment = newInventory.equipment.find(e => e.instance_id === equipmentInstanceId);
         const component = newInventory.components.find(c => c.instance_id === componentInstanceId);
         const componentIndex = newInventory.components.findIndex(c => c.instance_id === componentInstanceId);
@@ -222,7 +185,6 @@ export const CraftingSystem = {
             return { success: false, message: 'Component instance not found in inventory.' };
         }
 
-        // 2. Verificar o Slot
         const targetSlot = equipment.slots[slotIndex];
         if (!targetSlot) {
             return { success: false, message: 'Invalid slot index.' };
@@ -234,12 +196,11 @@ export const CraftingSystem = {
             return { success: false, message: 'Slot is already filled.' };
         }
 
-        // 3. Verificar Sinergia (GDD Requirement)
         const equipmentData = EQUIPMENT_DB[equipment.item_id];
         const componentData = COMPONENTS_DB[component.item_id];
         
-        const equipmentSynergy = equipmentData.synergy; // ex: 'defense'
-        const componentType = componentData.type; // ex: 'damage'
+        const equipmentSynergy = equipmentData.synergy; 
+        const componentType = componentData.type; 
 
         const allowedTypes = SYNERGY_MAP[equipmentSynergy];
 
@@ -251,15 +212,12 @@ export const CraftingSystem = {
              return { success: false, message: `Synergy Mismatch. ${equipmentSynergy} gear does not accept ${componentType} components.` };
         }
 
-        // 4. Executar o Embed (Consumir componente e atualizar equipamento)
-        
-        // Atualiza o slot do equipamento
+        // Executar o Embed
         targetSlot.component_id = component.item_id;
         
-        // Remove o componente do inventário
+        // Remover o componente
         newInventory.components.splice(componentIndex, 1);
 
-        // 5. Atualizar o GameState
         updateState({ playerInventory: newInventory });
 
         return { 
@@ -267,5 +225,4 @@ export const CraftingSystem = {
             message: `Successfully embedded ${componentData.name} into ${equipmentData.name}!` 
         };
     },
-    
 };
