@@ -2,14 +2,15 @@
 // SYSTEM: EquipmentSystem.js
 // Logic for managing equipment, including equipping/unequipping items 
 // and the critical 'Auto Equip' function.
+// Language: English
 // ==================================================================== */
 
+// IMPORTS CORRIGIDOS: Verifique se o caminho ../core/GameState.js está correto 
+// e se as exportações no GameState.js estão intactas.
 import { getState, updateState } from '../core/GameState.js';
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
+import { COMPONENTS_DB } from '../../database/components.js';
 import { calculateFinalStats, calculatePowerScore } from './StatCalculationSystem.js';
-
-// NOTA: Para simplificar, assumimos que todo item no inventário é um 'InventoryItem' 
-// com uma chave 'isEquipped' que rastreia se ele está em uso. (Iremos adicionar isso ao Mock Wallet depois).
 
 /**
  * Calculates the Power Score of a single InventoryItem (Equipment).
@@ -58,9 +59,6 @@ export const EquipmentSystem = {
         let changesMade = false;
         
         // 1. Unequip everything first to clear the slate and prepare for new equipment.
-        // NOTE: In a real system, you'd track which items are equipped by the Kid, 
-        // but for the V2 refactor, we simplify: 'isEquipped' flag on item instances.
-        
         equipmentInventory.forEach(item => {
             item.isEquipped = false;
         });
@@ -105,12 +103,11 @@ export const EquipmentSystem = {
 
         // 4. Update the GameState if changes occurred
         if (changesMade) {
-            // Since we modified the array by reference, we only need to call updateState 
-            // to trigger the UIManager to re-render the HUD.
+            // Must update the entire playerInventory to ensure immutability standards
             updateState({ 
                 playerInventory: { 
                     ...state.playerInventory, 
-                    equipment: equipmentInventory 
+                    equipment: equipmentInventory // Pass the modified array
                 } 
             });
         }
