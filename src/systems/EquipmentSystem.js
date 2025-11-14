@@ -1,12 +1,12 @@
 /* ====================================================================
 // SYSTEM: EquipmentSystem.js
-// V2: Alterando importação de GameState para namespace (*) para evitar 
-// Uncaught SyntaxError (problemas de cache/caminho no servidor).
+// Logic for managing equipment, including equipping/unequipping items 
+// and the critical 'Auto Equip' function.
 // Language: English
 // ==================================================================== */
 
-// Corrigido: Importa GameState inteiro para evitar erro de exportação nomeada
-import * as GameState from '../core/GameState.js';
+// Using standard named imports. This will work if GameState.js is correct.
+import { getState, updateState } from '../core/GameState.js';
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
 import { calculateFinalStats, calculatePowerScore } from './StatCalculationSystem.js';
@@ -21,10 +21,8 @@ const getEquipmentPowerScore = (itemInstance) => {
     const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
     if (!itemStaticData) return 0;
 
-    // Start with base stats
     let combinedStats = { ...itemStaticData.base_stats };
 
-    // Add component stats
     for (const slot of itemInstance.slots) {
         if (slot.component_id) {
             const componentStaticData = COMPONENTS_DB[slot.component_id];
@@ -33,8 +31,6 @@ const getEquipmentPowerScore = (itemInstance) => {
             }
         }
     }
-
-    // Calculate Power Score based on combined stats
     return calculatePowerScore(combinedStats);
 };
 
@@ -42,11 +38,10 @@ export const EquipmentSystem = {
 
     /**
      * Attempts to automatically equip the highest Power Score item 
-     * for each slot from the player's inventory. (GDD Requirement)
-     * Mutates the GameState.
+     * for each slot from the player's inventory.
      */
     autoEquip: function() {
-        const state = GameState.getState(); // Acesso via namespace
+        const state = getState();
         const equipmentInventory = state.playerInventory.equipment;
         const kidId = state.currentPlayerKidId;
         
@@ -57,7 +52,7 @@ export const EquipmentSystem = {
 
         let changesMade = false;
         
-        // 1. Unequip everything first to clear the slate and prepare for new equipment.
+        // 1. Unequip everything first
         equipmentInventory.forEach(item => {
             item.isEquipped = false;
         });
@@ -70,7 +65,6 @@ export const EquipmentSystem = {
             let bestScore = -1;
             let bestItem = null;
 
-            // Filter items that match the current slot type
             const candidateItems = equipmentInventory.filter(item => {
                 const staticData = EQUIPMENT_DB[item.item_id];
                 return staticData && staticData.slot === slotType;
@@ -78,7 +72,6 @@ export const EquipmentSystem = {
             
             for (const item of candidateItems) {
                 const score = getEquipmentPowerScore(item);
-                
                 if (score > bestScore) {
                     bestScore = score;
                     bestItem = item;
@@ -96,17 +89,15 @@ export const EquipmentSystem = {
             if (itemToEquip) {
                 itemToEquip.isEquipped = true;
                 changesMade = true;
-                console.log(`Equipped ${itemToEquip.item_id} in ${slotType} with score ${getEquipmentPowerScore(itemToEquip)}`);
             }
         }
 
         // 4. Update the GameState if changes occurred
         if (changesMade) {
-            // Must update the entire playerInventory to ensure immutability standards
-            GameState.updateState({ // Acesso via namespace
+            updateState({ 
                 playerInventory: { 
                     ...state.playerInventory, 
-                    equipment: equipmentInventory // Pass the modified array
+                    equipment: equipmentInventory 
                 } 
             });
         }
@@ -117,9 +108,11 @@ export const EquipmentSystem = {
      * @returns {Array<object>} Array of equipped InventoryItem instances.
      */
     getEquippedItems: function() {
-        const state = GameState.getState(); // Acesso via namespace
+        const state = getState();
+        // Ensure equipment array exists before filtering
+        if (!state.playerInventory || !state.playerInventory.equipment) {
+            return [];
+        }
         return state.playerInventory.equipment.filter(item => item.isEquipped);
     },
-
-    // Future methods: equipItem(instanceId, slotType), unequipItem(instanceId)
 };
