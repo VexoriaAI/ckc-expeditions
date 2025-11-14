@@ -1,12 +1,12 @@
 /* ====================================================================
 // CORE: main.js
-// ATUALIZAÇÃO: Adiciona lógica para selecionar Kid e transicionar para a tela de preparação.
+// ATUALIZAÇÃO: Integração com loadDemoData() do GameState.
 // ==================================================================== */
 
-import { getState, setCurrentScreen, updateState } from './core/GameState.js';
+import { getState, setCurrentScreen, updateState, loadDemoData } from './core/GameState.js';
 import { UIManager } from './ui/UIManager.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
-// Importaremos MOCK_WALLET no próximo passo para ter um ID de Kid real
+// Importaremos MOCK_KIDZ_NFTS em UIManager.js para renderização
 
 function initializeApp() {
     console.log('--- Fase 2: Inicializando CyberKidz - Wasteland Expeditions ---');
@@ -34,7 +34,11 @@ function handleGlobalClick(event) {
     // --- 1. Lógica da logged-out-screen (Login) ---
     if (currentState.currentScreen === 'logged-out-screen') {
         if (target.id === 'btn-connect-wallet' || target.id === 'btn-play-demo') {
-            // Por enquanto, apenas avança para a seleção
+            
+            // CRÍTICO: Carrega os dados Mock no GameState
+            loadDemoData(); 
+            
+            // Transiciona para a seleção de Kid
             setCurrentScreen('hub-selection-screen'); 
         }
     } 
@@ -42,23 +46,20 @@ function handleGlobalClick(event) {
     // --- 2. Lógica da hub-selection-screen (Seleção de Kid) ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
         if (target.id === 'btn-select-kid') {
-            const selectedKidId = target.dataset.kidId; 
+            // Usa .closest para garantir que estamos pegando o data-kid-id do card correto
+            const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             
             if (selectedKidId) {
                 console.log(`Kid Selecionado: ${selectedKidId}. Mudando para preparação.`);
                 
-                // 1. Atualiza o GameState com o Kid ID selecionado
                 updateState({ 
                     currentPlayerKidId: selectedKidId 
                 });
                 
-                // 2. Transiciona para a tela de preparação
                 setCurrentScreen('hub-preparation-screen'); 
             }
         }
     }
-    
-    // NOTA: Os cliques da hub-preparation-screen (Workshop, Equipar, Start) serão adicionados aqui.
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
