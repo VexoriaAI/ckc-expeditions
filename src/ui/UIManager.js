@@ -1,9 +1,9 @@
 /* ====================================================================
 // UI: UIManager.js
-// UPDATE: Corrige o ReferenceError importando MOCK_TEZERIUM_BALANCE.
+// UPDATE: Corrige o bug de ícones estourados no Mannequin.
+// Adiciona as classes .empty-slot e .equipped-slot para CSS.
 // ==================================================================== */
 
-// Importa MOCK_TEZERIUM_BALANCE para o header
 import { MOCK_KIDZ_NFTS, MOCK_TEZERIUM_BALANCE } from '../../database/mock_wallet.js'; 
 import { calculateFinalStats, calculatePowerScore } from '../systems/StatCalculationSystem.js';
 import { EquipmentSystem } from '../systems/EquipmentSystem.js';
@@ -19,7 +19,7 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-// --- RENDER UTILITY: Mannequin ---
+// --- RENDER UTILITY: Mannequin (CORRIGIDO) ---
 const renderMannequinSlots = (equippedItems) => {
     let slotsHTML = '';
     
@@ -33,15 +33,27 @@ const renderMannequinSlots = (equippedItems) => {
 
     for (const slotType of EQUIPMENT_SLOTS) {
         const item = equippedMap[slotType];
-        const itemIconPath = item ? EQUIPMENT_DB[item.item_id].iconPath : `assets/ui/icon_${slotType}.png`;
-        const itemName = item ? EQUIPMENT_DB[item.item_id].name : `Empty (${slotType.toUpperCase()})`;
         
-        slotsHTML += `
-            <div class="mannequin-slot" data-slot-type="${slotType}" data-equipped-instance-id="${item ? item.instance_id : ''}">
-                <img src="${itemIconPath}" alt="${itemName}">
-                <span class="slot-name">${itemName}</span>
-            </div>
-        `;
+        if (item) {
+            // Slot Equipado
+            const itemData = EQUIPMENT_DB[item.item_id];
+            slotsHTML += `
+                <div class="mannequin-slot equipped-slot" data-slot-type="${slotType}" data-equipped-instance-id="${item.instance_id}">
+                    <img src="${itemData.iconPath}" alt="${itemData.name}">
+                    <span class="slot-name">${itemData.name}</span>
+                </div>
+            `;
+        } else {
+            // Slot Vazio (Placeholder)
+            const placeholderIcon = `assets/ui/icon_${slotType}.png`;
+            const placeholderName = `Empty (${slotType.toUpperCase()})`;
+            slotsHTML += `
+                <div class="mannequin-slot empty-slot" data-slot-type="${slotType}">
+                    <img src="${placeholderIcon}" alt="${placeholderName}">
+                    <span class="slot-name">${placeholderName}</span>
+                </div>
+            `;
+        }
     }
     return slotsHTML;
 };
@@ -80,7 +92,7 @@ const renderRefineTab = (state) => {
                     <div class="input-section">${inputHTML}</div>
                     <span class="arrow-separator">→</span>
                     <div class="output-section">
-                        <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                        <img src="${outputItemData.iconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
                         <span>${recipe.output.amount}x ${outputItemData.name}</span>
                     </div>
                 </div>
@@ -168,7 +180,7 @@ const renderCraftTab = (state) => {
 };
 
 
-// --- RENDER UTILITY: Header (Corrigido) ---
+// --- RENDER UTILITY: Header ---
 const renderHeader = (state) => {
     let headerRight = '';
     let headerLeft = '';
