@@ -40,6 +40,10 @@ export const INITIAL_STATE = {
     embedTargetEquipmentId: null, // Armazena o instance_id do equipamento selecionado
     embedTargetComponentId: null, // Armazena o instance_id do componente selecionado
     embedTargetSlotIndex: null, // Armazena o índice (0, 1, 2...) do slot selecionado
+
+    // (NOVO) Estado do Modal Global
+    isModalOpen: false,
+    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT', 'MODAL_SELECT_COMPONENT'
     
     // Hub Selection Filters
     hubSelectionFilters: {
