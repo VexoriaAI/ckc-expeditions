@@ -1,10 +1,10 @@
 /* ====================================================================
-// (NOVO) UI: ModalManager.js
-// Gerencia a renderização do Modal Global (overlay, container).
+// UI: ModalManager.js
+// UPDATE: Importa e usa os renderers de conteúdo do modal.
 // ==================================================================== */
 
-// (Futuro: Importar renderers de conteúdo do Modal)
-// import { renderEquipmentListModal } from './Renderers/renderModalContent.js';
+// (NOVO) Importa os renderers de conteúdo
+import { renderEquipmentListModal, renderComponentListModal } from './Renderers/renderModalContent.js';
 
 let modalRoot;
 
@@ -33,12 +33,12 @@ export const ModalManager = {
         // Determina qual conteúdo renderizar dentro do modal
         switch (state.modalContent) {
             case 'MODAL_SELECT_EQUIPMENT':
-                // contentHTML = renderEquipmentListModal(state);
-                contentHTML = "<h2>Select Equipment (Placeholder)</h2><p>Lista de equipamentos do inventário...</p>";
+                // (ATUALIZADO) Chama o renderer real
+                contentHTML = renderEquipmentListModal(state);
                 break;
             case 'MODAL_SELECT_COMPONENT':
-                // contentHTML = renderComponentListModal(state);
-                contentHTML = "<h2>Select Component (Placeholder)</h2><p>Lista de componentes (filtrada por sinergia)...</p>";
+                // (ATUALIZADO) Chama o renderer real
+                contentHTML = renderComponentListModal(state);
                 break;
             default:
                 contentHTML = `<h2>Error</h2><p>Modal content ID "${state.modalContent}" not found.</p>`;
@@ -46,7 +46,7 @@ export const ModalManager = {
 
         // Renderiza o "wrapper" (invólucro) do modal com o conteúdo
         modalRoot.innerHTML = `
-            <div classclass="modal-overlay" id="modal-overlay">
+            <div class="modal-overlay" id="modal-overlay">
                 <div class="modal-content panel">
                     <button id="btn-modal-close" class="modal-close-btn">&times;</button>
                     <div class="modal-body">
