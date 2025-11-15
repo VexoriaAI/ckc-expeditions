@@ -1,7 +1,6 @@
 /* ====================================================================
 // UI: UIManager.js (Refatorado)
-// O "Gerente" de UI. Importa funções de renderização
-// da pasta /Renderers/ para se manter enxuto.
+// UPDATE: Importa e chama 'renderStoreScreen'.
 // ==================================================================== */
 
 // Importações dos Renderers
@@ -10,6 +9,7 @@ import { renderLoggedOutScreen } from './Renderers/renderLoggedOutScreen.js';
 import { renderHubSelectionScreen } from './Renderers/renderHubSelection.js';
 import { renderHubPreparationScreen } from './Renderers/renderHubPreparation.js';
 import { renderGameScreen } from './Renderers/renderGameScreen.js';
+import { renderStoreScreen } from './Renderers/renderStoreScreen.js'; // (NOVO)
 
 let appRoot; 
 
@@ -56,8 +56,8 @@ export const UIManager = {
                 htmlContent = renderGameScreen(state);
                 break;
             
-            case 'store-screen':
-                htmlContent = `<div class="screen store-screen"><h2>Store (Placeholder)</h2><p>Store items will be displayed here.</p><button id="btn-back-to-hub" class="action-btn btn-secondary">Back to Hub</button></div>`;
+            case 'store-screen': // (ATUALIZADO)
+                htmlContent = renderStoreScreen(state);
                 break;
 
             default:
