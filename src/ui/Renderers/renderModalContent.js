@@ -1,10 +1,12 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderModalContent.js
-// Renderiza o conteúdo (listas) para o ModalManager.
+// RENDERER: renderModalContent.js
+// UPDATE: Corrige o ReferenceError importando SYNERGY_MAP.
 // ==================================================================== */
 
 import { EQUIPMENT_DB } from '../../../database/equipment.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
+// (A CORREÇÃO ESTÁ AQUI) Importa as regras de sinergia
+import { SYNERGY_MAP } from '../../../database/crafting_rules.js';
 
 /**
  * Renderiza uma lista filtrada de Equipamentos do inventário para o modal.
@@ -53,10 +55,14 @@ export const renderComponentListModal = (state) => {
     // Filtra componentes baseado na Sinergia do equipamento
     const equipment = playerInventory.equipment.find(e => e.instance_id === embedTargetEquipmentId);
     const equipmentData = EQUIPMENT_DB[equipment.item_id];
+    
+    // (A CORREÇÃO ESTÁ AQUI) Usa o SYNERGY_MAP importado
     const allowedTypes = SYNERGY_MAP[equipmentData.synergy] || [];
 
     const componentsInventory = playerInventory.components.filter(comp => {
         const compData = COMPONENTS_DB[comp.item_id];
+        // Adiciona checagem para compData (caso o componente não exista no DB)
+        if (!compData) return false; 
         return allowedTypes.includes(compData.type);
     });
 
