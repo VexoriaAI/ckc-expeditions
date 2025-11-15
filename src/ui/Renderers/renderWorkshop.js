@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderWorkshop.js
-// UPDATE: Adiciona a função 'renderEmbedTab' para a UI do Workshop.
+// UPDATE: Corrige a lógica de ativação do botão 'Embed Component'.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
@@ -8,28 +8,24 @@ import { MATERIALS_DB } from '../../../database/materials.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { EQUIPMENT_DB } from '../../../database/equipment.js';
 import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js';
-import { getState } from '../../core/GameState.js'; // (NOVO) Importa getState para ler o inventário
-import { calculateFinalStats, calculatePowerScore } from '../../systems/StatCalculationSystem.js';
-import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; // (NOVO) Para o preview de stats
+// (Removidas importações desnecessárias de stats/kidz)
 
 // --- RENDER UTILITY: Refine Tab ---
 export const renderRefineTab = (state) => {
+    // ... (código do renderRefineTab - sem alteração) ...
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'REFINE');
     const playerInventory = state.playerInventory;
     let recipesHTML = '';
-
     for (const recipe of recipes) {
         const outputItemData = MATERIALS_DB[recipe.output.itemId] || COMPONENTS_DB[recipe.output.itemId];
         const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
         let allInputsAvailable = true;
-        
         const inputHTML = Object.keys(recipe.inputMaterials).map(matId => {
             const required = recipe.inputMaterials[matId];
             const owned = playerInventory.materials[matId] || 0;
             const matData = MATERIALS_DB[matId];
             const isAvailable = owned >= required;
             if (!isAvailable) allInputsAvailable = false;
-            
             return `
                 <span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">
                     <img src="${matData.iconPath}" alt="${matData.name}" title="${matData.name}">
@@ -37,7 +33,6 @@ export const renderRefineTab = (state) => {
                 </span>
             `;
         }).join(' + ');
-        
         recipesHTML += `
             <div class="recipe-card refine-recipe" data-recipe-id="${recipe.recipeId}">
                 <h4>${recipe.name}</h4>
@@ -63,16 +58,15 @@ export const renderRefineTab = (state) => {
 
 // --- RENDER UTILITY: Craft Tab ---
 export const renderCraftTab = (state) => {
+    // ... (código do renderCraftTab - sem alteração) ...
     const recipes = Object.values(RECIPES_DB).filter(r => r.type === 'CRAFT');
     const playerInventory = state.playerInventory;
     let recipesHTML = '';
-
     for (const recipe of recipes) {
         const outputItemData = EQUIPMENT_DB[recipe.output.itemId];
         const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
         let allInputsAvailable = true;
         const inputSections = [];
-
         const materialInputs = Object.keys(recipe.inputMaterials).map(matId => {
             const required = recipe.inputMaterials[matId];
             const owned = playerInventory.materials[matId] || 0;
@@ -82,7 +76,6 @@ export const renderCraftTab = (state) => {
             return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${matData.name}: ${owned}/${required}</span>`;
         }).join(' + ');
         if (materialInputs) inputSections.push(materialInputs);
-
         const shopItemInputs = Object.keys(recipe.inputShopItems).map(itemId => {
             const required = recipe.inputShopItems[itemId];
             const owned = playerInventory.shopItems[itemId] || 0;
@@ -92,9 +85,7 @@ export const renderCraftTab = (state) => {
             return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${itemData.name}: ${owned}/${required}</span>`;
         }).join(' + ');
         if (shopItemInputs) inputSections.push(shopItemInputs);
-
         const inputHTML = inputSections.join('<br>'); 
-
         recipesHTML += `
             <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
                 <h4>${recipe.name}</h4>
@@ -119,24 +110,20 @@ export const renderCraftTab = (state) => {
 };
 
 
-// --- (NOVO) RENDER UTILITY: Embed Tab ---
-/**
- * Renders the UI for the Embed (component) tab.
- * @param {object} state - The current GameState.
- * @returns {string} HTML content for the Embed tab.
- */
+// --- (ATUALIZADO) RENDER UTILITY: Embed Tab ---
 export const renderEmbedTab = (state) => {
     const { 
         embedTargetEquipmentId, 
-        embedTargetComponentId, 
-        embedTargetSlotIndex,
+        embedTargetComponentId,
         playerInventory 
     } = state;
 
     let equipmentSlotHTML = '';
     let componentSlotHTML = '';
     let previewHTML = '';
-    let executeButtonDisabled = true;
+    
+    // (CORREÇÃO P1) Habilita o botão apenas se AMBOS os slots estiverem preenchidos
+    const executeButtonDisabled = !(embedTargetEquipmentId && embedTargetComponentId);
 
     // --- 1. Renderiza o Slot de Equipamento ---
     if (embedTargetEquipmentId) {
@@ -147,21 +134,20 @@ export const renderEmbedTab = (state) => {
                 <img src="${itemData.iconPath}" alt="${itemData.name}">
                 <h4>${itemData.name}</h4>
                 <p>${itemData.description}</p>
-                <button id="btn-remove-embed-equip" class="action-btn btn-xs btn-primary">Remove</button>
+                <button id="btn-remove-embed-equip" class="action-btn btn-xs btn-primary">REMOVE</button>
             </div>
         `;
     } else {
         equipmentSlotHTML = `
             <div id="btn-select-embed-equip" class="embed-slot-placeholder panel">
-                +
-                <span>Select Equipment</span>
-                <p>Choose an item from your inventory to modify.</p>
+                <span class="embed-plus">+</span>
+                <span class="embed-title">Select Equipment</span>
+                <p class="embed-desc">Choose an item from your inventory to modify.</p>
             </div>
         `;
     }
 
     // --- 2. Renderiza o Slot de Componente ---
-    // (O GDD diz: "O [Component Slot] deve estar desabilitado até que o [Gear Slot] esteja preenchido.")
     const isComponentSlotDisabled = !embedTargetEquipmentId;
     
     if (embedTargetComponentId) {
@@ -172,52 +158,25 @@ export const renderEmbedTab = (state) => {
                 <img src="${itemData.iconPath}" alt="${itemData.name}">
                 <h4>${itemData.name}</h4>
                 <p>${itemData.description}</p>
-                <button id="btn-remove-embed-comp" class="action-btn btn-xs btn-primary">Remove</button>
+                <button id="btn-remove-embed-comp" class="action-btn btn-xs btn-primary">REMOVE</button>
             </div>
         `;
     } else {
         componentSlotHTML = `
             <div id="btn-select-embed-comp" class="embed-slot-placeholder panel ${isComponentSlotDisabled ? 'disabled' : ''}">
-                +
-                <span>Select Component</span>
-                <p>${isComponentSlotDisabled ? 'Select equipment first' : 'Choose a component to embed'}</p>
+                <span class="embed-plus">+</span>
+                <span class="embed-title">Select Component</span>
+                <p class="embed-desc">${isComponentSlotDisabled ? 'Select equipment first' : 'Choose a component to embed'}</p>
             </div>
         `;
     }
     
-    // --- 3. Renderiza o Preview (Se ambos estiverem selecionados) ---
-    if (embedTargetEquipmentId && embedTargetComponentId && embedTargetSlotIndex !== null) {
-        executeButtonDisabled = false; // Habilita o botão
-        
-        // (Lógica de Stats "Antes e Depois")
-        const kidData = MOCK_KIDZ_NFTS[0]; // Usa o primeiro Kid mockado para stats base
-        const currentEquipped = [{ instance_id: embedTargetEquipmentId }]; // Simula o item equipado
-        
-        // "Antes"
-        const statsBefore = calculateFinalStats(kidData, currentEquipped);
-
-        // "Depois" (Simula o item com o componente)
-        const itemAfter = JSON.parse(JSON.stringify(playerInventory.equipment.find(e => e.instance_id === embedTargetEquipmentId)));
-        itemAfter.slots[embedTargetSlotIndex].component_id = COMPONENTS_DB[playerInventory.components.find(c => c.instance_id === embedTargetComponentId).item_id].id;
-        const statsAfter = calculateFinalStats(kidData, [itemAfter]);
-        
+    // --- 3. Renderiza o Preview (Lógica de Stats removida por enquanto) ---
+    if (!executeButtonDisabled) {
         previewHTML = `
             <div class="embed-preview panel">
-                <h4>Stats Preview (Base: ${kidData.name})</h4>
-                <div class="stats-comparison">
-                    <div class="stats-col stats-before">
-                        <strong>BEFORE</strong>
-                        <p>HP: ${statsBefore.maxHP}</p>
-                        <p>Attack: ${statsBefore.attack}</p>
-                        <p>Defense: ${statsBefore.defense}</p>
-                    </div>
-                    <div class="stats-col stats-after">
-                        <strong>AFTER</strong>
-                        <p>HP: ${statsAfter.maxHP}</p>
-                        <p>Attack: ${statsAfter.attack}</p>
-                        <p>Defense: ${statsAfter.defense}</p>
-                    </div>
-                </div>
+                <h4>Ready to Embed!</h4>
+                <p>Clicking 'Embed Component' will consume the component and permanently socket it into the equipment.</p>
             </div>
         `;
     }
