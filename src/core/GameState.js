@@ -1,11 +1,11 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: Adds state for Hub Selection filters and pagination.
+// UPDATE: Adiciona funções helper openModal() e closeModal() 
+// para gerenciar o estado do modal.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
-// Exportamos o INITIAL_STATE para uso na função Reset
 export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
@@ -35,21 +35,21 @@ export const INITIAL_STATE = {
     // 5. UI State
     activeWorkshopTab: 'refine',
     activeInventoryTab: 'equipments',
-
-    // (NOVO) UI State para o Workshop EMBED
-    embedTargetEquipmentId: null, // Armazena o instance_id do equipamento selecionado
-    embedTargetComponentId: null, // Armazena o instance_id do componente selecionado
-    embedTargetSlotIndex: null, // Armazena o índice (0, 1, 2...) do slot selecionado
-
-    // (NOVO) Estado do Modal Global
-    isModalOpen: false,
-    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT', 'MODAL_SELECT_COMPONENT'
     
-    // Hub Selection Filters
+    // 6. UI State para o Workshop EMBED
+    embedTargetEquipmentId: null, 
+    embedTargetComponentId: null, 
+    embedTargetSlotIndex: null,
+
+    // 7. Estado do Modal Global
+    isModalOpen: false,
+    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT'
+    
+    // 8. Hub Selection Filters
     hubSelectionFilters: {
         searchQuery: '',
-        selectedTribes: [], // Array para 'select multiple'
-        sortBy: 'level',    // 'level' ou 'power'
+        selectedTribes: [],
+        sortBy: 'level',
         itemsPerPage: 5,
         currentPage: 1,
     }
@@ -68,12 +68,12 @@ export const updateState = (updates) => {
             ...gameState.hubSelectionFilters,
             ...updates.hubSelectionFilters
         };
-        // Remove it from the main update object to avoid overwriting
         delete updates.hubSelectionFilters;
     }
 
     gameState = { ...gameState, ...updates };
     
+    // Notifica o UIManager E o ModalManager
     if (window.onGameStateChange) {
         window.onGameStateChange(gameState);
     }
@@ -86,11 +86,9 @@ export const setCurrentScreen = (screenId) => {
 export const resetState = () => {
     const kidz = gameState.playerKidz;
     gameState = { ...INITIAL_STATE, playerKidz: kidz, isWalletConnected: gameState.isWalletConnected };
-    
     if (!gameState.isWalletConnected) {
         gameState = { ...INITIAL_STATE };
     }
-    
     setCurrentScreen(gameState.currentScreen);
 };
 
@@ -118,4 +116,31 @@ export const loadDemoData = () => {
     
     gameState.playerInventory = processedInventory;
     gameState.isWalletConnected = true;
+};
+
+// --- (NOVAS) Funções de Controle do Modal ---
+
+/**
+ * Abre o modal global e define seu conteúdo.
+ * @param {string} contentId - O ID do conteúdo a ser renderizado (ex: 'MODAL_SELECT_EQUIPMENT').
+ */
+export const openModal = (contentId) => {
+    updateState({
+        isModalOpen: true,
+        modalContent: contentId
+    });
+};
+
+/**
+ * Fecha o modal global.
+ */
+export const closeModal = () => {
+    updateState({
+        isModalOpen: false,
+        modalContent: null,
+        // Limpa o estado temporário do Embed ao fechar
+        embedTargetEquipmentId: null,
+        embedTargetComponentId: null,
+        embedTargetSlotIndex: null
+    });
 };
