@@ -1,6 +1,7 @@
 /* ====================================================================
 // RENDERER: renderModalContent.js
-// UPDATE: renderEquipmentListModal agora renderiza o card de item completo.
+// UPDATE: Corrige o crash 'toUpperCase' verificando se modalTargetSlot 
+// existe antes de usá-lo.
 // ==================================================================== */
 
 import { EQUIPMENT_DB } from '../../../database/equipment.js';
@@ -54,14 +55,19 @@ const renderItemSlotsHTML = (itemInstance) => {
 export const renderEquipmentListModal = (state) => {
     const { playerInventory, modalTargetSlot } = state;
 
-    // 1. Filtra o inventário para mostrar apenas o tipo de slot (ex: 'helmet')
+    // (A CORREÇÃO ESTÁ AQUI) Define um título padrão se o slot for nulo
+    const title = modalTargetSlot ? modalTargetSlot.toUpperCase() : 'EQUIPMENT';
+
+    // 1. Filtra o inventário
     const equipmentInventory = playerInventory.equipment.filter(item => {
         const staticData = EQUIPMENT_DB[item.item_id];
-        return staticData && staticData.slot === modalTargetSlot;
+        // Se modalTargetSlot for nulo (como no Embed), mostra todos os itens.
+        // Se tiver um slot (como no Mannequin), filtra por ele.
+        return staticData && (!modalTargetSlot || staticData.slot === modalTargetSlot);
     });
     
     if (equipmentInventory.length === 0) {
-        return `<h2>Select ${modalTargetSlot.toUpperCase()}</h2><p>You have no items of this type in your inventory.</p>`;
+        return `<h2>Select ${title}</h2><p>You have no items of this type in your inventory.</p>`;
     }
 
     // 2. Renderiza os cards completos
@@ -81,7 +87,7 @@ export const renderEquipmentListModal = (state) => {
         const slotsHTML = renderItemSlotsHTML(item);
 
         return `
-            <div classid="btn-modal-select-item" class="item-card modal-item-card" data-instance-id="${item.instance_id}">
+            <div class="item-card modal-item-card" data-instance-id="${item.instance_id}">
                 <div class="card-header">
                     <div class="card-icon-frame"><img src="${itemData.iconPath}" alt="${itemData.name}"></div>
                     <div class="card-header-text">
@@ -103,7 +109,7 @@ export const renderEquipmentListModal = (state) => {
     }).join('');
 
     return `
-        <h2>Select ${modalTargetSlot.toUpperCase()}</h2>
+        <h2>Select ${title}</h2>
         <div class="modal-item-grid">
             ${itemCardsHTML}
         </div>
@@ -145,7 +151,7 @@ export const renderComponentListModal = (state) => {
         `).join('');
         
         return `
-            <div classid="btn-modal-select-item" class="item-card modal-item-card" data-instance-id="${item.instance_id}">
+            <div class="item-card modal-item-card" data-instance-id="${item.instance_id}">
                 <div class="card-header">
                     <div class="card-icon-frame"><img src="${itemData.iconPath}" alt="${itemData.name}"></div>
                     <div class="card-header-text">
