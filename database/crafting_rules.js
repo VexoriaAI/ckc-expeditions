@@ -1,7 +1,7 @@
 /* ====================================================================
 // DATABASE: CRAFTING_RULES
-// UPDATE: Adiciona SLOTS_BY_RARITY e SLOT_UNLOCK_RULES.
-// Language: English
+// UPDATE: Adiciona o "Unstable AI Core" (item de craft de NFT)
+// ao SHOP_ITEMS_DB.
 // ==================================================================== */
 
 /**
@@ -51,11 +51,21 @@ export const RARITY_MULTIPLIERS = {
  * SHOP_ITEMS_DB: Define itens consumíveis da loja.
  */
 export const SHOP_ITEMS_DB = {
-    'boost_token': {
-        name: 'Crafting Boost Token',
-        description: 'Increases the success rate or reduces material cost.',
-        iconPath: 'assets/items/shop/boost_token.png',
-        price_tezerium: 50
+    
+    // --- (NOVO) Item de Crafting de IA ---
+    'unstable_ai_core': {
+        name: 'Unstable AI Core',
+        description: 'Um núcleo de IA volátil. Necessário na "AI Forge" para gerar equipamentos únicos (NFTs).',
+        iconPath: 'assets/items/shop/unstable_ai_core.png', // (Caminho placeholder)
+        price_tezerium: 2500 // Item de alto valor
+    },
+
+    // --- Itens de Upgrade ---
+    'rarity_upgrade_token': { 
+        name: 'Rarity Upgrade Matrix',
+        description: 'Consumable used to upgrade an item\'s rarity (e.g., Common to Uncommon).',
+        iconPath: 'assets/items/shop/rarity_upgrade_token.png',
+        price_tezerium: 500
     },
     'slot_unlock_token': {
         name: 'Slot Unlock Token',
@@ -63,12 +73,14 @@ export const SHOP_ITEMS_DB = {
         iconPath: 'assets/items/shop/slot_unlock_token.png',
         price_tezerium: 150
     },
-    'rarity_upgrade_token': { // (NOVO) Item para sua mecânica
-        name: 'Rarity Upgrade Matrix',
-        description: 'Consumable used to upgrade an item\'s rarity (e.g., Common to Uncommon).',
-        iconPath: 'assets/items/shop/rarity_upgrade_token.png',
-        price_tezerium: 500
+    'component_extractor': { // (Item da nossa discussão anterior)
+        name: 'Component Extractor',
+        description: 'Safely removes an embedded component from a slot without destroying it.',
+        iconPath: 'assets/items/shop/component_extractor.png', // (Caminho placeholder)
+        price_tezerium: 100
     },
+
+    // --- Itens de Utilidade ---
     'ap_refill': {
         name: 'AP Refill Vial',
         description: 'Consumable that instantly restores all Action Points.',
