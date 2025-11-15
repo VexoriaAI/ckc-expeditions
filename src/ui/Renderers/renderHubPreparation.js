@@ -1,6 +1,6 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: Importa e chama 'renderEmbedTab' do renderWorkshop.
+// UPDATE: Corrige o typo 'class.' que quebrou o layout do Mannequin.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -9,7 +9,6 @@ import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 // Importa os renderers modulares
 import { renderMannequinSlots } from './renderMannequin.js';
-// (NOVO) Importa renderEmbedTab
 import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
 
 // Helper local
@@ -77,7 +76,6 @@ export const renderHubPreparationScreen = (state) => {
     } else if (activeWorkshopTab === 'craft') {
         workshopContent = renderCraftTab(state);
     } else if (activeWorkshopTab === 'embed') {
-        // (NOVO) Chama a função de renderização do Embed
         workshopContent = renderEmbedTab(state);
     }
 
