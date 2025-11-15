@@ -1,12 +1,11 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Importa e inicializa o ModalManager.
-// Adiciona listeners de clique para abrir/fechar modais.
+// UPDATE: Adiciona lógica de seleção de item ao 'handleModalClick'.
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
 import { UIManager } from './ui/UIManager.js'; 
-import { ModalManager } from './ui/ModalManager.js'; // (NOVO) Importa o ModalManager
+import { ModalManager } from './ui/ModalManager.js'; 
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
@@ -16,50 +15,65 @@ function initializeApp() {
     console.log('ES6 Modular Architecture Active.');
 
     UIManager.init();
-    ModalManager.init(); // (NOVO) Inicializa o ModalManager
+    ModalManager.init(); 
 
-    // Atualiza ambos os Gerentes (UI e Modal) quando o estado mudar
     window.onGameStateChange = (newState) => {
         UIManager.renderScreen(newState);
-        ModalManager.renderModal(newState); // (NOVO) Renderiza o modal
+        ModalManager.renderModal(newState); 
     };
 
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
-    // Attach Global Listeners
     const appRoot = document.getElementById('app-root');
     appRoot.addEventListener('click', handleGlobalClick);
     appRoot.addEventListener('input', handleGlobalInput);
     appRoot.addEventListener('change', handleGlobalChange);
     
-    // (NOVO) Adiciona listener de clique na raiz do Modal
     document.getElementById('modal-root').addEventListener('click', handleModalClick);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
 }
 
 /**
- * (NOVO) Lida APENAS com cliques dentro do #modal-root
+ * (ATUALIZADO) Lida com cliques dentro do #modal-root
  */
 function handleModalClick(event) {
     const target = event.target;
+    const currentState = getState();
 
-    // Lógica de Fechar (Botão 'X' ou clique no Overlay)
-    // Usamos .closest() para garantir que o clique no ícone dentro do botão feche
+    // Lógica de Fechar
     if (target.closest('#btn-modal-close') || target.id === 'modal-overlay') {
         closeModal();
+        return;
     }
-    
-    // (Futuro) Lógica de seleção de item dentro do modal
-    // else if (target.closest('.modal-item-card')) {
-    //     ...
-    // }
+
+    // (NOVO) Lógica de Seleção de Item (Para Embed)
+    if (target.id === 'btn-modal-select-item') {
+        const selectedInstanceId = parseInt(target.dataset.instanceId, 10);
+        
+        if (currentState.modalContent === 'MODAL_SELECT_EQUIPMENT') {
+            // Atualiza o GameState com o equipamento selecionado
+            updateState({ 
+                embedTargetEquipmentId: selectedInstanceId,
+                isModalOpen: false, // Fecha o modal
+                modalContent: null 
+            });
+        } 
+        else if (currentState.modalContent === 'MODAL_SELECT_COMPONENT') {
+            // Atualiza o GameState com o componente selecionado
+            updateState({ 
+                embedTargetComponentId: selectedInstanceId,
+                isModalOpen: false, // Fecha o modal
+                modalContent: null 
+            });
+        }
+    }
 }
 
 
 /**
- * Lida com cliques APENAS dentro do #app-root (A aplicação principal)
+ * Lida com cliques dentro do #app-root
  */
 function handleGlobalClick(event) {
     const target = event.target;
@@ -86,7 +100,6 @@ function handleGlobalClick(event) {
     
     // --- 3. hub-selection-screen Logic ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
-        
         if (target.id === 'btn-select-kid') {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             if (selectedKidId) {
@@ -110,26 +123,23 @@ function handleGlobalClick(event) {
     // --- 4. hub-preparation-screen Logic ---
     else if (currentState.currentScreen === 'hub-preparation-screen') {
         
-        // A. Page Actions
         if (target.id === 'btn-back-to-selection') {
             setCurrentScreen('hub-selection-screen');
         } else if (target.id === 'btn-start-expedition') {
             setCurrentScreen('game-screen');
         }
-        
-        // B. Equipment Actions
         else if (target.id === 'btn-auto-equip') {
             EquipmentSystem.autoEquip();
         } 
         
-        // C. Workshop: Tab Switching
+        // Workshop Tab Switching
         else if (target.closest('#workshop-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
              if (tabId !== currentState.activeWorkshopTab) {
                  updateState({ activeWorkshopTab: tabId });
              }
         }
-        // D. Inventory: Tab Switching
+        // Inventory Tab Switching
         else if (target.closest('#inventory-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
              if (tabId !== currentState.activeInventoryTab) {
@@ -137,7 +147,7 @@ function handleGlobalClick(event) {
              }
         }
 
-        // E. Workshop: Actions (REFINE/CRAFT)
+        // Workshop Actions (REFINE/CRAFT)
         else if (target.id === 'btn-execute-refine') {
             const recipeId = target.dataset.recipeId;
             if (recipeId && !target.disabled) {
@@ -153,17 +163,19 @@ function handleGlobalClick(event) {
             }
         }
         
-        // F. (NOVO) Workshop: Ações do EMBED
+        // Workshop: Ações do EMBED
         else if (target.id === 'btn-select-embed-equip') {
-            // Abre o modal para selecionar Equipamento
             openModal('MODAL_SELECT_EQUIPMENT');
         }
         else if (target.id === 'btn-select-embed-comp' && !target.classList.contains('disabled')) {
-            // Abre o modal para selecionar Componente (só abre se não estiver desabilitado)
             openModal('MODAL_SELECT_COMPONENT');
         }
-        else if (target.id === 'btn-execute-embed') {
-            // (Ainda desabilitado, mas pronto para a lógica de execução)
+        // (NOVO) Remove seleção do Embed
+        else if (target.id === 'btn-remove-embed-equip') {
+            updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null, embedTargetSlotIndex: null });
+        }
+        else if (target.id === 'btn-remove-embed-comp') {
+            updateState({ embedTargetComponentId: null, embedTargetSlotIndex: null });
         }
     }
 
@@ -177,15 +189,11 @@ function handleGlobalClick(event) {
     // --- 6. store-screen Logic ---
     else if (currentState.currentScreen === 'store-screen') {
         if (target.id === 'btn-back-to-hub') {
-            // Volta para a tela anterior (Hub Selection ou Hub Prep)
             setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
         }
     }
 }
 
-/**
- * Handles INPUT events (e.g., typing in search bar)
- */
 function handleGlobalInput(event) {
     const target = event.target;
     if (target.id === 'filter-search-name') {
@@ -195,13 +203,8 @@ function handleGlobalInput(event) {
     }
 }
 
-/**
- * Handles CHANGE events (e.g., select dropdowns)
- */
 function handleGlobalChange(event) {
     const target = event.target;
-    const currentState = getState(); 
-
     if (target.id === 'filter-sort-by') {
         updateState({ 
             hubSelectionFilters: { sortBy: target.value, currentPage: 1 } 
