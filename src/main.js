@@ -1,11 +1,12 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Adiciona listeners para o botão "Store" e 
-// navegação de volta da loja.
+// UPDATE: Importa e inicializa o ModalManager.
+// Adiciona listeners de clique para abrir/fechar modais.
 // ==================================================================== */
 
-import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE } from './core/GameState.js';
+import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
 import { UIManager } from './ui/UIManager.js'; 
+import { ModalManager } from './ui/ModalManager.js'; // (NOVO) Importa o ModalManager
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
@@ -14,10 +15,13 @@ function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
 
-    UIManager.init(); 
+    UIManager.init();
+    ModalManager.init(); // (NOVO) Inicializa o ModalManager
 
+    // Atualiza ambos os Gerentes (UI e Modal) quando o estado mudar
     window.onGameStateChange = (newState) => {
         UIManager.renderScreen(newState);
+        ModalManager.renderModal(newState); // (NOVO) Renderiza o modal
     };
 
     const initialState = getState();
@@ -29,11 +33,33 @@ function initializeApp() {
     appRoot.addEventListener('input', handleGlobalInput);
     appRoot.addEventListener('change', handleGlobalChange);
     
+    // (NOVO) Adiciona listener de clique na raiz do Modal
+    document.getElementById('modal-root').addEventListener('click', handleModalClick);
+    
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
 }
 
 /**
- * Handles all CLICK events.
+ * (NOVO) Lida APENAS com cliques dentro do #modal-root
+ */
+function handleModalClick(event) {
+    const target = event.target;
+
+    // Lógica de Fechar (Botão 'X' ou clique no Overlay)
+    // Usamos .closest() para garantir que o clique no ícone dentro do botão feche
+    if (target.closest('#btn-modal-close') || target.id === 'modal-overlay') {
+        closeModal();
+    }
+    
+    // (Futuro) Lógica de seleção de item dentro do modal
+    // else if (target.closest('.modal-item-card')) {
+    //     ...
+    // }
+}
+
+
+/**
+ * Lida com cliques APENAS dentro do #app-root (A aplicação principal)
  */
 function handleGlobalClick(event) {
     const target = event.target;
@@ -44,9 +70,7 @@ function handleGlobalClick(event) {
         resetState(); 
         return; 
     }
-    // (NOVO) Botão da Loja
     if (target.id === 'btn-store') {
-        // Armazena a tela atual para podermos voltar
         updateState({ previousScreen: currentState.currentScreen }); 
         setCurrentScreen('store-screen');
         return;
@@ -62,7 +86,7 @@ function handleGlobalClick(event) {
     
     // --- 3. hub-selection-screen Logic ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
-        // Select Kid
+        
         if (target.id === 'btn-select-kid') {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             if (selectedKidId) {
@@ -70,7 +94,6 @@ function handleGlobalClick(event) {
                 setCurrentScreen('hub-preparation-screen'); 
             }
         }
-        // Pagination
         else if (target.id === 'btn-page-next') {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage + 1 } });
@@ -79,7 +102,6 @@ function handleGlobalClick(event) {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage - 1 } });
         }
-        // Filter Reset
         else if (target.id === 'btn-filter-reset') {
             updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
         }
@@ -115,7 +137,7 @@ function handleGlobalClick(event) {
              }
         }
 
-        // E. Workshop: Actions
+        // E. Workshop: Actions (REFINE/CRAFT)
         else if (target.id === 'btn-execute-refine') {
             const recipeId = target.dataset.recipeId;
             if (recipeId && !target.disabled) {
@@ -130,6 +152,19 @@ function handleGlobalClick(event) {
                 alert(result.message); 
             }
         }
+        
+        // F. (NOVO) Workshop: Ações do EMBED
+        else if (target.id === 'btn-select-embed-equip') {
+            // Abre o modal para selecionar Equipamento
+            openModal('MODAL_SELECT_EQUIPMENT');
+        }
+        else if (target.id === 'btn-select-embed-comp' && !target.classList.contains('disabled')) {
+            // Abre o modal para selecionar Componente (só abre se não estiver desabilitado)
+            openModal('MODAL_SELECT_COMPONENT');
+        }
+        else if (target.id === 'btn-execute-embed') {
+            // (Ainda desabilitado, mas pronto para a lógica de execução)
+        }
     }
 
     // --- 5. game-screen Logic ---
@@ -139,7 +174,7 @@ function handleGlobalClick(event) {
         }
     }
     
-    // --- 6. (NOVO) store-screen Logic ---
+    // --- 6. store-screen Logic ---
     else if (currentState.currentScreen === 'store-screen') {
         if (target.id === 'btn-back-to-hub') {
             // Volta para a tela anterior (Hub Selection ou Hub Prep)
