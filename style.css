@@ -1,6 +1,6 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V2.7)
-// UPDATE: Corrige o clique no texto do placeholder do Embed.
+// STYLE.CSS - FASE 2 (V2.8)
+// UPDATE: Adiciona estilos para a (NOVA) Tela da Loja (Store).
 // ==================================================================== */
 :root {
     --color-bg-dark: #1a1a2e;
@@ -65,6 +65,8 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
     transform: translateX(-50%);
 }
 .header-left, .header-right { display: flex; align-items: center; gap: 15px; }
+
+/* Estilo Tezerium */
 .tezerium-display { 
     display: flex; align-items: center; gap: 10px;
     background-color: var(--color-bg-dark); 
@@ -74,9 +76,13 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
 }
 .tezerium-icon { width: 20px; height: 20px; object-fit: contain; }
 .tezerium-display span { color: white; font-size: 1.1em; }
+
+/* Estilo Botão Store */
 .store-btn { width: auto; }
 .store-btn img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
 .store-btn:hover img { filter: none; }
+
+/* Estilo Wallet Info */
 .wallet-info { 
     background: var(--color-bg-dark); padding: 8px 12px; 
     border-radius: 5px; font-size: 0.9em; text-align: left;
@@ -84,8 +90,11 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
 }
 .wallet-status-label { color: var(--color-accent-blue); font-weight: bold; font-size: 0.8em; text-transform: uppercase; }
 .wallet-address { color: var(--color-text-dim); font-size: 0.9em; }
+
+
 footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--color-panel-dark); color: #888; font-size: 0.9em; }
-.screen { width: 100%; min-height: 80vh; padding: 0 20px; }
+
+.screen { width: 100%; min-height: 80vh; padding: 0 20px; max-width: 1600px; margin: 0 auto; }
 
 /* ================== TELA 1: Logged Out ================== */
 .logged-out-screen { display: flex; align-items: center; justify-content: center; }
@@ -133,7 +142,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .pagination-controls span { flex-grow: 1; text-align: center; font-weight: bold; color: var(--color-text-dim); }
 
 /* ================== TELA 3: Hub Preparation ================== */
-.preparation-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
+.preparation-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
 .page-title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .page-title-bar h1 { margin: 0; font-size: 1.8em; }
 .character-sheet-col { display: flex; flex-direction: column; gap: 15px; }
@@ -180,8 +189,6 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .recipe-input-item.missing { color: var(--color-accent-red); font-weight: bold; border: 1px dashed var(--color-accent-red); }
 .recipe-input-item.available { color: var(--color-accent-green); border: 1px solid var(--color-accent-green); }
 .recipe-card .action-btn { margin-top: 10px; width: auto; min-width: 120px; align-self: flex-end; }
-
-/* ================== UI da Aba EMBED ================== */
 .embed-ui { display: flex; justify-content: space-around; align-items: flex-start; gap: 15px; margin: 20px 0; }
 .embed-slot-placeholder {
     width: 45%; min-height: 150px; border-style: dashed;
@@ -191,16 +198,11 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 }
 .embed-slot-placeholder:hover { background-color: var(--color-bg-dark); }
 .embed-slot-placeholder.disabled { cursor: not-allowed; opacity: 0.5; background-color: var(--color-bg-dark); }
-/* (CORREÇÃO P3) Faz o texto não bloquear o clique no slot */
-.embed-slot-placeholder span, .embed-slot-placeholder p {
-    pointer-events: none;
-}
+.embed-slot-placeholder span, .embed-slot-placeholder p { pointer-events: none; }
 .embed-slot-placeholder .embed-plus { font-size: 1.5em; color: var(--color-text-dim); }
 .embed-slot-placeholder .embed-title { font-size: 1.2em; color: var(--color-text-light); }
 .embed-slot-placeholder .embed-desc { font-size: 0.9em; color: var(--color-text-dim); }
-.embed-item-card {
-    width: 45%; position: relative; padding: 10px;
-}
+.embed-item-card { width: 45%; position: relative; padding: 10px; }
 .embed-item-card img { width: 64px; height: 64px; object-fit: contain; float: left; margin-right: 10px; }
 .embed-item-card h4 { margin-bottom: 5px; }
 .embed-item-card p { font-size: 0.8em; margin-bottom: 5px; }
@@ -208,6 +210,57 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .embed-preview { border-style: dashed; padding: 15px; background-color: rgba(0,0,0,0.2); }
 .stats-comparison { display: flex; justify-content: space-around; }
 .stats-col.stats-after { color: var(--color-accent-green); font-weight: bold; }
+
+/* ================== (NOVO) TELA 6: Store ================== */
+.store-section {
+    margin-bottom: 20px;
+}
+.featured-item {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.featured-img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.featured-details h2 {
+    color: var(--color-accent-green); /* Destaque verde */
+}
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+.store-item-card {
+    background-color: var(--color-bg-dark); /* Fundo mais escuro */
+    border: 1px solid #444;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+.store-item-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    align-self: center;
+}
+.store-item-card h4 {
+    color: var(--color-text-light);
+    margin-bottom: 5px;
+}
+.store-item-card p {
+    font-size: 0.85em;
+    flex-grow: 1; /* Empurra o botão para baixo */
+}
+.store-item-card .action-btn {
+    margin-top: 10px;
+}
+
 
 /* ================== Modal Global ================== */
 #modal-root { position: relative; z-index: 100; }
@@ -235,7 +288,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
     cursor: pointer; line-height: 1;
 }
 .modal-body { overflow-y: auto; }
-/* (NOVO) Estilos para os cards de item dentro do modal */
+/* Estilos para os cards de item dentro do modal */
 .modal-item-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
