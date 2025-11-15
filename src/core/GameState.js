@@ -44,6 +44,7 @@ export const INITIAL_STATE = {
     // 7. Estado do Modal Global
     isModalOpen: false,
     modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT'
+    modalTargetSlot: null,
     
     // 8. Hub Selection Filters
     hubSelectionFilters: {
