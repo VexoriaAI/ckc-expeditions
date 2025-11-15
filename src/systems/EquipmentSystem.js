@@ -1,6 +1,6 @@
 /* ====================================================================
 // SYSTEM: EquipmentSystem.js
-// PATH CORRECTION: ../../database/ (para a raiz do projeto)
+// UPDATE: Adiciona a função 'unequipAll'.
 // ==================================================================== */
 
 import { getState, updateState } from '../core/GameState.js';
@@ -8,6 +8,7 @@ import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
 import { calculateFinalStats, calculatePowerScore } from './StatCalculationSystem.js';
 
+// ... (getEquipmentPowerScore - sem alteração) ...
 const getEquipmentPowerScore = (itemInstance) => {
     const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
     if (!itemStaticData) return 0;
@@ -25,17 +26,17 @@ const getEquipmentPowerScore = (itemInstance) => {
     return calculatePowerScore(combinedStats);
 };
 
+
 export const EquipmentSystem = {
     autoEquip: function() {
+        // ... (lógica do autoEquip - sem alteração) ...
         const state = getState();
         const equipmentInventory = state.playerInventory.equipment;
         const kidId = state.currentPlayerKidId;
         if (!kidId || equipmentInventory.length === 0) return;
-
         let changesMade = false;
         equipmentInventory.forEach(item => { item.isEquipped = false; });
         const bestItemBySlot = {};
-
         for (const slotType of EQUIPMENT_SLOTS) {
             let bestScore = -1;
             let bestItem = null;
@@ -52,7 +53,6 @@ export const EquipmentSystem = {
             }
             if (bestItem) bestItemBySlot[slotType] = bestItem;
         }
-
         for (const slotType in bestItemBySlot) {
             const itemToEquip = bestItemBySlot[slotType];
             if (itemToEquip) {
@@ -60,7 +60,6 @@ export const EquipmentSystem = {
                 changesMade = true;
             }
         }
-
         if (changesMade) {
             updateState({ 
                 playerInventory: { ...state.playerInventory, equipment: equipmentInventory } 
@@ -68,7 +67,30 @@ export const EquipmentSystem = {
         }
     },
     
+    /**
+     * (NOVO) Desequipa todos os itens.
+     */
+    unequipAll: function() {
+        const state = getState();
+        const equipmentInventory = state.playerInventory.equipment;
+        let changesMade = false;
+        
+        equipmentInventory.forEach(item => {
+            if (item.isEquipped) {
+                item.isEquipped = false;
+                changesMade = true;
+            }
+        });
+
+        if (changesMade) {
+            updateState({ 
+                playerInventory: { ...state.playerInventory, equipment: equipmentInventory } 
+            });
+        }
+    },
+
     getEquippedItems: function() {
+        // ... (lógica do getEquippedItems - sem alteração) ...
         const state = getState();
         if (!state.playerInventory || !state.playerInventory.equipment) return [];
         return state.playerInventory.equipment.filter(item => item.isEquipped);
