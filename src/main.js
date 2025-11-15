@@ -1,7 +1,6 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Importa o Web3Manager e adiciona o listener de clique
-// 'btn-buy-item' para a tela da Loja.
+// UPDATE: Corrige o caminho de importação do Web3Manager (./web3/)
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
@@ -10,7 +9,7 @@ import { ModalManager } from './ui/ModalManager.js';
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
-import { Web3Manager } from '../web3/Web3Manager.js'; // (NOVO) Importa o Web3Manager
+import { Web3Manager } from './web3/Web3Manager.js'; // (CAMINHO CORRIGIDO)
 
 function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
@@ -98,7 +97,7 @@ function handleGlobalClick(event) {
     
     // --- 3. hub-selection-screen Logic ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
-        // ... (lógica de seleção de kid, paginação, etc.) ...
+        
         if (target.id === 'btn-select-kid') {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             if (selectedKidId) {
@@ -106,9 +105,17 @@ function handleGlobalClick(event) {
                 setCurrentScreen('hub-preparation-screen'); 
             }
         }
-        else if (target.id === 'btn-page-next') { /* ... */ }
-        else if (target.id === 'btn-page-prev') { /* ... */ }
-        else if (target.id === 'btn-filter-reset') { /* ... */ }
+        else if (target.id === 'btn-page-next') {
+            const filters = currentState.hubSelectionFilters;
+            updateState({ hubSelectionFilters: { currentPage: filters.currentPage + 1 } });
+        }
+        else if (target.id === 'btn-page-prev') {
+            const filters = currentState.hubSelectionFilters;
+            updateState({ hubSelectionFilters: { currentPage: filters.currentPage - 1 } });
+        }
+        else if (target.id === 'btn-filter-reset') {
+            updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
+        }
     }
     
     // --- 4. hub-preparation-screen Logic ---
@@ -177,18 +184,15 @@ function handleGlobalClick(event) {
         }
     }
     
-    // --- 6. (ATUALIZADO) store-screen Logic ---
+    // --- 6. store-screen Logic ---
     else if (currentState.currentScreen === 'store-screen') {
         if (target.id === 'btn-back-to-hub') {
-            // Volta para a tela anterior (Hub Selection ou Hub Prep)
             setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
         }
-        // (NOVO) Botão de Compra
         else if (target.id === 'btn-buy-item') {
             const itemId = target.dataset.itemId;
-            // Chama o Web3Manager (simulado)
             const result = Web3Manager.buyItem(itemId, 1);
-            alert(result.message); // Feedback temporário
+            alert(result.message); 
         }
     }
 }
@@ -206,7 +210,7 @@ function handleGlobalInput(event) {
 }
 
 /**
- * Lida com eventos de CHANGE (Ex: dropdowns de <select>)
+ * Lida com eventos de CHANGE (Ex: select dropdowns)
  */
 function handleGlobalChange(event) {
     const target = event.target;
@@ -222,7 +226,6 @@ function handleGlobalChange(event) {
         });
     }
     else if (target.id === 'filter-tribe') {
-        // Lida com 'select multiple'
         const selectedOptions = Array.from(target.selectedOptions).map(option => option.value);
         updateState({ 
             hubSelectionFilters: { selectedTribes: selectedOptions, currentPage: 1 } 
