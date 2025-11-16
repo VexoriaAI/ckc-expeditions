@@ -1,6 +1,7 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V2.9)
-// VERSÃO COMPLETA - Inclui todos os estilos (Filtros, Mannequin, Modal, etc.)
+// STYLE.CSS - FASE 2 (V3.3)
+// UPDATE: Corrige o bug de clique (pointer-events) no Header e Mannequin.
+// Estiliza o novo Ticker de Ranking combinado.
 // ==================================================================== */
 :root {
     --color-bg-dark: #1a1a2e;
@@ -10,6 +11,9 @@
     --color-accent-green: #00ff6a; 
     --color-text-light: #e0e0e0;
     --color-text-dim: #aaa;
+    --color-rank-1: #ffd700;
+    --color-rank-2: #c0c0c0;
+    --color-rank-3: #cd7f32;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto Mono', monospace; }
@@ -36,6 +40,12 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
     align-items: center; 
     gap: 8px; 
     text-decoration: none;
+}
+/* (CORREÇÃO DE CLIQUE) Ignora cliques nos filhos do botão */
+.action-btn img,
+.action-btn span,
+.action-btn div {
+    pointer-events: none;
 }
 .action-btn:hover:not(:disabled) { background-color: #ff607d; box-shadow: 0 0 10px var(--color-accent-red); }
 .action-btn:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
@@ -74,9 +84,51 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
 }
 .tezerium-icon { width: 20px; height: 20px; object-fit: contain; }
 .tezerium-display span { color: white; font-size: 1.1em; }
-.store-btn { width: auto; }
+
+/* (ATUALIZADO) Estilo Botão Store */
+.store-btn { 
+    width: auto; 
+    padding: 8px 12px; /* Garante o mesmo tamanho */
+}
 .store-btn img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
 .store-btn:hover img { filter: none; }
+
+/* (ATUALIZADO) Estilo Ranking Ticker */
+.ranking-ticker-btn {
+    width: auto; /* Tamanho automático */
+    padding: 8px 12px; /* Mesmo padding do Store */
+    gap: 10px;
+    background-color: var(--color-bg-dark); /* Fundo escuro */
+    border: 1px solid #444; /* Borda sutil */
+}
+.ranking-ticker-btn:hover {
+    background-color: var(--color-panel-dark);
+    border-color: var(--color-accent-blue);
+}
+.ranking-ticker-btn .ranking-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: none; /* Ícone com cor original (Dourado) */
+}
+.ranking-ticker {
+    color: var(--color-text-dim);
+    font-size: 0.9em;
+    text-transform: none; /* Remove uppercase do .action-btn */
+    overflow: hidden;
+    width: 350px; 
+    text-align: left;
+}
+.ranking-ticker span {
+    display: inline-block;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+.ranking-ticker.fade-in span {
+    opacity: 1;
+}
+
+/* Estilo Wallet Info */
 .wallet-info { 
     background: var(--color-bg-dark); padding: 8px 12px; 
     border-radius: 5px; font-size: 0.9em; text-align: left;
@@ -85,9 +137,13 @@ p { color: var(--color-text-dim); line-height: 1.6; margin-bottom: 15px; }
 .wallet-status-label { color: var(--color-accent-blue); font-weight: bold; font-size: 0.8em; text-transform: uppercase; }
 .wallet-address { color: var(--color-text-dim); font-size: 0.9em; }
 
+
 footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--color-panel-dark); color: #888; font-size: 0.9em; }
 
 .screen { width: 100%; min-height: 80vh; padding: 0 20px; max-width: 1600px; margin: 0 auto; }
+.page-title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.page-title-bar h1 { margin: 0; font-size: 1.8em; }
+
 
 /* ================== TELA 1: Logged Out ================== */
 .logged-out-screen { display: flex; align-items: center; justify-content: center; }
@@ -98,7 +154,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 
 /* ================== TELA 2: Hub Selection ================== */
 .hub-container { max-width: 1400px; margin: 0 auto; }
-/* (CSS CORRETO) Filter Toolbar (Fase 1 Style) */
+/* Filter Toolbar (Fase 1 Style) */
 .filter-toolbar {
     background-color: rgba(0,0,0,0.2); border: 1px solid #333;
     padding: 15px; display: flex; gap: 15px;
@@ -122,7 +178,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .kid-card h4 { padding: 15px 15px 0; margin: 0; color: var(--color-accent-red); }
 .kid-card p { padding: 0 15px; font-size: 0.9em; margin-bottom: 5px; }
 .kid-card .action-btn { margin: 15px; width: calc(100% - 30px); }
-/* (CSS CORRETO) Pagination Controls (Fase 1 Style) */
+/* Pagination Controls (Fase 1 Style) */
 .pagination-controls {
     background-color: rgba(0,0,0,0.2); border: 1px solid #333;
     padding: 10px 15px; display: flex; gap: 15px;
@@ -139,8 +195,6 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 
 /* ================== TELA 3: Hub Preparation ================== */
 .preparation-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-.page-title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.page-title-bar h1 { margin: 0; font-size: 1.8em; }
 .character-sheet-col { display: flex; flex-direction: column; gap: 15px; }
 .kid-info-box { display: flex; gap: 15px; padding: 15px; background-color: rgba(0,0,0,0.2); border-radius: 5px; }
 .kid-info-box .kid-image { width: 100px; height: 100px; border: 2px solid var(--color-accent-blue); border-radius: 5px; flex-shrink: 0; }
@@ -156,7 +210,6 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 .mannequin-slot { position: relative; display: flex; flex-direction: column; align-items: center; border: 2px dashed #888; border-radius: 5px; aspect-ratio: 1/1; justify-content: center; overflow: hidden; cursor: pointer; background-color: var(--color-bg-dark); }
 .mannequin-slot:hover { border-color: var(--color-accent-blue); }
 .mannequin-slot .slot-name { font-size: 0.7em; color: var(--color-text-dim); position: absolute; bottom: 0; background: rgba(0,0,0,0.7); width: 100%; text-align: center; }
-/* Botão "X" de Remover Item */
 .unequip-btn {
     position: absolute; top: 2px; right: 5px;
     background-color: var(--color-accent-red); color: white;
@@ -209,10 +262,7 @@ footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1p
 }
 .embed-slot-placeholder:hover { background-color: var(--color-bg-dark); }
 .embed-slot-placeholder.disabled { cursor: not-allowed; opacity: 0.5; background-color: var(--color-bg-dark); }
-/* (CORREÇÃO DE CLIQUE) Ignora cliques nos filhos do placeholder */
-.embed-slot-placeholder span, .embed-slot-placeholder p { 
-    pointer-events: none; 
-}
+.embed-slot-placeholder span, .embed-slot-placeholder p { pointer-events: none; }
 .embed-slot-placeholder .embed-plus { font-size: 1.5em; color: var(--color-text-dim); }
 .embed-slot-placeholder .embed-title { font-size: 1.2em; color: var(--color-text-light); }
 .embed-slot-placeholder .embed-desc { font-size: 0.9em; color: var(--color-text-dim); }
