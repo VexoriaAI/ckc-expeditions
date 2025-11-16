@@ -1,11 +1,13 @@
 /* ====================================================================
 // RENDERER: renderInventoryEquipments.js
-// UPDATE: Usa <img> para filtros e adiciona classes de raridade/status.
+// UPDATE: Adiciona a lógica de SORT BY (Ordenação) e
+// as classes de Raridade (ex: 'rarity-common').
 // ==================================================================== */
 
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../../database/equipment.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { SLOT_UNLOCK_RULES } from '../../../database/crafting_rules.js';
+import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 
 // Helper reutilizado para desenhar os slots de um item
 const renderItemSlotsHTML = (itemInstance) => {
@@ -50,9 +52,28 @@ export const renderInventoryEquipments = (state) => {
         });
     }
 
-    // 2. Aplicar Ordenação (TODO)
+    // (ATUALIZADO) 2. Aplicar Ordenação
+    filteredItems.sort((a, b) => {
+        const aData = EQUIPMENT_DB[a.item_id];
+        const bData = EQUIPMENT_DB[b.item_id];
+        
+        switch (inventoryEquipmentSort) {
+            case 'rarity':
+                const rarityOrder = { 'COMMON': 1, 'UNCOMMON': 2, 'RARE': 3, 'MYTHIC': 4 };
+                return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+            case 'tier':
+                return b.tier - a.tier;
+            case 'type':
+                return (aData.slot || '').localeCompare(bData.slot || '');
+            case 'power':
+            default:
+                // (O cálculo do Power Score precisa dos dados de componente)
+                // (TODO: Implementar getEquipmentPowerScore aqui se necessário para ordenação)
+                return 0; 
+        }
+    });
 
-    // 3. Renderizar Filtros da UI (ATUALIZADO para <img>)
+    // 3. Renderizar Filtros da UI
     const filterButtonsHTML = EQUIPMENT_SLOTS.map(slotType => `
         <button 
             id="btn-inv-filter" 
