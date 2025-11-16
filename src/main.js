@@ -1,18 +1,29 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Atualiza os listeners de clique das Abas para usar o 
-// 'uiState' (ex: uiState.activeWorkshopTab).
+// VERSÃO COMPLETA (V3.3 - Pós-Refatoração CSS)
+// Gerencia todos os listeners de clique (App e Modal),
+// lógica de filtros (Input/Change) e navegação.
 // ==================================================================== */
 
+// Importa o Estado e suas funções de mutação
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
+
+// Importa os Gerenciadores de UI
 import { UIManager } from './ui/UIManager.js'; 
 import { ModalManager } from './ui/ModalManager.js'; 
+
+// Importa os Sistemas de Lógica
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
-import { MATERIALS_DB } from '../database/materials.js'; 
 import { Web3Manager } from './web3/Web3Manager.js'; 
+
+// Importa Bancos de Dados (apenas os necessários para o main.js)
+import { MATERIALS_DB } from '../database/materials.js'; 
 import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
 
+/**
+ * Inicializa a aplicação, os gerentes de UI e os listeners.
+ */
 function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
@@ -20,14 +31,17 @@ function initializeApp() {
     UIManager.init();
     ModalManager.init(); 
 
+    // O 'window.onGameStateChange' notifica AMBOS os gerentes (UI e Modal)
     window.onGameStateChange = (newState) => {
         UIManager.renderScreen(newState);
         ModalManager.renderModal(newState); 
     };
 
+    // Define a tela inicial
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
+    // Anexa os listeners globais
     const appRoot = document.getElementById('app-root');
     appRoot.addEventListener('click', handleGlobalClick);
     appRoot.addEventListener('input', handleGlobalInput);
@@ -36,50 +50,71 @@ function initializeApp() {
     document.getElementById('modal-root').addEventListener('click', handleModalClick);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
+
+    // Inicia o Ticker do Ranking
     startRankingTicker();
 }
 
+/**
+ * (NOVO) Lógica para o letreiro animado do ranking no header.
+ */
 function startRankingTicker() {
+    // Dados estáticos do Top 1 de cada categoria
     const tickerItems = [
         `Wasteland Forgemasters | Top #1 ${RANKING_FORGEMASTERS[0].playerName}`,
         `Legendary Explorers | Top #1 ${RANKING_EXPLORERS[0].playerName}`,
         `AI Sentinels | Top #1 ${RANKING_SENTINELS[0].playerName}`
     ];
     let currentItemIndex = 0;
+
     setInterval(() => {
         const tickerElement = document.getElementById('ranking-ticker');
-        if (!tickerElement) return; 
+        if (!tickerElement) return; // Pára se o header não estiver renderizado
+
+        // Aplica fade-out
         tickerElement.classList.remove('fade-in');
+        
+        // Espera a animação de fade-out terminar para trocar o texto
         setTimeout(() => {
+            // Atualiza o índice e o texto
             currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
             tickerElement.innerHTML = `<span>${tickerItems[currentItemIndex]}</span>`;
+            
+            // Aplica fade-in
             tickerElement.classList.add('fade-in');
-        }, 500); 
-    }, 5000); 
+        }, 500); // 0.5s (deve corresponder ao tempo da transição no CSS)
+
+    }, 5000); // Troca a cada 5 segundos
 }
 
+
 /**
- * Lida com cliques dentro do #modal-root
+ * Lida APENAS com cliques dentro do #modal-root (Overlay, Fechar, Seleção de Item)
  */
 function handleModalClick(event) {
     const target = event.target;
     const currentState = getState();
 
+    // Lógica de Fechar (Botão 'X' ou clique no Overlay)
     if (target.closest('#btn-modal-close') || target.id === 'modal-overlay') {
         closeModal();
         return;
     }
 
+    // Lógica de Seleção de Item (Para Equipar ou Embutir)
+    // Pega o clique no botão ou no card pai
     const selectButton = target.id === 'btn-modal-select-item' ? target : target.closest('.modal-item-card');
     
     if (selectButton) {
         const selectedInstanceId = parseInt(selectButton.dataset.instanceId, 10);
         
         if (currentState.modalContent === 'MODAL_SELECT_EQUIPMENT') {
+            // Se o modal foi aberto pelo Mannequin (para equipar)
             if (currentState.modalTargetSlot) {
                 EquipmentSystem.equipItem(selectedInstanceId);
-                closeModal(); 
+                closeModal(); // Fecha o modal
             } else {
+            // Se foi aberto pelo Embed (para selecionar)
                 updateState({ 
                     embedTargetEquipmentId: selectedInstanceId,
                     isModalOpen: false, 
@@ -88,6 +123,7 @@ function handleModalClick(event) {
             }
         } 
         else if (currentState.modalContent === 'MODAL_SELECT_COMPONENT') {
+            // Atualiza o GameState com o componente selecionado (para o Embed)
             updateState({ 
                 embedTargetComponentId: selectedInstanceId,
                 isModalOpen: false, 
@@ -99,14 +135,17 @@ function handleModalClick(event) {
 
 
 /**
- * Lida com cliques dentro do #app-root
+ * Lida com cliques APENAS dentro do #app-root (A aplicação principal)
  */
 function handleGlobalClick(event) {
     const target = event.target;
     const currentState = getState();
     
     // --- 1. Global Header Logic ---
-    if (target.id === 'btn-logout') { resetState(); return; }
+    if (target.id === 'btn-logout') {
+        resetState(); 
+        return; 
+    }
     if (target.id === 'btn-store') {
         updateState({ previousScreen: currentState.currentScreen }); 
         setCurrentScreen('store-screen');
@@ -174,14 +213,14 @@ function handleGlobalClick(event) {
             EquipmentSystem.unequipItem(instanceId);
         }
         
-        // C. (ATUALIZADO) Workshop: Tab Switching
+        // C. Workshop: Tab Switching
         else if (target.closest('#workshop-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
              if (tabId !== currentState.uiState.activeWorkshopTab) {
                  updateState({ uiState: { activeWorkshopTab: tabId } });
              }
         }
-        // D. (ATUALIZADO) Inventory: Tab Switching
+        // D. Inventory: Tab Switching
         else if (target.closest('#inventory-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
              if (tabId !== currentState.uiState.activeInventoryTab) {
@@ -225,6 +264,20 @@ function handleGlobalClick(event) {
             alert(result.message); 
             updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
         }
+
+        // G. Inventory: Ações (Equip/Unequip/Filter)
+        else if (target.id === 'btn-inv-equip') {
+            const instanceId = parseInt(target.dataset.instanceId, 10);
+            EquipmentSystem.equipItem(instanceId);
+        }
+        else if (target.id === 'btn-inv-unequip') {
+            const instanceId = parseInt(target.dataset.instanceId, 10);
+            EquipmentSystem.unequipItem(instanceId);
+        }
+        else if (target.id === 'btn-inv-filter') {
+            const filterType = target.dataset.filterType;
+            updateState({ uiState: { inventoryEquipmentFilter: filterType } });
+        }
     }
 
     // --- 5. game-screen Logic ---
@@ -265,7 +318,7 @@ function handleGlobalInput(event) {
             hubSelectionFilters: { searchQuery: target.value, currentPage: 1 } 
         });
     }
-    // (NOVO) Filtros de Inventário
+    // (Futuro: Filtro de busca do inventário)
     // else if (target.id === 'inventory-search-name') {
     //     updateState({ uiState: { inventorySearch: target.value } });
     // }
@@ -295,10 +348,10 @@ function handleGlobalChange(event) {
         });
     }
     
-    // (NOVO) Filtros do Inventário
-    // else if (target.id === 'inventory-sort-by') {
-    //     updateState({ uiState: { inventoryEquipmentSort: target.value } });
-    // }
+    // Filtros do Inventário
+    else if (target.id === 'inventory-sort-by') {
+        updateState({ uiState: { inventoryEquipmentSort: target.value } });
+    }
 }
 
 // Inicializa a aplicação
