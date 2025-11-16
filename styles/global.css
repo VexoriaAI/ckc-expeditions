@@ -1,9 +1,23 @@
 /* ====================================================================
 // STYLES: global.css
-// Contém estilos base (body, h1, p) e componentes reutilizáveis
-// (.panel, .action-btn, .tabs).
+// UPDATE: Contém as variáveis :root (movidas do style.css)
 // ==================================================================== */
 
+/* 1. Variáveis Globais (Movidas para cá) */
+:root {
+    --color-bg-dark: #1a1a2e;
+    --color-panel-dark: #2c2c47;
+    --color-accent-blue: #00e0ff;
+    --color-accent-red: #ff3a5c;
+    --color-accent-green: #00ff6a; 
+    --color-text-light: #e0e0e0;
+    --color-text-dim: #aaa;
+    --color-rank-1: #ffd700;
+    --color-rank-2: #c0c0c0;
+    --color-rank-3: #cd7f32;
+}
+
+/* 2. Estilos Globais */
 * { 
     box-sizing: border-box; 
     margin: 0; 
