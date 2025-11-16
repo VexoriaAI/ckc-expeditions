@@ -1,8 +1,8 @@
 /* ====================================================================
 // SYSTEM: StatCalculationSystem.js
-// UPDATE: (Refatoração de Lógica)
-// Move 'getEquipmentPowerScore' para cá (de EquipmentSystem.js)
-// para que possa ser reutilizado pelo AutoEquip E pelo Sort By (Ordenação).
+// UPDATE: (CORREÇÃO DE LÓGICA)
+// Fórmula do 'calculatePowerScore' atualizada para incluir
+// 'attack', 'critDamage', e 'attackSpeed'.
 // ==================================================================== */
 
 import { EQUIPMENT_DB } from '../../database/equipment.js';
@@ -49,26 +49,25 @@ export const calculateFinalStats = (kidData, equippedItems) => {
 };
 
 /**
- * Calcula o "Power Score" de um conjunto de stats (Ex: stats finais de um Kid).
+ * (ATUALIZADO) Calcula o "Power Score" de um conjunto de stats.
+ * Agora inclui todos os stats ofensivos.
  */
 export const calculatePowerScore = (stats) => {
     let score = 0;
     score += (stats.maxHP || 0); 
-    score += (stats.attack || 0) * 5;     
+    score += (stats.attack || 0) * 5;     // (Usa 'attack')
     score += (stats.defense || 0) * 3;    
     score += (stats.speed || 0) * 2;      
     score += (stats.AP || 0) * 10;        
     score += (stats.critChance || 0) * 4;
+    score += (stats.critDamage || 0) * 2; // (NOVO)
+    score += (stats.attackSpeed || 0) * 2; // (NOVO)
     score += (stats.luck || 0) * 1;
     return Math.floor(score);
 };
 
 /**
- * (NOVO - MOVIDO PARA CÁ)
  * Calcula o Power Score de UMA Instância de Equipamento (Base + Componentes).
- * Esta é a função usada pelo AutoEquip e pelo Sort By.
- * @param {object} itemInstance - Uma Instância de item do playerInventory.equipment.
- * @returns {number} O Power Score calculado.
  */
 export const getEquipmentPowerScore = (itemInstance) => {
     const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
