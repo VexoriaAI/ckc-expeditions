@@ -1,0 +1,346 @@
+/* ====================================================================
+// STYLES: hub_preparation.css
+// Contém os estilos da tela de Preparação (layout,
+// Mannequin, Stats, Inventory, Workshop, Embed).
+// ==================================================================== */
+
+.preparation-container { 
+    display: grid; 
+    grid-template-columns: 1fr 2fr; 
+    gap: 20px; 
+}
+
+.character-sheet-col { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+}
+
+/* Kid Info Box */
+.kid-info-box { 
+    display: flex; 
+    gap: 15px; 
+    padding: 15px; 
+    background-color: rgba(0,0,0,0.2); 
+    border-radius: 5px; 
+}
+.kid-info-box .kid-image { 
+    width: 100px; 
+    height: 100px; 
+    border: 2px solid var(--color-accent-blue); 
+    border-radius: 5px; 
+    flex-shrink: 0; 
+}
+.kid-info-box .kid-image img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
+.kid-info-box .kid-details { 
+    display: flex; 
+    flex-direction: column; 
+}
+.kid-details input[type="text"] { 
+    background: none; 
+    border: none; 
+    border-bottom: 1px dashed var(--color-text-dim); 
+    color: white; 
+    font-size: 1.2em; 
+    font-weight: bold; 
+    margin-bottom: 5px; 
+}
+.kid-details p { 
+    font-size: 0.9em; 
+    margin-bottom: 3px; 
+}
+.kid-details span { 
+    color: var(--color-text-light); 
+    font-weight: bold; 
+}
+
+/* Mannequin */
+.mannequin-controls { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 10px; 
+}
+.equipment-mannequin { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 10px; 
+    padding: 10px; 
+    background: rgba(0,0,0,0.2); 
+    border-radius: 5px; 
+    grid-template-areas: 
+        " . helmet . " 
+        "weapon armor accessory" 
+        "gloves implant boots"; 
+}
+.mannequin-slot { 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    border: 2px dashed #888; 
+    border-radius: 5px; 
+    aspect-ratio: 1/1; 
+    justify-content: center; 
+    overflow: hidden; 
+    cursor: pointer; 
+    background-color: var(--color-bg-dark); 
+}
+.mannequin-slot:hover { 
+    border-color: var(--color-accent-blue); 
+}
+.mannequin-slot .slot-name { 
+    font-size: 0.7em; 
+    color: var(--color-text-dim); 
+    position: absolute; 
+    bottom: 0; 
+    background: rgba(0,0,0,0.7); 
+    width: 100%; 
+    text-align: center; 
+}
+.unequip-btn {
+    position: absolute; 
+    top: 2px; 
+    right: 5px;
+    background-color: var(--color-accent-red); 
+    color: white;
+    border: 1px solid white; 
+    border-radius: 50%;
+    width: 20px; 
+    height: 20px; 
+    font-size: 14px;
+    line-height: 18px; 
+    font-weight: bold;
+    cursor: pointer; 
+    z-index: 2; 
+    padding: 0;
+}
+.unequip-btn:hover { 
+    background-color: #ff607d; 
+}
+
+/* Correção de Clique */
+.mannequin-slot img,
+.mannequin-slot .slot-name {
+    pointer-events: none;
+}
+
+.mannequin-slot img { 
+    display: block; 
+    image-rendering: pixelated; 
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges; 
+}
+.mannequin-slot.empty-slot img { 
+    width: 64px; 
+    height: 64px; 
+    object-fit: contain; 
+    opacity: 0.4; 
+}
+.mannequin-slot.equipped-slot img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+
+/* Áreas do Grid */
+[data-slot-type="helmet"] { grid-area: helmet; } 
+[data-slot-type="weapon"] { grid-area: weapon; } 
+[data-slot-type="accessory"]{ grid-area: accessory; } 
+[data-slot-type="armor"] { grid-area: armor; } 
+[data-slot-type="gloves"] { grid-area: gloves; } 
+[data-slot-type="implant"] { grid-area: implant; } 
+[data-slot-type="boots"] { grid-area: boots; }
+
+/* Stats Summary */
+.stats-summary-card ul { 
+    list-style: none; 
+    padding: 0; 
+    margin-top: 10px; 
+    font-size: 0.9em; 
+}
+.stats-summary-card li { 
+    display: flex; 
+    justify-content: space-between; 
+    border-bottom: 1px solid #333; 
+    padding: 4px 0; 
+}
+.power-score-badge { 
+    font-weight: bold; 
+    font-size: 1.2em; 
+    color: var(--color-accent-red); 
+    margin-top: 10px; 
+}
+.power-score-badge span { 
+    color: white; 
+    border: 1px solid var(--color-accent-red); 
+    padding: 2px 5px; 
+    border-radius: 3px; 
+}
+
+/* Inventory & Workshop */
+.inventory-panel { 
+    margin-bottom: 20px; 
+}
+.workshop-panel { 
+    min-height: 400px; 
+}
+
+/* Cards de Receita (Refine/Craft) */
+.refine-list, .craft-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    max-height: 400px; 
+    overflow-y: auto; 
+    padding-right: 10px; 
+}
+.recipe-card { 
+    border: 1px solid #444; 
+    border-radius: 5px; 
+    padding: 15px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    background-color: var(--color-bg-dark); 
+}
+.recipe-io { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+.input-section, .output-section { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 0.85em; 
+}
+.arrow-separator { 
+    font-size: 1.5em; 
+    color: var(--color-accent-blue); 
+    font-weight: bold; 
+}
+.recipe-input-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+    padding: 3px 6px; 
+    border-radius: 3px; 
+}
+.recipe-input-item img { 
+    width: 20px; 
+    height: 20px; 
+    object-fit: contain; 
+}
+.recipe-input-item.missing { 
+    color: var(--color-accent-red); 
+    font-weight: bold; 
+    border: 1px dashed var(--color-accent-red); 
+}
+.recipe-input-item.available { 
+    color: var(--color-accent-green); 
+    border: 1px solid var(--color-accent-green); 
+}
+.recipe-card .action-btn { 
+    margin-top: 10px; 
+    width: auto; 
+    min-width: 120px; 
+    align-self: flex-end; 
+}
+
+/* UI da Aba EMBED */
+.embed-ui { 
+    display: flex; 
+    justify-content: space-around; 
+    align-items: flex-start; 
+    gap: 15px; 
+    margin: 20px 0; 
+}
+.embed-slot-placeholder {
+    width: 45%; 
+    min-height: 150px; 
+    border-style: dashed;
+    border-width: 2px; 
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    cursor: pointer; 
+    background-color: rgba(0,0,0,0.2);
+}
+.embed-slot-placeholder:hover { 
+    background-color: var(--color-bg-dark); 
+}
+.embed-slot-placeholder.disabled { 
+    cursor: not-allowed; 
+    opacity: 0.5; 
+    background-color: var(--color-bg-dark); 
+}
+.embed-slot-placeholder span, .embed-slot-placeholder p { 
+    pointer-events: none; 
+}
+.embed-slot-placeholder .embed-plus { 
+    font-size: 1.5em; 
+    color: var(--color-text-dim); 
+}
+.embed-slot-placeholder .embed-title { 
+    font-size: 1.2em; 
+    color: var(--color-text-light); 
+}
+.embed-slot-placeholder .embed-desc { 
+    font-size: 0.9em; 
+    color: var(--color-text-dim); 
+}
+
+.embed-item-card { 
+    width: 45%; 
+    position: relative; 
+    padding: 10px; 
+}
+.embed-item-card img { 
+    width: 64px; 
+    height: 64px; 
+    object-fit: contain; 
+    float: left; 
+    margin-right: 10px; 
+}
+.embed-item-card h4 { 
+    margin-bottom: 5px; 
+}
+.embed-item-card p { 
+    font-size: 0.8em; 
+    margin-bottom: 5px; 
+}
+.embed-item-card .action-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 5px; 
+    width: auto; 
+}
+
+.embed-preview { 
+    border-style: dashed; 
+    padding: 15px; 
+    background-color: rgba(0,0,0,0.2); 
+}
+.stats-comparison { 
+    display: flex; 
+    justify-content: space-around; 
+}
+.stats-col.stats-after { 
+    color: var(--color-accent-green); 
+    font-weight: bold; 
+}
+
+/* Responsividade */
+@media (max-width: 1200px) { 
+    .preparation-container { grid-template-columns: 1fr; } 
+}
+@media (max-width: 768px) { 
+    .recipe-io { flex-direction: column; text-align: center; } 
+    .arrow-separator { transform: rotate(90deg); margin: 10px 0; } 
+}
