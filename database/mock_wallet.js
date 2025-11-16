@@ -1,67 +1,65 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// Simula o conteúdo da carteira Tezos do jogador (NFTs, Inventário inicial, Token Tezerium).
-// Exporta todos os dados como 'const' conforme o GDD.
-// Language: English
+// UPDATE: baseStats balanceados conforme a Tribo e Nível.
 // ==================================================================== */
 
 // --- Estruturas de Dados Essenciais ---
-
-/**
- * @typedef {object} KidNFT - Simula um NFT do CyberKidz.
- * @property {string} id - O ID da instância NFT (Token ID).
- * @property {string} name - Nome ou Título do Kid.
- * @property {string} tribe - Tribo à qual pertence (VOLCANICS, NOCTURNALS, etc.).
- * @property {number} level - Nível de experiência.
- * @property {string} spritePath - Caminho para a imagem visual do Kid.
- * @property {object} baseStats - Atributos iniciais do Kid (sem equipamento).
- */
-
-/**
- * @typedef {object} InventoryItem - Simula um item único com estado (Equipamento ou Componente).
- * @property {number} instance_id - ID único da instância no inventário (não é o Token ID da NFT).
- * @property {string} item_id - Referência ao ID no database correspondente (ex: 'eq_rust_helmet').
- * @property {object} [slots] - Apenas para Equipamentos: Estado dos slots de embed.
- */
-
+/** @typedef {object} KidNFT ... */
+/** @typedef {object} InventoryItem ... */
 
 // --- Mock Data ---
 
-// 1. DADOS MOCK: Lista de CyberKidz NFTs
+// 1. DADOS MOCK: Lista de CyberKidz NFTs (Balanceados)
 export const MOCK_KIDZ_NFTS = [
     {
-        id: 'CKID-DEMO-001',
-        name: 'Cypher (Protótipo)',
+        id: '#333',
+        name: 'Cypher',
         tribe: 'NOCTURNALS',
-        level: 10,
-        spritePath: 'assets/characters/nocturnals_1.png', // <-- ATUALIZADO
-        baseStats: {
-            maxHP: 100,
-            attack: 8,
-            defense: 5,
-            speed: 5, // Usado para MP (Movimento)
-            AP: 2,    // Ações por turno/rodada
-        }
+        level: 1,
+        spritePath: 'assets/characters/nocturnals_1.png',
+        // Stats Base (Nível 1) - Foco em Agilidade (Speed/AP)
+        baseStats: { maxHP: 100, attack: 8, defense: 5, speed: 5, AP: 2 }
     },
     {
-        id: 'CKID-DEMO-002',
-        name: 'Vulk (Forja)',
+        id: '#104',
+        name: 'Matildo',
         tribe: 'VOLCANICS',
-        level: 8,
-        spritePath: 'assets/characters/volcanics_1.png', // <-- ATUALIZADO
-        baseStats: {
-            maxHP: 120,
-            attack: 6,
-            defense: 10,
-            speed: 3,
-            AP: 2,
-        }
+        level: 3,
+        spritePath: 'assets/characters/volcanics_2.png',
+        // Stats Lvl 3 - Foco em Força (Attack/Defense)
+        baseStats: { maxHP: 115, attack: 11, defense: 9, speed: 3, AP: 2 }
+    },
+    {
+        id: '#73',
+        name: 'SpacePlug',
+        tribe: 'NOCTURNALS',
+        level: 7,
+        spritePath: 'assets/characters/nocturnals_4.png',
+        // Stats Lvl 7 (Agilidade) - Note o AP e Speed mais altos
+        baseStats: { maxHP: 110, attack: 10, defense: 7, speed: 7, AP: 3 }
+    },
+    {
+        id: '#303',
+        name: 'Vaz',
+        tribe: 'REPTILIANS',
+        level: 4,
+        spritePath: 'assets/characters/reptilians_1.png',
+        // Stats Lvl 4 - Foco em Vitalidade (HP/Attack)
+        baseStats: { maxHP: 125, attack: 10, defense: 7, speed: 4, AP: 2 }
+    },
+    {
+        id: '#88',
+        name: 'NerdFTeam',
+        tribe: 'RADIOACTIVES',
+        level: 9,
+        spritePath: 'assets/characters/radioactives_4.png',
+        // Stats Lvl 9 (Tanque) - HP e Defesa altos, Speed baixa
+        baseStats: { maxHP: 150, attack: 7, defense: 12, speed: 2, AP: 2 }
     }
 ];
 
-// 2. DADOS MOCK: Inventário Inicial
+// 2. DADOS MOCK: Inventário Inicial (com novos itens)
 export const MOCK_INVENTORY = {
-    // Materiais: Usam a estrutura { item_id: quantidade }
     materials: {
         'mat_scrap': 150,
         'mat_metal': 25,
@@ -69,42 +67,68 @@ export const MOCK_INVENTORY = {
         'mat_water': 10
     },
 
-    // Equipamentos: Usam a estrutura [ { instance_id, item_id, slots } ]
     equipment: [
+        // --- Item 1 (Common, T1, Equipado no mock) ---
         {
             instance_id: 101, 
-            item_id: 'eq_rust_helmet', // Exemplo de item (A ser definido em equipment.js)
-            slots: [ // 3 slots (GDD)
-                { component_id: null, isLocked: false, isUnlockable: false }, // Slot 1: Vazio e Destravado
-                { component_id: 'comp_def_1', isLocked: false, isUnlockable: false }, // Slot 2: Preenchido (A ser definido em components.js)
-                { component_id: null, isLocked: true, isUnlockable: true } // Slot 3: Travado, mas pode ser destravado
+            item_id: 'eq_rust_helmet', // Tier 1, Common
+            rarity: 'COMMON',
+            tier: 1,
+            slots: [
+                { component_id: 'comp_def_1', isLocked: false }, // T1 (Preenchido)
+                { component_id: null, isLocked: true },         // T3
             ]
         },
+        // --- Item 2 (Common, T1, Não Equipado) ---
         {
             instance_id: 102, 
-            item_id: 'eq_rust_weapon', // Exemplo de arma
+            item_id: 'eq_rust_weapon', // Tier 1, Common
+            rarity: 'COMMON',
+            tier: 1,
             slots: [
-                { component_id: null, isLocked: false, isUnlockable: false },
-                { component_id: null, isLocked: true, isUnlockable: false },
-                { component_id: null, isLocked: true, isUnlockable: false }
+                { component_id: null, isLocked: false }, // T1
+                { component_id: null, isLocked: true },  // T3
             ]
-        }
+        },
+        // --- Item 3 (RARE, T3) ---
+        {
+            instance_id: 103, 
+            item_id: 'eq_noct_helmet', // Tier 1 (mas vamos forçar T3 para teste)
+            rarity: 'RARE',
+            tier: 3,
+            slots: [ // RARE tem 3 slots
+                { component_id: null, isLocked: false }, // T1
+                { component_id: null, isLocked: false }, // T3 (Destravado pois o item é T3)
+                { component_id: null, isLocked: true },  // T5
+            ]
+        },
+        // --- Item 4 (MYTHIC, T8) ---
+        {
+            instance_id: 104, 
+            item_id: 'eq_noct_weapon', // Tier 1 (mas vamos forçar T8 para teste)
+            rarity: 'MYTHIC',
+            tier: 8,
+            slots: [ // MYTHIC tem 4 slots
+                { component_id: null, isLocked: false }, // T1
+                { component_id: null, isLocked: false }, // T3
+                { component_id: null, isLocked: false }, // T5
+                { component_id: null, isLocked: false }, // T8 (Destravado)
+            ]
+        },
     ],
 
-    // Componentes: Usam a estrutura [ { instance_id, item_id } ]
     components: [
         { instance_id: 201, item_id: 'comp_def_1' }, 
         { instance_id: 202, item_id: 'comp_dmg_1' },
-        { instance_id: 203, item_id: 'comp_def_1' } // Componentes duplicados usam instance_id diferentes
+        { instance_id: 203, item_id: 'comp_def_1' } 
     ],
 
-    // Itens de Loja (Consumíveis): Usam a estrutura { item_id: quantidade }
     shopItems: {
         'ap_refill': 3,
-        'slot_unlock_token': 1
+        'slot_unlock_token': 1,
+        'unstable_ai_core': 1 
     },
-
 };
 
-// 3. DADOS MOCK: Saldo de Token Tezerium (Moeda de Consumo)
-export const MOCK_TEZERIUM_BALANCE = 500;
+// 3. DADOS MOCK: Saldo de Token Tezerium
+export const MOCK_TEZERIUM_BALANCE = 1000;
