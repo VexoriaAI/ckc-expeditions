@@ -1,0 +1,116 @@
+/* ====================================================================
+// STYLES: header.css
+// Contém apenas os estilos para o .main-header e seus filhos
+// (Tezerium, Wallet, Store, Ranking Ticker).
+// ==================================================================== */
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--color-panel-dark);
+    border-bottom: 2px solid var(--color-accent-blue);
+    margin-bottom: 20px;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.header-left, .header-right { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
+
+/* Estilo Tezerium */
+.tezerium-display { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+    background-color: var(--color-bg-dark); 
+    border: 1px solid var(--color-accent-blue); 
+    padding: 8px 12px; 
+    border-radius: 5px;
+    font-weight: bold; 
+    color: var(--color-accent-blue); 
+}
+.tezerium-icon { 
+    width: 20px; 
+    height: 20px; 
+    object-fit: contain; 
+}
+.tezerium-display span { 
+    color: white; 
+    font-size: 1.1em; 
+}
+
+/* Estilo Botão Store */
+.store-btn { 
+    width: auto; 
+    padding: 8px 12px; /* Garante o mesmo tamanho */
+}
+.store-btn img { 
+    width: 20px; 
+    height: 20px; 
+    filter: brightness(0) invert(1); 
+}
+.store-btn:hover img { 
+    filter: none; 
+}
+
+/* Estilo Ranking Ticker */
+.ranking-ticker-btn {
+    width: auto; /* Tamanho automático */
+    padding: 8px 12px; /* Mesmo padding do Store */
+    gap: 10px;
+    background-color: var(--color-bg-dark); /* Fundo escuro */
+    border: 1px solid #444; /* Borda sutil */
+}
+.ranking-ticker-btn:hover {
+    background-color: var(--color-panel-dark);
+    border-color: var(--color-accent-blue);
+}
+.ranking-ticker-btn .ranking-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: none; /* Ícone com cor original (Dourado) */
+}
+.ranking-ticker {
+    color: var(--color-text-dim);
+    font-size: 0.9em;
+    text-transform: none; /* Remove uppercase do .action-btn */
+    overflow: hidden;
+    width: 350px; 
+    text-align: left;
+}
+.ranking-ticker span {
+    display: inline-block;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+.ranking-ticker.fade-in span {
+    opacity: 1;
+}
+
+/* Estilo Wallet Info */
+.wallet-info { 
+    background: var(--color-bg-dark); 
+    padding: 8px 12px; 
+    border-radius: 5px; 
+    font-size: 0.9em; 
+    text-align: left;
+    display: flex; 
+    flex-direction: column;
+}
+.wallet-status-label { 
+    color: var(--color-accent-blue); 
+    font-weight: bold; 
+    font-size: 0.8em; 
+    text-transform: uppercase; 
+}
+.wallet-address { 
+    color: var(--color-text-dim); 
+    font-size: 0.9em; 
+}
