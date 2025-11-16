@@ -1,7 +1,7 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Adiciona a lógica do "Ranking Ticker" (setInterval)
-// e o listener de clique para a nova tela de Ranking.
+// UPDATE: Ativa o botão 'btn-execute-embed' para chamar
+// o CraftingSystem.embedComponent.
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
@@ -9,14 +9,9 @@ import { UIManager } from './ui/UIManager.js';
 import { ModalManager } from './ui/ModalManager.js'; 
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
-import { Web3Manager } from './web3/Web3Manager.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
-// (NOVO) Importa os dados do ranking
-import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
+import { Web3Manager } from './web3/Web3Manager.js'; 
 
-/**
- * Inicializa a aplicação, os gerentes de UI e os listeners.
- */
 function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
@@ -32,7 +27,6 @@ function initializeApp() {
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
-    // Anexa os listeners globais
     const appRoot = document.getElementById('app-root');
     appRoot.addEventListener('click', handleGlobalClick);
     appRoot.addEventListener('input', handleGlobalInput);
@@ -41,51 +35,15 @@ function initializeApp() {
     document.getElementById('modal-root').addEventListener('click', handleModalClick);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
-
-    // (NOVO) Inicia o Ranking Ticker
-    startRankingTicker();
 }
 
 /**
- * (NOVO) Lógica para o letreiro animado do ranking no header.
- */
-function startRankingTicker() {
-    // Dados estáticos do Top 1 de cada categoria
-    const tickerItems = [
-        `Wasteland Forgemasters | Top #1 ${RANKING_FORGEMASTERS[0].playerName}`,
-        `Legendary Explorers | Top #1 ${RANKING_EXPLORERS[0].playerName}`,
-        `AI Sentinels | Top #1 ${RANKING_SENTINELS[0].playerName}`
-    ];
-    let currentItemIndex = 0;
-
-    setInterval(() => {
-        const tickerElement = document.getElementById('ranking-ticker');
-        if (!tickerElement) return; // Pára se o header não estiver renderizado
-
-        // Aplica fade-out
-        tickerElement.classList.remove('fade-in');
-        
-        // Espera a animação de fade-out terminar para trocar o texto
-        setTimeout(() => {
-            // Atualiza o índice e o texto
-            currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
-            tickerElement.innerHTML = `<span>${tickerItems[currentItemIndex]}</span>`;
-            
-            // Aplica fade-in
-            tickerElement.classList.add('fade-in');
-        }, 500); // 0.5s (deve corresponder ao tempo da transição no CSS)
-
-    }, 5000); // Troca a cada 5 segundos
-}
-
-/**
- * Lida APENAS com cliques dentro do #modal-root (Overlay, Fechar, Seleção de Item)
+ * Lida com cliques dentro do #modal-root
  */
 function handleModalClick(event) {
     const target = event.target;
     const currentState = getState();
 
-    // Lógica de Fechar (Botão 'X' ou clique no Overlay)
     if (target.closest('#btn-modal-close') || target.id === 'modal-overlay') {
         closeModal();
         return;
@@ -98,9 +56,18 @@ function handleModalClick(event) {
         const selectedInstanceId = parseInt(selectButton.dataset.instanceId, 10);
         
         if (currentState.modalContent === 'MODAL_SELECT_EQUIPMENT') {
-            // Chama o sistema para equipar o item
-            EquipmentSystem.equipItem(selectedInstanceId);
-            closeModal(); // Fecha o modal
+            // Se o modal foi aberto pelo Mannequin, equipa o item
+            if (currentState.modalTargetSlot) {
+                EquipmentSystem.equipItem(selectedInstanceId);
+                closeModal(); // Fecha o modal
+            } else {
+                // Se foi aberto pelo Embed, apenas define o ID
+                updateState({ 
+                    embedTargetEquipmentId: selectedInstanceId,
+                    isModalOpen: false, 
+                    modalContent: null 
+                });
+            }
         } 
         else if (currentState.modalContent === 'MODAL_SELECT_COMPONENT') {
             // Atualiza o GameState com o componente selecionado (para o Embed)
@@ -115,7 +82,7 @@ function handleModalClick(event) {
 
 
 /**
- * Lida com cliques APENAS dentro do #app-root
+ * Lida com cliques dentro do #app-root
  */
 function handleGlobalClick(event) {
     const target = event.target;
@@ -131,10 +98,9 @@ function handleGlobalClick(event) {
         setCurrentScreen('store-screen');
         return;
     }
-    // (NOVO) Botão de Ranking (abre a nova TELA de ranking)
     if (target.id === 'btn-ranking') {
         updateState({ previousScreen: currentState.currentScreen }); 
-        setCurrentScreen('ranking-screen'); // Abre a nova tela
+        setCurrentScreen('ranking-screen');
         return;
     }
     
@@ -149,7 +115,6 @@ function handleGlobalClick(event) {
     // --- 3. hub-selection-screen Logic ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
         
-        // Selecionar Kid
         if (target.id === 'btn-select-kid') {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             if (selectedKidId) {
@@ -157,7 +122,6 @@ function handleGlobalClick(event) {
                 setCurrentScreen('hub-preparation-screen'); 
             }
         }
-        // Paginação
         else if (target.id === 'btn-page-next') {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage + 1 } });
@@ -166,7 +130,6 @@ function handleGlobalClick(event) {
             const filters = currentState.hubSelectionFilters;
             updateState({ hubSelectionFilters: { currentPage: filters.currentPage - 1 } });
         }
-        // Resetar Filtro
         else if (target.id === 'btn-filter-reset') {
             updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
         }
@@ -190,13 +153,11 @@ function handleGlobalClick(event) {
             EquipmentSystem.unequipAll();
         }
         else if (target.id === 'btn-open-equip-modal') {
-            // Abre o modal de equipamento, filtrando pelo slot clicado
             const slotType = target.dataset.slotType;
             openModal('MODAL_SELECT_EQUIPMENT');
-            updateState({ modalTargetSlot: slotType }); // Informa ao modal qual slot estamos preenchendo
+            updateState({ modalTargetSlot: slotType }); 
         }
         else if (target.id === 'btn-unequip-item') {
-            // Remove o item (clique no "X")
             const instanceId = parseInt(target.dataset.instanceId, 10);
             EquipmentSystem.unequipItem(instanceId);
         }
@@ -221,14 +182,14 @@ function handleGlobalClick(event) {
             const recipeId = target.dataset.recipeId;
             if (recipeId && !target.disabled) {
                 const result = CraftingSystem.processRefineAction(recipeId);
-                alert(result.message); // Feedback temporário
+                alert(result.message); 
             }
         }
         else if (target.id === 'btn-execute-craft') {
             const recipeId = target.dataset.recipeId;
             if (recipeId && !target.disabled) {
                 const result = CraftingSystem.processCraftAction(recipeId); 
-                alert(result.message); // Feedback temporário
+                alert(result.message); 
             }
         }
         
@@ -246,10 +207,17 @@ function handleGlobalClick(event) {
         else if (target.id === 'btn-remove-embed-comp') {
             updateState({ embedTargetComponentId: null });
         }
+        // (ATUALIZADO) Executa o Embed
         else if (target.id === 'btn-execute-embed' && !target.disabled) {
             const { embedTargetEquipmentId, embedTargetComponentId } = currentState;
             const result = CraftingSystem.embedComponent(embedTargetEquipmentId, embedTargetComponentId);
-            alert(result.message); 
+            alert(result.message); // Feedback temporário
+            
+            // Limpa o estado da UI do Embed após a ação
+            updateState({
+                embedTargetEquipmentId: null,
+                embedTargetComponentId: null
+            });
         }
     }
 
@@ -272,12 +240,11 @@ function handleGlobalClick(event) {
         }
     }
     
-    // --- 7. (NOVO) ranking-screen Logic ---
+    // --- 7. ranking-screen Logic ---
     else if (currentState.currentScreen === 'ranking-screen') {
         if (target.id === 'btn-back-to-hub') {
             setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
         }
-        // (Futuro: Lógica das abas do ranking)
     }
 }
 
@@ -310,7 +277,6 @@ function handleGlobalChange(event) {
         });
     }
     else if (target.id === 'filter-tribe') {
-        // Lida com 'select multiple'
         const selectedOptions = Array.from(target.selectedOptions).map(option => option.value);
         updateState({ 
             hubSelectionFilters: { selectedTribes: selectedOptions, currentPage: 1 } 
