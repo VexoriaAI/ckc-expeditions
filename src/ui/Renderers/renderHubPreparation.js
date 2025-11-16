@@ -1,7 +1,7 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: Lê o estado da aba ativa de 'state.uiState' 
-// (ex: state.uiState.activeWorkshopTab).
+// UPDATE: Importa e chama 'renderInventoryEquipments' 
+// para a aba de Inventário.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -10,33 +10,26 @@ import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 import { renderMannequinSlots } from './renderMannequin.js';
 import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
-// (NOVO) Importa o renderer do inventário (será criado a seguir)
-// import { renderInventoryList } from './renderInventory.js'; 
+// (NOVO) Importa os renderers do Inventário
+import { 
+    renderInventoryEquipments, 
+    renderInventoryComponents, 
+    renderInventoryMaterials, 
+    renderInventoryShopItems 
+} from './renderInventory.js'; 
 
-// Helper local
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-/**
- * Renders the Hub Preparation screen (Character Sheet, Workshop, Inventory).
- * @param {object} state - The current GameState.
- * @returns {string} HTML content for the screen.
- */
 export const renderHubPreparationScreen = (state) => {
     const kidId = state.currentPlayerKidId;
     const kidStaticData = getKidDataById(kidId);
+    if (!kidStaticData) return `<h2>Error: Kid Data not found for ID: ${kidId}</h2>`;
 
-    if (!kidStaticData) {
-        return `<h2>Error: Kid Data not found for ID: ${kidId}</h2>`;
-    }
-
-    // --- Cálculos de Stats ---
     const equippedItems = EquipmentSystem.getEquippedItems();
     const finalStats = calculateFinalStats(kidStaticData, equippedItems);
     const totalPowerScore = calculatePowerScore(finalStats);
-
-    // --- Renderização dos Componentes da UI ---
     const mannequinHTML = renderMannequinSlots(equippedItems);
 
     const statsSummaryHTML = `
@@ -57,9 +50,7 @@ export const renderHubPreparationScreen = (state) => {
     
     const kidInfoBoxHTML = `
         <div class="kid-info-box panel">
-            <div class="kid-image">
-                <img src="${kidStaticData.spritePath}" alt="${kidStaticData.name}">
-            </div>
+            <div class="kid-image"><img src="${kidStaticData.spritePath}" alt="${kidStaticData.name}"></div>
             <div class="kid-details">
                 <input type="text" value="${kidStaticData.name}">
                 <p>Tribe: <span>${kidStaticData.tribe}</span></p>
@@ -69,7 +60,6 @@ export const renderHubPreparationScreen = (state) => {
         </div>
     `;
     
-    // (ATUALIZADO) Lê o estado da UI
     const activeWorkshopTab = state.uiState.activeWorkshopTab || 'refine'; 
     const activeInventoryTab = state.uiState.activeInventoryTab || 'equipments';
     let workshopContent = '';
@@ -84,15 +74,23 @@ export const renderHubPreparationScreen = (state) => {
         workshopContent = renderEmbedTab(state);
     }
     
-    // (NOVO) Define conteúdo do Inventário
-    if (activeInventoryTab === 'equipments') {
-        // (Será implementado no próximo passo)
-        // inventoryContent = renderInventoryList(state);
-        inventoryContent = "<p>[Renderizador da Lista de Equipamentos (Pendente)]</p>";
-    } else {
-        inventoryContent = `<p>[Renderizador para ${activeInventoryTab} (Pendente)]</p>`;
+    // (ATUALIZADO) Define conteúdo do Inventário
+    switch (activeInventoryTab) {
+        case 'equipments':
+            inventoryContent = renderInventoryEquipments(state);
+            break;
+        case 'components':
+            inventoryContent = renderInventoryComponents(state);
+            break;
+        case 'materials':
+            inventoryContent = renderInventoryMaterials(state);
+            break;
+        case 'shop-items':
+            inventoryContent = renderInventoryShopItems(state);
+            break;
+        default:
+            inventoryContent = "<p>Erro: Aba de inventário desconhecida.</p>";
     }
-
 
     // --- Montagem Final da Tela ---
     return `
@@ -105,20 +103,15 @@ export const renderHubPreparationScreen = (state) => {
 
             <div class="preparation-container">
                 <div class="character-sheet-col">
-                    
                     ${kidInfoBoxHTML}
-
                     <div class="mannequin-controls">
                         <button id="btn-auto-equip" class="action-btn btn-info btn-sm">AUTO EQUIP</button>
                         <button id="btn-remove-all" class="action-btn btn-sm btn-primary">REMOVE ALL</button>
                     </div>
-                    
                     <div class="equipment-mannequin">
                         ${mannequinHTML}
                     </div>
-
                     ${statsSummaryHTML}
-                    
                     <button id="btn-start-expedition" class="action-btn btn-success">START EXPEDITION</button>
                 </div>
 
@@ -132,9 +125,9 @@ export const renderHubPreparationScreen = (state) => {
                             <button class="tab-btn ${activeInventoryTab === 'materials' ? 'active' : ''}" data-tab="materials">Materials</button>
                             <button class="tab-btn ${activeInventoryTab === 'shop-items' ? 'active' : ''}" data-tab="shop-items">Shop Items</button>
                         </div>
-                        <div class="item-grid-container">
-                            ${inventoryContent}
-                        </div>
+                        
+                        ${inventoryContent}
+                        
                     </div>
 
                     <div class="workshop-panel panel">
