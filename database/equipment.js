@@ -1,7 +1,7 @@
 /* ====================================================================
 // DATABASE: EQUIPMENT
-// UPDATE: Remove 'slots_total' e 'slots_unlocked'.
-// Adiciona 'tier' e 'base_rarity' para criação dinâmica de instâncias.
+// UPDATE: Padroniza o atributo 'damage' para 'attack'
+// para consistência com o StatCalculationSystem.
 // ==================================================================== */
 
 export const EQUIPMENT_SLOTS = ["helmet", "armor", "weapon", "boots", "gloves", "implant", "accessory"];
@@ -37,7 +37,7 @@ export const EQUIPMENT_DB = {
         description: "A primitive, heavy-duty club that delivers reasonable damage.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { damage: 7 },
+        base_stats: { attack: 7 }, // <-- ATUALIZADO
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_weapon.png'
@@ -59,7 +59,7 @@ export const EQUIPMENT_DB = {
         description: "Improves precision and handling slightly, increasing crit chance.",
         slot: "gloves",
         synergy: "damage",
-        base_stats: { speed: 1, damage: 1, critChance: 1 },
+        base_stats: { speed: 1, attack: 1, critChance: 1 }, // <-- ATUALIZADO
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_gloves.png'
@@ -99,27 +99,15 @@ export const EQUIPMENT_DB = {
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_noct_helmet.png'
     },
-    "eq_noct_armor": {
-        id: "eq_noct_armor",
-        name: "Nocturnal Cloak",
-        description: "Lightweight and stealthy, offers good defense without compromising speed.",
-        slot: "armor",
-        synergy: "defense",
-        base_stats: { hp: 30, defense: 4, speed: 2 },
-        tier: 1,
-        base_rarity: "COMMON",
-        iconPath: 'assets/items/equipment/eq_noct_armor.png'
-    },
     "eq_noct_weapon": {
         id: "eq_noct_weapon",
         name: "Shadow Dagger",
         description: "A fast, lethal weapon focused on maximizing critical damage output.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { damage: 8, critDamage: 10, attackSpeed: 2 }, 
+        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2 }, // <-- ATUALIZADO
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_noct_weapon.png'
     },
-    // (Os demais itens Nocturnals seguiriam o mesmo padrão)
 };
