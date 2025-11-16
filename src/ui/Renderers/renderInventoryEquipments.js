@@ -1,12 +1,11 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderInventoryEquipments.js
-// Renderiza a aba de Equipamentos (com filtros, ordenação e botões de ação)
+// RENDERER: renderInventoryEquipments.js
+// UPDATE: Usa <img> para filtros e adiciona classes de raridade/status.
 // ==================================================================== */
 
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../../database/equipment.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { SLOT_UNLOCK_RULES } from '../../../database/crafting_rules.js';
-// (Removido calculatePowerScore daqui, pois a ordenação será feita no main.js ou system)
 
 // Helper reutilizado para desenhar os slots de um item
 const renderItemSlotsHTML = (itemInstance) => {
@@ -43,7 +42,7 @@ export const renderInventoryEquipments = (state) => {
 
     let filteredItems = [...playerInventory.equipment];
 
-    // 1. Aplicar Filtro (ex: 'helmet')
+    // 1. Aplicar Filtro
     if (inventoryEquipmentFilter !== 'all') {
         filteredItems = filteredItems.filter(item => {
             const staticData = EQUIPMENT_DB[item.item_id];
@@ -51,28 +50,27 @@ export const renderInventoryEquipments = (state) => {
         });
     }
 
-    // 2. Aplicar Ordenação (Lógica de ordenação será adicionada)
-    // TODO: Adicionar lógica de ordenação real baseada em 'inventoryEquipmentSort'
+    // 2. Aplicar Ordenação (TODO)
 
-    // 3. Renderizar Filtros da UI
+    // 3. Renderizar Filtros da UI (ATUALIZADO para <img>)
     const filterButtonsHTML = EQUIPMENT_SLOTS.map(slotType => `
         <button 
             id="btn-inv-filter" 
             data-filter-type="${slotType}" 
-            class="btn-xs btn-secondary ${inventoryEquipmentFilter === slotType ? 'active' : ''}"
+            class="action-btn btn-xs btn-secondary ${inventoryEquipmentFilter === slotType ? 'active' : ''}"
+            title="${slotType}"
         >
-            ${slotType.toUpperCase()}
+            <img src="assets/ui/icon_${slotType}.png" alt="${slotType}">
         </button>
     `).join('');
 
     const filterHTML = `
         <div class="inventory-filters">
             <div class="filter-group">
-                <span>Filter:</span>
                 <button 
                     id="btn-inv-filter" 
                     data-filter-type="all" 
-                    class="btn-xs btn-secondary ${inventoryEquipmentFilter === 'all' ? 'active' : ''}"
+                    class="action-btn btn-xs btn-secondary ${inventoryEquipmentFilter === 'all' ? 'active' : ''}"
                 >ALL</button>
                 ${filterButtonsHTML}
             </div>
@@ -110,9 +108,13 @@ export const renderInventoryEquipments = (state) => {
         const actionButton = item.isEquipped
             ? `<button id="btn-inv-unequip" data-instance-id="${item.instance_id}" class="action-btn btn-sm btn-primary">UNEQUIP</button>`
             : `<button id="btn-inv-equip" data-instance-id="${item.instance_id}" class="action-btn btn-sm btn-info">EQUIP</button>`;
+        
+        // (ATUALIZADO) Adiciona classes de raridade e status
+        const rarityClass = `rarity-${item.rarity.toLowerCase()}`;
+        const equippedClass = item.isEquipped ? 'equipped-border' : '';
 
         return `
-            <div class="item-card ${item.isEquipped ? 'equipped-border' : ''}">
+            <div class="item-card ${rarityClass} ${equippedClass}">
                 <div class="card-header">
                     <div class="card-icon-frame"><img src="${itemData.iconPath}" alt="${itemData.name}"></div>
                     <div class="card-header-text">
@@ -133,6 +135,5 @@ export const renderInventoryEquipments = (state) => {
         `;
     }).join('');
 
-    // Retorna os filtros E o grid
     return `${filterHTML}<div class="item-grid-container">${itemCardsHTML}</div>`;
 };
