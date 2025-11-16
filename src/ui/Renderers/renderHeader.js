@@ -1,6 +1,7 @@
 /* ====================================================================
 // RENDERER: renderHeader.js
-// UPDATE: Adiciona o HTML placeholder para o Ranking Ticker (letreiro).
+// UPDATE: (CORREÇÃO DE ARQUITETURA) Combina o ícone do Troféu e o
+// Ticker (letreiro) em um único botão clicável.
 // ==================================================================== */
 
 import { MOCK_TEZERIUM_BALANCE } from '../../../database/mock_wallet.js'; 
@@ -15,7 +16,7 @@ export const renderHeader = (state) => {
     let headerLeft = '';
     const tezeriumIcon = 'assets/ui/icon_tezerium.png'; 
     const storeIcon = 'assets/ui/icon_store.png'; 
-    const rankingIcon = 'assets/ui/icon_ranking.png'; // (NOVO) Assumindo este ícone
+    const rankingIcon = 'assets/ui/icon_ranking.png'; // Ícone do Troféu
 
     if (state.isWalletConnected) {
         // Estado Logado
@@ -29,12 +30,12 @@ export const renderHeader = (state) => {
                 <span>Store</span>
             </button>
             
-            <button id="btn-ranking" class="action-btn btn-secondary btn-sm ranking-btn">
-                <img src="${rankingIcon}" alt="Ranking Icon">
+            <button id="btn-ranking" class="action-btn btn-secondary btn-sm ranking-ticker-btn">
+                <img src="${rankingIcon}" alt="Ranking Icon" class="ranking-icon">
+                <div id="ranking-ticker" class="ranking-ticker">
+                    <span>Loading rankings...</span>
+                </div>
             </button>
-            <div id="ranking-ticker" class="ranking-ticker">
-                <span>Loading rankings...</span>
-            </div>
             `;
             
         headerRight = `
