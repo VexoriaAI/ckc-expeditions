@@ -1,13 +1,13 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V4.1 - CORREÇÃO DE IMPORT)
-// @import rules DEVEM estar no topo, antes de qualquer outra regra.
-// O bloco :root foi movido para styles/global.css
+// STYLE.CSS - FASE 2 (V4.2 - CORREÇÃO DE IMPORT)
+// UPDATE: Adiciona o @import para 'item_card.css' que estava faltando.
 // ==================================================================== */
 
-/* 2. Módulos de Estilo */
+/* 1. Módulos de Estilo */
 @import url('styles/global.css');        /* Estilos base (body, :root, .panel) */
 @import url('styles/header.css');         /* Estilos do .main-header, .ranking-ticker */
-@import url('styles/modal.css');          /* Estilos do .modal-overlay, .modal-item-card */
+@import url('styles/modal.css');          /* Estilos do .modal-overlay */
+@import url('styles/item_card.css');      /* (A CORREÇÃO ESTÁ AQUI) Estilos do .item-card */
 @import url('styles/logged_out.css');     /* Estilos da tela de Login */
 @import url('styles/hub_selection.css');  /* Estilos dos Filtros, Grid de NFTs, Paginação */
 @import url('styles/hub_preparation.css');/* Estilos do Mannequin, Workshop, Stats */
