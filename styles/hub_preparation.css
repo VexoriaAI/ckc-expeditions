@@ -1,7 +1,7 @@
 /* ====================================================================
 // STYLES: hub_preparation.css
-// UPDATE: Corrige o layout do inventário (CSS quebrado).
-// Adiciona estilos para Filtros, Grid de 3 Colunas e Bordas de Raridade.
+// UPDATE: (V3.1) Corrige o layout do inventário (CSS quebrado).
+// Adiciona estilos para Filtros de Ícone, Grid de 3 Colunas e Bordas de Raridade.
 // Copia os estilos do .item-card (do modal) para cá.
 // ==================================================================== */
 
@@ -190,12 +190,13 @@
     min-height: 400px; 
 }
 
+
 /* ================== (NOVO) Estilos do Inventário ================== */
 
 /* Filtros (Ícones) */
 .inventory-filters {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Move o Sort By para a direita */
     align-items: center;
     margin-bottom: 15px;
     background-color: rgba(0,0,0,0.2);
@@ -218,16 +219,24 @@
     border-radius: 4px;
     padding: 5px;
 }
+/* Botões de Filtro de Ícone */
+.filter-group .action-btn {
+    width: 40px; /* Botão de ícone quadrado */
+    height: 40px;
+    padding: 5px;
+    border: 1px solid #444;
+    background-color: var(--color-bg-dark);
+}
 .filter-group .action-btn img {
     width: 24px;
     height: 24px;
     object-fit: contain;
     opacity: 0.6;
+    filter: brightness(0) invert(1); /* Ícones brancos */
 }
-.filter-group .action-btn {
-    width: 40px; /* Botão de ícone quadrado */
-    height: 40px;
-    padding: 5px;
+.filter-group .action-btn:hover {
+    border-color: var(--color-accent-blue);
+    background-color: var(--color-panel-dark);
 }
 .filter-group .action-btn.active {
     background-color: var(--color-accent-blue);
@@ -290,18 +299,17 @@
     border-color: var(--color-accent-green); /* Verde para Equipado */
     box-shadow: 0 0 10px var(--color-accent-green);
 }
-.item-card.rarity-COMMON { border-color: #6c757d; }
-.item-card.rarity-UNCOMMON { border-color: #0d6efd; }
-.item-card.rarity-RARE { border-color: var(--color-accent-red); }
-.item-card.rarity-MYTHIC { 
-    border-color: transparent;
-    background: linear-gradient(120deg, #ff00ff, #00e0ff, #ff00ff) border-box; /* Iridescente */
+/* Cores da Borda do Card */
+.item-card.rarity-common { border-color: #6c757d; }
+.item-card.rarity-uncommon { border-color: #0d6efd; }
+.item-card.rarity-rare { border-color: var(--color-accent-red); }
+.item-card.rarity-mythic { 
+    border-width: 3px;
+    border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1;
     animation: iridescent-glow 3s linear infinite;
 }
 @keyframes iridescent-glow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    100% { filter: hue-rotate(360deg); }
 }
 
 
@@ -315,16 +323,29 @@
 }
 .item-card .card-icon-frame {
     width: 48px; height: 48px;
-    border: 1px solid var(--color-accent-blue);
+    border: 1px solid #444; /* Borda padrão do ícone */
     border-radius: 4px;
     background: #000;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; flex-shrink: 0;
 }
+/* (NOVO) Bordas do Ícone */
+.rarity-common .card-icon-frame { border-color: #6c757d; }
+.rarity-uncommon .card-icon-frame { border-color: #0d6efd; }
+.rarity-rare .card-icon-frame { border-color: var(--color-accent-red); }
+.rarity-mythic .card-icon-frame { border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1; border-width: 2px; }
+
 .item-card .card-icon-frame img { width: 100%; height: 100%; object-fit: contain; margin: 0; }
 .item-card .card-header-text { text-align: left; }
 .item-card .card-header-text h4 { font-size: 0.95em; color: white; margin: 0; }
-.item-card .card-level { font-size: 0.75em; background: #444; padding: 1px 6px; border-radius: 4px; color: var(--color-accent-blue); }
+.item-card .card-level { font-size: 0.75em; background: #444; padding: 1px 6px; border-radius: 4px; }
+/* (NOVO) Cores do Texto de Raridade */
+.rarity-common .card-level { color: #6c757d; }
+.rarity-uncommon .card-level { color: #0d6efd; }
+.rarity-rare .card-level { color: var(--color-accent-red); }
+.rarity-mythic .card-level { color: #ff00ff; }
+
+
 .item-card .card-body {
     padding: 10px; font-size: 0.8em;
     border-bottom: 1px solid #444;
@@ -366,7 +387,6 @@
     .preparation-container { grid-template-columns: 1fr; } 
 }
 @media (max-width: 992px) {
-    /* (NOVO) Grid de Inventário de 2 colunas em telas médias */
     .item-grid-container {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -374,7 +394,6 @@
 @media (max-width: 768px) { 
     .recipe-io { flex-direction: column; text-align: center; } 
     .arrow-separator { transform: rotate(90deg); margin: 10px 0; } 
-    /* (NOVO) Grid de Inventário de 1 coluna em telas pequenas */
     .item-grid-container {
         grid-template-columns: 1fr;
     }
