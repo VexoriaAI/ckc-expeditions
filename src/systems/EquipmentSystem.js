@@ -1,36 +1,16 @@
 /* ====================================================================
 // SYSTEM: EquipmentSystem.js
-// UPDATE: Adiciona as funções 'equipItem' e 'unequipItem'.
+// UPDATE: (Refatoração de Lógica)
+// Remove a função 'getEquipmentPowerScore' local e importa
+// a versão oficial do 'StatCalculationSystem.js'.
 // ==================================================================== */
 
 import { getState, updateState } from '../core/GameState.js';
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
-import { calculateFinalStats, calculatePowerScore } from './StatCalculationSystem.js';
+// (ATUALIZADO) Importa o 'getEquipmentPowerScore'
+import { calculateFinalStats, calculatePowerScore, getEquipmentPowerScore } from './StatCalculationSystem.js';
 
-/**
- * Calcula o Power Score de uma única Instância de Equipamento (Base + Componentes).
- * @param {object} itemInstance - Uma Instância de item do playerInventory.equipment.
- * @returns {number} O Power Score calculado.
- */
-const getEquipmentPowerScore = (itemInstance) => {
-    const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
-    if (!itemStaticData) return 0;
-
-    let combinedStats = { ...itemStaticData.base_stats };
-
-    for (const slot of itemInstance.slots) {
-        if (slot.component_id) {
-            const componentStaticData = COMPONENTS_DB[slot.component_id];
-            if (componentStaticData) {
-                for (const stat in componentStaticData.stats) {
-                    combinedStats[stat] = (combinedStats[stat] || 0) + componentStaticData.stats[stat];
-                }
-            }
-        }
-    }
-    return calculatePowerScore(combinedStats);
-};
 
 export const EquipmentSystem = {
 
@@ -61,12 +41,14 @@ export const EquipmentSystem = {
             let bestScore = -1;
             let bestItem = null;
 
+            // Filtra itens para o slot
             const candidateItems = equipmentInventory.filter(item => {
                 const staticData = EQUIPMENT_DB[item.item_id];
                 return staticData && staticData.slot === slotType;
             });
             
             for (const item of candidateItems) {
+                // (ATUALIZADO) Usa a função importada para garantir consistência
                 const score = getEquipmentPowerScore(item);
                 if (score > bestScore) {
                     bestScore = score;
@@ -119,26 +101,19 @@ export const EquipmentSystem = {
     },
 
     /**
-     * (NOVO) Equipa um item específico em seu slot, desequipando qualquer item anterior.
-     * @param {number} instanceId - O instance_id do item a ser equipado.
+     * Equipa um item específico em seu slot, desequipando qualquer item anterior.
      */
     equipItem: function(instanceId) {
         const state = getState();
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
         
         const itemToEquip = newInventory.equipment.find(item => item.instance_id === instanceId);
-        if (!itemToEquip) {
-            console.error(`equipItem: Instância ${instanceId} não encontrada.`);
-            return;
-        }
+        if (!itemToEquip) return;
 
         const itemStaticData = EQUIPMENT_DB[itemToEquip.item_id];
-        if (!itemStaticData) {
-             console.error(`equipItem: Dados estáticos para ${itemToEquip.item_id} não encontrados.`);
-            return;
-        }
+        if (!itemStaticData) return;
         
-        const slotTypeToFill = itemStaticData.slot; // ex: 'helmet'
+        const slotTypeToFill = itemStaticData.slot; 
 
         // 1. Desequipa qualquer item que já esteja nesse slot
         newInventory.equipment.forEach(item => {
@@ -156,8 +131,7 @@ export const EquipmentSystem = {
     },
 
     /**
-     * (NOVO) Desequipa um item específico.
-     * @param {number} instanceId - O instance_id do item a ser desequipado.
+     * Desequipa um item específico.
      */
     unequipItem: function(instanceId) {
         const state = getState();
@@ -173,7 +147,6 @@ export const EquipmentSystem = {
 
     /**
      * Helper para obter todos os itens equipados.
-     * @returns {Array<object>} Array de instâncias de itens equipados.
      */
     getEquippedItems: function() {
         const state = getState();
