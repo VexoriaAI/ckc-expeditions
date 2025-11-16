@@ -1,13 +1,14 @@
 /* ====================================================================
 // RENDERER: renderInventoryEquipments.js
-// UPDATE: Adiciona a lógica de SORT BY (Ordenação) e
-// as classes de Raridade (ex: 'rarity-common').
+// UPDATE: (Correção de Lógica)
+// Importa e usa 'getEquipmentPowerScore' para o 'Sort By' (Ordenação).
 // ==================================================================== */
 
 import { EQUIPMENT_DB, EQUIPMENT_SLOTS } from '../../../database/equipment.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { SLOT_UNLOCK_RULES } from '../../../database/crafting_rules.js';
-import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
+// (ATUALIZADO) Importa o 'getEquipmentPowerScore'
+import { getEquipmentPowerScore } from '../../systems/StatCalculationSystem.js';
 
 // Helper reutilizado para desenhar os slots de um item
 const renderItemSlotsHTML = (itemInstance) => {
@@ -67,9 +68,10 @@ export const renderInventoryEquipments = (state) => {
                 return (aData.slot || '').localeCompare(bData.slot || '');
             case 'power':
             default:
-                // (O cálculo do Power Score precisa dos dados de componente)
-                // (TODO: Implementar getEquipmentPowerScore aqui se necessário para ordenação)
-                return 0; 
+                // (CORRIGIDO) Usa a função importada para calcular A e B
+                const powerA = getEquipmentPowerScore(a);
+                const powerB = getEquipmentPowerScore(b);
+                return powerB - powerA; // Mais alto primeiro
         }
     });
 
@@ -125,12 +127,10 @@ export const renderInventoryEquipments = (state) => {
 
         const slotsHTML = renderItemSlotsHTML(item);
 
-        // Botão de Ação Rápida (Equip/Unequip)
         const actionButton = item.isEquipped
             ? `<button id="btn-inv-unequip" data-instance-id="${item.instance_id}" class="action-btn btn-sm btn-primary">UNEQUIP</button>`
             : `<button id="btn-inv-equip" data-instance-id="${item.instance_id}" class="action-btn btn-sm btn-info">EQUIP</button>`;
         
-        // (ATUALIZADO) Adiciona classes de raridade e status
         const rarityClass = `rarity-${item.rarity.toLowerCase()}`;
         const equippedClass = item.isEquipped ? 'equipped-border' : '';
 
