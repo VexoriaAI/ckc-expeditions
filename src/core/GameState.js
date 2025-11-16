@@ -1,11 +1,12 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: Adiciona funções helper openModal() e closeModal() 
-// para gerenciar o estado do modal.
+// UPDATE: Centraliza o estado da UI (filtros, abas) no objeto 'uiState'.
+// Exporta INITIAL_STATE para a lógica de Reset.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
+// (ATUALIZADO) Exporta o INITIAL_STATE para o Reset de Filtros
 export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
@@ -32,9 +33,15 @@ export const INITIAL_STATE = {
         log: [],
     },
     
-    // 5. UI State
-    activeWorkshopTab: 'refine',
-    activeInventoryTab: 'equipments',
+    // 5. (ATUALIZADO) UI State
+    uiState: {
+        activeInventoryTab: 'equipments',
+        activeWorkshopTab: 'refine',
+        
+        // Filtros da aba Inventory (Conforme sugestão aprovada)
+        inventoryEquipmentFilter: 'all', // 'all', 'helmet', 'weapon', etc.
+        inventoryEquipmentSort: 'power',  // 'power', 'rarity', 'tier'
+    },
     
     // 6. UI State para o Workshop EMBED
     embedTargetEquipmentId: null, 
@@ -43,7 +50,7 @@ export const INITIAL_STATE = {
 
     // 7. Estado do Modal Global
     isModalOpen: false,
-    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT'
+    modalContent: null,
     modalTargetSlot: null,
     
     // 8. Hub Selection Filters
@@ -63,7 +70,7 @@ export const getState = () => {
 };
 
 export const updateState = (updates) => {
-    // Deep merge a nested state object like hubSelectionFilters
+    // Deep merge para objetos de estado aninhados (Filtros e UI State)
     if (updates.hubSelectionFilters) {
         gameState.hubSelectionFilters = {
             ...gameState.hubSelectionFilters,
@@ -71,10 +78,16 @@ export const updateState = (updates) => {
         };
         delete updates.hubSelectionFilters;
     }
+    if (updates.uiState) { // (NOVO) Deep merge para uiState
+        gameState.uiState = {
+            ...gameState.uiState,
+            ...updates.uiState
+        };
+        delete updates.uiState;
+    }
 
     gameState = { ...gameState, ...updates };
     
-    // Notifica o UIManager E o ModalManager
     if (window.onGameStateChange) {
         window.onGameStateChange(gameState);
     }
@@ -86,10 +99,17 @@ export const setCurrentScreen = (screenId) => {
 
 export const resetState = () => {
     const kidz = gameState.playerKidz;
-    gameState = { ...INITIAL_STATE, playerKidz: kidz, isWalletConnected: gameState.isWalletConnected };
+    // Preserva os Kidz e o status da carteira, reseta o resto
+    gameState = { 
+        ...INITIAL_STATE, 
+        playerKidz: kidz, 
+        isWalletConnected: gameState.isWalletConnected 
+    };
+    
     if (!gameState.isWalletConnected) {
         gameState = { ...INITIAL_STATE };
     }
+    
     setCurrentScreen(gameState.currentScreen);
 };
 
@@ -119,12 +139,8 @@ export const loadDemoData = () => {
     gameState.isWalletConnected = true;
 };
 
-// --- (NOVAS) Funções de Controle do Modal ---
+// --- Funções de Controle do Modal ---
 
-/**
- * Abre o modal global e define seu conteúdo.
- * @param {string} contentId - O ID do conteúdo a ser renderizado (ex: 'MODAL_SELECT_EQUIPMENT').
- */
 export const openModal = (contentId) => {
     updateState({
         isModalOpen: true,
@@ -132,16 +148,14 @@ export const openModal = (contentId) => {
     });
 };
 
-/**
- * Fecha o modal global.
- */
 export const closeModal = () => {
     updateState({
         isModalOpen: false,
         modalContent: null,
-        // Limpa o estado temporário do Embed ao fechar
+        // Limpa o estado temporário
         embedTargetEquipmentId: null,
         embedTargetComponentId: null,
-        embedTargetSlotIndex: null
+        embedTargetSlotIndex: null,
+        modalTargetSlot: null
     });
 };
