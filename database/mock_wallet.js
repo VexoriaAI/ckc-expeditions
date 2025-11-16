@@ -12,7 +12,7 @@
 // 1. DADOS MOCK: Lista de CyberKidz NFTs (Balanceados)
 export const MOCK_KIDZ_NFTS = [
     {
-        id: '#333',
+        id: '333',
         name: 'Cypher',
         tribe: 'NOCTURNALS',
         level: 1,
@@ -21,7 +21,7 @@ export const MOCK_KIDZ_NFTS = [
         baseStats: { maxHP: 100, attack: 8, defense: 5, speed: 5, AP: 2 }
     },
     {
-        id: '#104',
+        id: '104',
         name: 'Matildo',
         tribe: 'VOLCANICS',
         level: 3,
@@ -30,7 +30,7 @@ export const MOCK_KIDZ_NFTS = [
         baseStats: { maxHP: 115, attack: 11, defense: 9, speed: 3, AP: 2 }
     },
     {
-        id: '#73',
+        id: '73',
         name: 'SpacePlug',
         tribe: 'NOCTURNALS',
         level: 7,
@@ -39,7 +39,7 @@ export const MOCK_KIDZ_NFTS = [
         baseStats: { maxHP: 110, attack: 10, defense: 7, speed: 7, AP: 3 }
     },
     {
-        id: '#303',
+        id: '303',
         name: 'Vaz',
         tribe: 'REPTILIANS',
         level: 4,
@@ -48,7 +48,7 @@ export const MOCK_KIDZ_NFTS = [
         baseStats: { maxHP: 125, attack: 10, defense: 7, speed: 4, AP: 2 }
     },
     {
-        id: '#88',
+        id: '88',
         name: 'NerdFTeam',
         tribe: 'RADIOACTIVES',
         level: 9,
