@@ -1,7 +1,6 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: Importa e chama 'renderInventoryEquipments' 
-// para a aba de Inventário.
+// UPDATE: Importa dos novos renderers de inventário separados.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -10,13 +9,13 @@ import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 import { renderMannequinSlots } from './renderMannequin.js';
 import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
-// (NOVO) Importa os renderers do Inventário
+// (ATUALIZADO) Importa dos novos arquivos de inventário
+import { renderInventoryEquipments } from './renderInventoryEquipments.js'; 
 import { 
-    renderInventoryEquipments, 
     renderInventoryComponents, 
     renderInventoryMaterials, 
     renderInventoryShopItems 
-} from './renderInventory.js'; 
+} from './renderInventoryPlaceholders.js'; 
 
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
