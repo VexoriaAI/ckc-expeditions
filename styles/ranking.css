@@ -1,0 +1,119 @@
+/* ====================================================================
+// STYLES: ranking.css
+// Contém apenas os estilos para a tela de Ranking (Leaderboards).
+// ==================================================================== */
+
+.ranking-section { 
+    margin-bottom: 20px; 
+}
+
+.ranking-list-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid var(--color-accent-blue);
+    font-weight: bold;
+    color: var(--color-text-dim);
+}
+
+.ranking-list-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-top: 10px;
+}
+
+.rank-entry {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.2);
+    align-items: center;
+}
+.rank-entry .rank-position { 
+    font-weight: bold; 
+    font-size: 1.2em; 
+}
+.rank-entry .rank-player { 
+    color: var(--color-text-light); 
+    font-weight: bold; 
+}
+.rank-entry .rank-score { 
+    color: var(--color-accent-green); 
+}
+.rank-entry .rank-wallet { 
+    font-size: 0.85em; 
+    color: var(--color-text-dim); 
+}
+
+/* Destaque Top 3 */
+.rank-entry.rank-1, .rank-entry.rank-2, .rank-entry.rank-3 {
+    font-size: 1.1em; 
+    font-weight: bold;
+    border-width: 2px;
+}
+.rank-entry.rank-1 { 
+    background-color: rgba(255, 215, 0, 0.1); 
+    border-color: var(--color-rank-1); 
+}
+.rank-entry.rank-1 .rank-position { 
+    color: var(--color-rank-1); 
+}
+.rank-entry.rank-2 { 
+    background-color: rgba(192, 192, 192, 0.1); 
+    border-color: var(--color-rank-2); 
+}
+.rank-entry.rank-2 .rank-position { 
+    color: var(--color-rank-2); 
+}
+.rank-entry.rank-3 { 
+    background-color: rgba(205, 127, 50, 0.1); 
+    border-color: var(--color-rank-3); 
+}
+.rank-entry.rank-3 .rank-position { 
+    color: var(--color-rank-3); 
+}
+
+/* Grid "My NFTs" */
+.my-nft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+.my-nft-rank-card {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.my-nft-rank-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 1px solid var(--color-accent-blue);
+    border-radius: 4px;
+}
+.my-nft-rank-card h4 { 
+    color: white; 
+    margin-bottom: 5px; 
+}
+.my-nft-rank-card ul { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+.my-nft-rank-card ul li { 
+    font-size: 0.9em; 
+}
+.my-nft-actions { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 10px; 
+}
+.my-nft-actions .action-btn { 
+    width: auto; 
+}
