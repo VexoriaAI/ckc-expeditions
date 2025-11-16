@@ -1,24 +1,11 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V4.0 - Modular)
-// Este arquivo agora apenas importa os módulos de estilo.
+// STYLE.CSS - FASE 2 (V4.1 - CORREÇÃO DE IMPORT)
+// @import rules DEVEM estar no topo, antes de qualquer outra regra.
+// O bloco :root foi movido para styles/global.css
 // ==================================================================== */
 
-/* 1. Variáveis Globais */
-:root {
-    --color-bg-dark: #1a1a2e;
-    --color-panel-dark: #2c2c47;
-    --color-accent-blue: #00e0ff;
-    --color-accent-red: #ff3a5c;
-    --color-accent-green: #00ff6a; 
-    --color-text-light: #e0e0e0;
-    --color-text-dim: #aaa;
-    --color-rank-1: #ffd700;
-    --color-rank-2: #c0c0c0;
-    --color-rank-3: #cd7f32;
-}
-
 /* 2. Módulos de Estilo */
-@import url('styles/global.css');        /* Estilos base (body, .panel, .action-btn) */
+@import url('styles/global.css');        /* Estilos base (body, :root, .panel) */
 @import url('styles/header.css');         /* Estilos do .main-header, .ranking-ticker */
 @import url('styles/modal.css');          /* Estilos do .modal-overlay, .modal-item-card */
 @import url('styles/logged_out.css');     /* Estilos da tela de Login */
