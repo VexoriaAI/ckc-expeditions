@@ -1,7 +1,7 @@
 /* ====================================================================
 // STYLES: hub_preparation.css
-// UPDATE: (V3.2) Re-adiciona os estilos do '.embed-ui' (quebrados).
-// Corrige as classes de Borda de Raridade (ex: .rarity-common).
+// UPDATE: (V3.2) Remove todos os estilos duplicados do .item-card
+// (agora importados globalmente).
 // ==================================================================== */
 
 .preparation-container { 
@@ -121,13 +121,10 @@
 .unequip-btn:hover { 
     background-color: #ff607d; 
 }
-
-/* Correção de Clique */
 .mannequin-slot img,
 .mannequin-slot .slot-name {
     pointer-events: none;
 }
-
 .mannequin-slot img { 
     display: block; 
     image-rendering: pixelated; 
@@ -145,8 +142,6 @@
     height: 100%; 
     object-fit: contain; 
 }
-
-/* Áreas do Grid */
 [data-slot-type="helmet"] { grid-area: helmet; } 
 [data-slot-type="weapon"] { grid-area: weapon; } 
 [data-slot-type="accessory"]{ grid-area: accessory; } 
@@ -194,7 +189,7 @@
 /* Filtros (Ícones) */
 .inventory-filters {
     display: flex;
-    justify-content: space-between; /* Move o Sort By para a direita */
+    justify-content: space-between; 
     align-items: center;
     margin-bottom: 15px;
     background-color: rgba(0,0,0,0.2);
@@ -217,9 +212,8 @@
     border-radius: 4px;
     padding: 5px;
 }
-/* Botões de Filtro de Ícone */
 .filter-group .action-btn {
-    width: 40px; /* Botão de ícone quadrado */
+    width: 40px; 
     height: 40px;
     padding: 5px;
     border: 1px solid #444;
@@ -230,7 +224,7 @@
     height: 24px;
     object-fit: contain;
     opacity: 0.6;
-    filter: brightness(0) invert(1); /* Ícones brancos */
+    filter: brightness(0) invert(1); 
 }
 .filter-group .action-btn:hover {
     border-color: var(--color-accent-blue);
@@ -242,7 +236,7 @@
 }
 .filter-group .action-btn.active img {
     opacity: 1;
-    filter: brightness(0); /* Ícone preto */
+    filter: brightness(0); 
 }
 
 /* Grid de Itens (3 Colunas) */
@@ -277,96 +271,8 @@
 }
 
 
-/* ================== (COPIADO DO MODAL) Estilos do Rich Item Card ================== */
-.item-card {
-    background-color: var(--color-bg-dark);
-    border: 2px solid #444; /* Borda padrão */
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: transform 0.2s;
-    padding: 0; 
-}
-.item-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--color-accent-blue);
-}
-/* (NOVO) Bordas de Raridade */
-.item-card.equipped-border {
-    border-color: var(--color-accent-green); /* Verde para Equipado */
-    box-shadow: 0 0 10px var(--color-accent-green);
-}
-/* Cores da Borda do Card */
-.item-card.rarity-common { border-color: #6c757d; }
-.item-card.rarity-uncommon { border-color: #0d6efd; }
-.item-card.rarity-rare { border-color: var(--color-accent-red); }
-.item-card.rarity-mythic { 
-    border-width: 3px;
-    border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1;
-    animation: iridescent-glow 3s linear infinite;
-}
-@keyframes iridescent-glow {
-    100% { filter: hue-rotate(360deg); }
-}
-
-
-.item-card .card-header {
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid #444;
-    background: rgba(0,0,0,0.3);
-}
-.item-card .card-icon-frame {
-    width: 48px; height: 48px;
-    border: 1px solid #444; /* Borda padrão do ícone */
-    border-radius: 4px;
-    background: #000;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; flex-shrink: 0;
-}
-/* (NOVO) Bordas do Ícone */
-.rarity-common .card-icon-frame { border-color: #6c757d; }
-.rarity-uncommon .card-icon-frame { border-color: #0d6efd; }
-.rarity-rare .card-icon-frame { border-color: var(--color-accent-red); }
-.rarity-mythic .card-icon-frame { border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1; border-width: 2px; }
-
-.item-card .card-icon-frame img { width: 100%; height: 100%; object-fit: contain; margin: 0; }
-.item-card .card-header-text { text-align: left; }
-.item-card .card-header-text h4 { font-size: 0.95em; color: white; margin: 0; }
-.item-card .card-level { font-size: 0.75em; background: #444; padding: 1px 6px; border-radius: 4px; }
-/* (NOVO) Cores do Texto de Raridade */
-.rarity-common .card-level { color: #6c757d; }
-.rarity-uncommon .card-level { color: #0d6efd; }
-.rarity-rare .card-level { color: var(--color-accent-red); }
-.rarity-mythic .card-level { color: #ff00ff; }
-
-
-.item-card .card-body {
-    padding: 10px; font-size: 0.8em;
-    border-bottom: 1px solid #444;
-    min-height: 40px; text-align: left;
-}
-.item-card .card-stat-row { display: flex; justify-content: space-between; margin-bottom: 2px; color: var(--color-text-dim); }
-.item-card .card-stat-val { color: var(--color-accent-green); font-weight: bold; }
-.item-card .card-footer {
-    padding: 8px;
-    background: rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.item-slot-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 3px; background: var(--color-bg-dark); border: 1px solid #333; font-size: 0.75em; }
-.item-slot-row.filled { border-color: var(--color-accent-blue); }
-.item-slot-row .slot-bar-icon { width: 16px; height: 16px; object-fit: contain; }
-.item-slot-row .slot-bar-text { flex-grow: 1; color: white; }
-.item-slot-row .slot-bar-bonus { color: var(--color-accent-green); }
-.item-slot-row.empty { border: 1px dashed #666; color: #666; }
-.item-slot-row.locked { background: #111; border-color: #222; color: #444; }
-.item-card .card-actions { padding: 10px; }
-/* ================== Fim dos Estilos de Item Card ================== */
+/* ================== (REMOVIDO) Estilos do Rich Item Card ================== */
+/* (Os estilos do .item-card foram movidos para styles/item_card.css) */
 
 
 /* Cards de Receita (Refine/Craft) */
@@ -442,7 +348,7 @@
 .embed-slot-placeholder {
     width: 45%; 
     min-height: 150px; 
-    border: 2px dashed var(--color-accent-blue); /* Borda azul (da imagem) */
+    border: 2px dashed var(--color-accent-blue); 
     display: flex; 
     flex-direction: column;
     align-items: center; 
@@ -450,7 +356,7 @@
     text-align: center;
     cursor: pointer; 
     background-color: rgba(0,0,0,0.2);
-    border-radius: 5px; /* (NOVO) Borda arredondada */
+    border-radius: 5px; 
 }
 .embed-slot-placeholder:hover { 
     background-color: var(--color-bg-dark); 
@@ -480,7 +386,7 @@
     width: 45%; 
     position: relative; 
     padding: 10px; 
-    border: 2px solid var(--color-accent-blue); /* Borda azul (da imagem) */
+    border: 2px solid var(--color-accent-blue); 
 }
 .embed-item-card img { 
     width: 64px; 
