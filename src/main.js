@@ -1,7 +1,7 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: Ativa o botão 'btn-execute-embed' para chamar
-// o CraftingSystem.embedComponent.
+// UPDATE: Atualiza os listeners de clique das Abas para usar o 
+// 'uiState' (ex: uiState.activeWorkshopTab).
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
@@ -11,6 +11,7 @@ import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { MATERIALS_DB } from '../database/materials.js'; 
 import { Web3Manager } from './web3/Web3Manager.js'; 
+import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
 
 function initializeApp() {
     console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
@@ -35,6 +36,26 @@ function initializeApp() {
     document.getElementById('modal-root').addEventListener('click', handleModalClick);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
+    startRankingTicker();
+}
+
+function startRankingTicker() {
+    const tickerItems = [
+        `Wasteland Forgemasters | Top #1 ${RANKING_FORGEMASTERS[0].playerName}`,
+        `Legendary Explorers | Top #1 ${RANKING_EXPLORERS[0].playerName}`,
+        `AI Sentinels | Top #1 ${RANKING_SENTINELS[0].playerName}`
+    ];
+    let currentItemIndex = 0;
+    setInterval(() => {
+        const tickerElement = document.getElementById('ranking-ticker');
+        if (!tickerElement) return; 
+        tickerElement.classList.remove('fade-in');
+        setTimeout(() => {
+            currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
+            tickerElement.innerHTML = `<span>${tickerItems[currentItemIndex]}</span>`;
+            tickerElement.classList.add('fade-in');
+        }, 500); 
+    }, 5000); 
 }
 
 /**
@@ -49,19 +70,16 @@ function handleModalClick(event) {
         return;
     }
 
-    // Lógica de Seleção de Item (Para Equipar ou Embutir)
     const selectButton = target.id === 'btn-modal-select-item' ? target : target.closest('.modal-item-card');
     
     if (selectButton) {
         const selectedInstanceId = parseInt(selectButton.dataset.instanceId, 10);
         
         if (currentState.modalContent === 'MODAL_SELECT_EQUIPMENT') {
-            // Se o modal foi aberto pelo Mannequin, equipa o item
             if (currentState.modalTargetSlot) {
                 EquipmentSystem.equipItem(selectedInstanceId);
-                closeModal(); // Fecha o modal
+                closeModal(); 
             } else {
-                // Se foi aberto pelo Embed, apenas define o ID
                 updateState({ 
                     embedTargetEquipmentId: selectedInstanceId,
                     isModalOpen: false, 
@@ -70,7 +88,6 @@ function handleModalClick(event) {
             }
         } 
         else if (currentState.modalContent === 'MODAL_SELECT_COMPONENT') {
-            // Atualiza o GameState com o componente selecionado (para o Embed)
             updateState({ 
                 embedTargetComponentId: selectedInstanceId,
                 isModalOpen: false, 
@@ -89,10 +106,7 @@ function handleGlobalClick(event) {
     const currentState = getState();
     
     // --- 1. Global Header Logic ---
-    if (target.id === 'btn-logout') {
-        resetState(); 
-        return; 
-    }
+    if (target.id === 'btn-logout') { resetState(); return; }
     if (target.id === 'btn-store') {
         updateState({ previousScreen: currentState.currentScreen }); 
         setCurrentScreen('store-screen');
@@ -123,12 +137,10 @@ function handleGlobalClick(event) {
             }
         }
         else if (target.id === 'btn-page-next') {
-            const filters = currentState.hubSelectionFilters;
-            updateState({ hubSelectionFilters: { currentPage: filters.currentPage + 1 } });
+            updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage + 1 } });
         }
         else if (target.id === 'btn-page-prev') {
-            const filters = currentState.hubSelectionFilters;
-            updateState({ hubSelectionFilters: { currentPage: filters.currentPage - 1 } });
+            updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage - 1 } });
         }
         else if (target.id === 'btn-filter-reset') {
             updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
@@ -162,18 +174,18 @@ function handleGlobalClick(event) {
             EquipmentSystem.unequipItem(instanceId);
         }
         
-        // C. Workshop: Tab Switching
+        // C. (ATUALIZADO) Workshop: Tab Switching
         else if (target.closest('#workshop-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
-             if (tabId !== currentState.activeWorkshopTab) {
-                 updateState({ activeWorkshopTab: tabId });
+             if (tabId !== currentState.uiState.activeWorkshopTab) {
+                 updateState({ uiState: { activeWorkshopTab: tabId } });
              }
         }
-        // D. Inventory: Tab Switching
+        // D. (ATUALIZADO) Inventory: Tab Switching
         else if (target.closest('#inventory-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
-             if (tabId !== currentState.activeInventoryTab) {
-                 updateState({ activeInventoryTab: tabId });
+             if (tabId !== currentState.uiState.activeInventoryTab) {
+                 updateState({ uiState: { activeInventoryTab: tabId } });
              }
         }
 
@@ -196,7 +208,7 @@ function handleGlobalClick(event) {
         // F. Workshop: Ações do EMBED
         else if (target.id === 'btn-select-embed-equip') {
             openModal('MODAL_SELECT_EQUIPMENT');
-            updateState({ modalTargetSlot: null }); // NENHUM filtro de slot para o Embed
+            updateState({ modalTargetSlot: null }); 
         }
         else if (target.id === 'btn-select-embed-comp' && !target.classList.contains('disabled')) {
             openModal('MODAL_SELECT_COMPONENT');
@@ -207,17 +219,11 @@ function handleGlobalClick(event) {
         else if (target.id === 'btn-remove-embed-comp') {
             updateState({ embedTargetComponentId: null });
         }
-        // (ATUALIZADO) Executa o Embed
         else if (target.id === 'btn-execute-embed' && !target.disabled) {
             const { embedTargetEquipmentId, embedTargetComponentId } = currentState;
             const result = CraftingSystem.embedComponent(embedTargetEquipmentId, embedTargetComponentId);
-            alert(result.message); // Feedback temporário
-            
-            // Limpa o estado da UI do Embed após a ação
-            updateState({
-                embedTargetEquipmentId: null,
-                embedTargetComponentId: null
-            });
+            alert(result.message); 
+            updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
         }
     }
 
@@ -245,6 +251,7 @@ function handleGlobalClick(event) {
         if (target.id === 'btn-back-to-hub') {
             setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
         }
+        // (Futuro: Lógica das abas do ranking)
     }
 }
 
@@ -258,6 +265,10 @@ function handleGlobalInput(event) {
             hubSelectionFilters: { searchQuery: target.value, currentPage: 1 } 
         });
     }
+    // (NOVO) Filtros de Inventário
+    // else if (target.id === 'inventory-search-name') {
+    //     updateState({ uiState: { inventorySearch: target.value } });
+    // }
 }
 
 /**
@@ -266,6 +277,7 @@ function handleGlobalInput(event) {
 function handleGlobalChange(event) {
     const target = event.target;
 
+    // Filtros do Hub Selection
     if (target.id === 'filter-sort-by') {
         updateState({ 
             hubSelectionFilters: { sortBy: target.value, currentPage: 1 } 
@@ -282,6 +294,11 @@ function handleGlobalChange(event) {
             hubSelectionFilters: { selectedTribes: selectedOptions, currentPage: 1 } 
         });
     }
+    
+    // (NOVO) Filtros do Inventário
+    // else if (target.id === 'inventory-sort-by') {
+    //     updateState({ uiState: { inventoryEquipmentSort: target.value } });
+    // }
 }
 
 // Inicializa a aplicação
