@@ -1,0 +1,95 @@
+/* ====================================================================
+// (NOVO) STYLES: item_card.css
+// Contém os estilos globais para o "Rich Item Card",
+// usado tanto no Inventário quanto no Modal.
+// ==================================================================== */
+
+.item-card {
+    background-color: var(--color-bg-dark);
+    border: 2px solid #444; /* Borda padrão */
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s;
+    padding: 0; 
+    cursor: pointer; /* Torna o card clicável (para o modal) */
+}
+.item-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent-blue);
+}
+
+/* Bordas de Raridade */
+.item-card.equipped-border {
+    border-color: var(--color-accent-green); /* Verde para Equipado */
+    box-shadow: 0 0 10px var(--color-accent-green);
+}
+.item-card.rarity-common { border-color: #6c757d; }
+.item-card.rarity-uncommon { border-color: #0d6efd; }
+.item-card.rarity-rare { border-color: var(--color-accent-red); }
+.item-card.rarity-mythic { 
+    border-width: 3px;
+    border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1;
+    animation: iridescent-glow 3s linear infinite;
+}
+@keyframes iridescent-glow {
+    100% { filter: hue-rotate(360deg); }
+}
+
+
+.item-card .card-header {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #444;
+    background: rgba(0,0,0,0.3);
+}
+.item-card .card-icon-frame {
+    width: 48px; height: 48px;
+    border: 1px solid #444; /* Borda padrão do ícone */
+    border-radius: 4px;
+    background: #000;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+}
+/* Bordas do Ícone */
+.rarity-common .card-icon-frame { border-color: #6c757d; }
+.rarity-uncommon .card-icon-frame { border-color: #0d6efd; }
+.rarity-rare .card-icon-frame { border-color: var(--color-accent-red); }
+.rarity-mythic .card-icon-frame { border-image: conic-gradient(from 180deg, #ff00ff, #00e0ff, #ff00ff) 1; border-width: 2px; }
+
+.item-card .card-icon-frame img { width: 100%; height: 100%; object-fit: contain; margin: 0; }
+.item-card .card-header-text { text-align: left; }
+.item-card .card-header-text h4 { font-size: 0.95em; color: white; margin: 0; }
+.item-card .card-level { font-size: 0.75em; background: #444; padding: 1px 6px; border-radius: 4px; }
+/* Cores do Texto de Raridade */
+.rarity-common .card-level { color: #6c757d; }
+.rarity-uncommon .card-level { color: #0d6efd; }
+.rarity-rare .card-level { color: var(--color-accent-red); }
+.rarity-mythic .card-level { color: #ff00ff; }
+
+
+.item-card .card-body {
+    padding: 10px; font-size: 0.8em;
+    border-bottom: 1px solid #444;
+    min-height: 40px; text-align: left;
+}
+.item-card .card-stat-row { display: flex; justify-content: space-between; margin-bottom: 2px; color: var(--color-text-dim); }
+.item-card .card-stat-val { color: var(--color-accent-green); font-weight: bold; }
+.item-card .card-footer {
+    padding: 8px;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.item-slot-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 3px; background: var(--color-bg-dark); border: 1px solid #333; font-size: 0.75em; }
+.item-slot-row.filled { border-color: var(--color-accent-blue); }
+.item-slot-row .slot-bar-icon { width: 16px; height: 16px; object-fit: contain; }
+.item-slot-row .slot-bar-text { flex-grow: 1; color: white; }
+.item-slot-row .slot-bar-bonus { color: var(--color-accent-green); }
+.item-slot-row.empty { border: 1px dashed #666; color: #666; }
+.item-slot-row.locked { background: #111; border-color: #222; color: #444; }
+.item-card .card-actions { padding: 10px; }
