@@ -1,25 +1,18 @@
 /* ====================================================================
 // CORE: main.js
-// VERSÃO COMPLETA (V2.9)
-// Gerencia todos os listeners de clique (App e Modal),
-// lógica de filtros (Input/Change) e navegação,
-// incluindo a lógica de Equipar/Desequipar do Mannequin.
+// UPDATE: Adiciona a lógica do "Ranking Ticker" (setInterval)
+// e o listener de clique para a nova tela de Ranking.
 // ==================================================================== */
 
-// Importa o Estado e suas funções de mutação
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
-
-// Importa os Gerenciadores de UI
 import { UIManager } from './ui/UIManager.js'; 
 import { ModalManager } from './ui/ModalManager.js'; 
-
-// Importa os Sistemas de Lógica
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { Web3Manager } from './web3/Web3Manager.js'; 
-
-// Importa Bancos de Dados (apenas os necessários para o main.js, se houver)
 import { MATERIALS_DB } from '../database/materials.js'; 
+// (NOVO) Importa os dados do ranking
+import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
 
 /**
  * Inicializa a aplicação, os gerentes de UI e os listeners.
@@ -31,13 +24,11 @@ function initializeApp() {
     UIManager.init();
     ModalManager.init(); 
 
-    // O 'window.onGameStateChange' notifica AMBOS os gerentes (UI e Modal)
     window.onGameStateChange = (newState) => {
         UIManager.renderScreen(newState);
         ModalManager.renderModal(newState); 
     };
 
-    // Define a tela inicial
     const initialState = getState();
     setCurrentScreen(initialState.currentScreen);
     
@@ -50,6 +41,41 @@ function initializeApp() {
     document.getElementById('modal-root').addEventListener('click', handleModalClick);
     
     console.log('Total Materials Loaded:', Object.keys(MATERIALS_DB).length);
+
+    // (NOVO) Inicia o Ranking Ticker
+    startRankingTicker();
+}
+
+/**
+ * (NOVO) Lógica para o letreiro animado do ranking no header.
+ */
+function startRankingTicker() {
+    // Dados estáticos do Top 1 de cada categoria
+    const tickerItems = [
+        `Wasteland Forgemasters | Top #1 ${RANKING_FORGEMASTERS[0].playerName}`,
+        `Legendary Explorers | Top #1 ${RANKING_EXPLORERS[0].playerName}`,
+        `AI Sentinels | Top #1 ${RANKING_SENTINELS[0].playerName}`
+    ];
+    let currentItemIndex = 0;
+
+    setInterval(() => {
+        const tickerElement = document.getElementById('ranking-ticker');
+        if (!tickerElement) return; // Pára se o header não estiver renderizado
+
+        // Aplica fade-out
+        tickerElement.classList.remove('fade-in');
+        
+        // Espera a animação de fade-out terminar para trocar o texto
+        setTimeout(() => {
+            // Atualiza o índice e o texto
+            currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
+            tickerElement.innerHTML = `<span>${tickerItems[currentItemIndex]}</span>`;
+            
+            // Aplica fade-in
+            tickerElement.classList.add('fade-in');
+        }, 500); // 0.5s (deve corresponder ao tempo da transição no CSS)
+
+    }, 5000); // Troca a cada 5 segundos
 }
 
 /**
@@ -89,7 +115,7 @@ function handleModalClick(event) {
 
 
 /**
- * Lida com cliques APENAS dentro do #app-root (A aplicação principal)
+ * Lida com cliques APENAS dentro do #app-root
  */
 function handleGlobalClick(event) {
     const target = event.target;
@@ -103,6 +129,12 @@ function handleGlobalClick(event) {
     if (target.id === 'btn-store') {
         updateState({ previousScreen: currentState.currentScreen }); 
         setCurrentScreen('store-screen');
+        return;
+    }
+    // (NOVO) Botão de Ranking (abre a nova TELA de ranking)
+    if (target.id === 'btn-ranking') {
+        updateState({ previousScreen: currentState.currentScreen }); 
+        setCurrentScreen('ranking-screen'); // Abre a nova tela
         return;
     }
     
@@ -238,6 +270,14 @@ function handleGlobalClick(event) {
             const result = Web3Manager.buyItem(itemId, 1);
             alert(result.message); 
         }
+    }
+    
+    // --- 7. (NOVO) ranking-screen Logic ---
+    else if (currentState.currentScreen === 'ranking-screen') {
+        if (target.id === 'btn-back-to-hub') {
+            setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
+        }
+        // (Futuro: Lógica das abas do ranking)
     }
 }
 
