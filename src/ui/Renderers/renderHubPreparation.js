@@ -1,15 +1,17 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: Corrige o typo 'class.' que quebrou o layout do Mannequin.
+// UPDATE: Lê o estado da aba ativa de 'state.uiState' 
+// (ex: state.uiState.activeWorkshopTab).
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { calculateFinalStats, calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
-// Importa os renderers modulares
 import { renderMannequinSlots } from './renderMannequin.js';
 import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
+// (NOVO) Importa o renderer do inventário (será criado a seguir)
+// import { renderInventoryList } from './renderInventory.js'; 
 
 // Helper local
 const getKidDataById = (kidId) => {
@@ -67,10 +69,13 @@ export const renderHubPreparationScreen = (state) => {
         </div>
     `;
     
-    const activeWorkshopTab = state.activeWorkshopTab || 'refine'; 
-    const activeInventoryTab = state.activeInventoryTab || 'equipments';
+    // (ATUALIZADO) Lê o estado da UI
+    const activeWorkshopTab = state.uiState.activeWorkshopTab || 'refine'; 
+    const activeInventoryTab = state.uiState.activeInventoryTab || 'equipments';
     let workshopContent = '';
+    let inventoryContent = '';
     
+    // Define conteúdo do Workshop
     if (activeWorkshopTab === 'refine') {
         workshopContent = renderRefineTab(state);
     } else if (activeWorkshopTab === 'craft') {
@@ -78,6 +83,16 @@ export const renderHubPreparationScreen = (state) => {
     } else if (activeWorkshopTab === 'embed') {
         workshopContent = renderEmbedTab(state);
     }
+    
+    // (NOVO) Define conteúdo do Inventário
+    if (activeInventoryTab === 'equipments') {
+        // (Será implementado no próximo passo)
+        // inventoryContent = renderInventoryList(state);
+        inventoryContent = "<p>[Renderizador da Lista de Equipamentos (Pendente)]</p>";
+    } else {
+        inventoryContent = `<p>[Renderizador para ${activeInventoryTab} (Pendente)]</p>`;
+    }
+
 
     // --- Montagem Final da Tela ---
     return `
@@ -118,7 +133,7 @@ export const renderHubPreparationScreen = (state) => {
                             <button class="tab-btn ${activeInventoryTab === 'shop-items' ? 'active' : ''}" data-tab="shop-items">Shop Items</button>
                         </div>
                         <div class="item-grid-container">
-                            <p>[Inventory List (To be implemented)]</p>
+                            ${inventoryContent}
                         </div>
                     </div>
 
