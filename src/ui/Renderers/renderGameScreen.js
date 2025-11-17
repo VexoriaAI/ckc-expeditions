@@ -1,12 +1,13 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: Implementa a UI completa da Coluna 1 (Status do NFT),
-// incluindo Info Box, Stats, Barras de Status e Lista de Loot.
+// UPDATE: (Refatoração de Layout)
+// Coluna 1 refeita (Info, Stats, Loot).
+// AP/MP movidos para a Coluna 2 (Ações).
+// Barra de HP com lógica de cor.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../../database/maps.js';
-// (NOVO) Importa o calculador de Power Score
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
 
@@ -56,6 +57,13 @@ export const renderGameScreen = (state) => {
     
     // Calcula o Power Score Total (Base + Equipamento)
     const totalPowerScore = calculatePowerScore(kidStats);
+    
+    // (NOVO) Lógica da Barra de HP
+    const hpPercent = (currentHP / maxHP) * 100;
+    let hpColorClass = 'hp-fill-green'; // 40-100%
+    if (hpPercent < 40) hpColorClass = 'hp-fill-orange'; // 20-40%
+    if (hpPercent < 20) hpColorClass = 'hp-fill-red';    // 0-20%
+
 
     // --- (ATUALIZADO) Coluna 1: Status do Kid ---
     const column1_Status = `
@@ -67,8 +75,14 @@ export const renderGameScreen = (state) => {
                     <h4>${kidStaticData.name}</h4>
                     <p>Tribe: <span>${kidStaticData.tribe}</span></p>
                     <p>NFT ID: <span>${kidStaticData.id}</span></p>
-                    <div class="power-score-badge small">
-                        Power Score: <span>${totalPowerScore}</span>
+                    
+                    <div class="kid-card-stats game-screen-stats">
+                        <div class="stat-badge level-badge">
+                            Level: <span>${kidStaticData.level}</span>
+                        </div>
+                        <div class="stat-badge power-badge">
+                            Power: <span>${totalPowerScore}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,23 +91,9 @@ export const renderGameScreen = (state) => {
                 <div class="stat-bar">
                     <span class="stat-label">HP</span>
                     <div class="bar-track">
-                        <div class="bar-fill hp-fill" style="width: ${(currentHP / maxHP) * 100}%"></div>
+                        <div class="bar-fill ${hpColorClass}" style="width: ${hpPercent}%"></div>
                     </div>
                     <span class="stat-value">${currentHP}/${maxHP}</span>
-                </div>
-                <div class="stat-bar">
-                    <span class="stat-label">AP</span>
-                    <div class="bar-track">
-                        <div class="bar-fill ap-fill" style="width: ${(currentAP / maxAP) * 100}%"></div>
-                    </div>
-                    <span class="stat-value">${currentAP}/${maxAP}</span>
-                </div>
-                <div class="stat-bar">
-                    <span class="stat-label">MP</span>
-                    <div class="bar-track">
-                        <div class="bar-fill mp-fill" style="width: ${(currentMP / maxMP) * 100}%"></div>
-                    </div>
-                    <span class="stat-value">${currentMP}/${maxMP}</span>
                 </div>
             </div>
 
@@ -119,13 +119,30 @@ export const renderGameScreen = (state) => {
         </div>
     `;
 
-    // --- Coluna 2: Mapa e Ações ---
+    // --- (ATUALIZADO) Coluna 2: Mapa e Ações ---
     const column2_Map = `
         <div class="game-column" id="game-col-map">
             
             <div class="map-container panel">
                 <img src="assets/maps/wasteland_map_full.png" alt="Wasteland Map" class="map-background-image">
                 <div class="kid-marker" style="top: 50%; left: 50%;">🧑‍🚀</div>
+            </div>
+            
+            <div class="action-points-bar panel">
+                <div class="stat-bar">
+                    <span class="stat-label">AP</span>
+                    <div class="bar-track">
+                        <div class="bar-fill ap-fill" style="width: ${(currentAP / maxAP) * 100}%"></div>
+                    </div>
+                    <span class="stat-value">${currentAP}/${maxAP}</span>
+                </div>
+                <div class="stat-bar">
+                    <span class="stat-label">MP</span>
+                    <div class="bar-track">
+                        <div class="bar-fill mp-fill" style="width: ${(currentMP / maxMP) * 100}%"></div>
+                    </div>
+                    <span class="stat-value">${currentMP}/${maxMP}</span>
+                </div>
             </div>
             
             <div class="action-bar panel">
