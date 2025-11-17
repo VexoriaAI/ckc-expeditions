@@ -1,7 +1,7 @@
 /* ====================================================================
 // RENDERER: renderHubSelection.js
-// UPDATE: Reorganiza o layout do Kid Card (Nome, ID, Stats, Tribe)
-// e adiciona o link externo para o Objkt.
+// UPDATE: (CORREÇÃO DE SINCRONIZAÇÃO) Adiciona checagem de segurança
+// para 'filters' e 'filters.selectedTribes' para evitar crash.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -14,7 +14,15 @@ import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
  */
 export const renderHubSelectionScreen = (state) => {
     const kidzData = state.playerKidz || []; 
-    const filters = state.hubSelectionFilters;
+    
+    // (CORREÇÃO) Adiciona um fallback caso hubSelectionFilters seja nulo/undefined
+    const filters = state.hubSelectionFilters || {
+        searchQuery: '',
+        selectedTribes: [],
+        sortBy: 'level',
+        itemsPerPage: 5,
+        currentPage: 1,
+    };
     
     // 1. Lógica de Filtro e Ordenação
     let filteredKidz = [...kidzData]; 
@@ -27,7 +35,8 @@ export const renderHubSelectionScreen = (state) => {
     }
 
     // Tribe (Multiple)
-    if (filters.selectedTribes.length > 0) {
+    // (CORREÇÃO) Verifica se selectedTribes existe antes de checar length
+    if (filters.selectedTribes && filters.selectedTribes.length > 0) {
         filteredKidz = filteredKidz.filter(kid => 
             filters.selectedTribes.includes(kid.tribe)
         );
