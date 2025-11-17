@@ -1,14 +1,12 @@
 /* ====================================================================
-// (NOVO) STYLES: game_screen.css
-// Estilos para a tela de Expedição (Layout de 3 colunas, etc.)
+// STYLES: game_screen.css
+// UPDATE: Adiciona estilos para a Coluna 1 (Status, Stats, Loot).
 // ==================================================================== */
 
 .game-container {
     display: grid;
     grid-template-columns: 1fr 1.5fr 1fr; /* Layout de 3 colunas */
     gap: 20px;
-    max-width: 1600px;
-    margin: 0 auto;
 }
 
 .game-column {
@@ -16,13 +14,46 @@
     flex-direction: column;
     gap: 15px;
 }
+/* Remove o padding padrão do .panel para colunas de status/mapa */
+#game-col-status.panel,
+#game-col-map .panel,
+#game-col-log.panel {
+    padding: 15px;
+}
 
-/* Coluna 1: Status */
+
+/* ================== Coluna 1: Status ================== */
 #game-col-status h3 {
     color: var(--color-text-light);
     border-bottom: 1px solid var(--color-accent-blue);
     padding-bottom: 5px;
 }
+
+/* Reutiliza o .kid-info-box (do hub_preparation) mas ajusta o padding */
+#game-col-status .kid-info-box {
+    padding: 10px;
+    gap: 10px;
+    background-color: var(--color-bg-dark); /* Fundo mais escuro */
+}
+#game-col-status .kid-info-box .kid-image {
+    width: 80px;
+    height: 80px;
+}
+#game-col-status .kid-info-box h4 {
+    font-size: 1.1em;
+    color: var(--color-text-light);
+}
+/* Badge de Power Score menor */
+.power-score-badge.small {
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+.power-score-badge.small span {
+    padding: 1px 4px;
+}
+
+
+/* Barras de Status */
 .status-bars {
     display: flex;
     flex-direction: column;
@@ -52,17 +83,68 @@
 .ap-fill { background-color: var(--color-accent-blue); }
 .mp-fill { background-color: var(--color-accent-red); }
 
+/* Lista de Atributos */
+.expedition-stats-list {
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+}
+.expedition-stats-list h4 { font-size: 1em; }
+.expedition-stats-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colunas */
+    gap: 5px 10px;
+}
+.expedition-stats-list li {
+    font-size: 0.85em;
+    color: var(--color-text-dim);
+    display: flex;
+    justify-content: space-between;
+}
+.expedition-stats-list li span {
+    color: var(--color-text-light);
+    font-weight: bold;
+}
+
+
+/* Lista de Loot */
 .loot-display {
     background: rgba(0,0,0,0.2);
     padding: 10px;
-    border-radius: 5px;
-    flex-grow: 1;
+    flex-grow: 1; /* Ocupa o espaço restante */
 }
-.loot-display ul { list-style: none; padding-left: 5px; }
-.loot-display li { font-size: 0.9em; color: var(--color-text-dim); }
+.loot-display h4 { font-size: 1em; }
+.loot-display-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+.loot-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: var(--color-text-dim);
+}
+.loot-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+.loot-item .loot-quantity {
+    margin-left: auto; /* Alinha a quantidade à direita */
+    color: var(--color-text-light);
+}
 
 
-/* Coluna 2: Mapa e Ações */
+/* ================== Coluna 2: Mapa e Ações ================== */
 .map-container {
     position: relative;
     overflow: hidden;
@@ -90,7 +172,7 @@
     grid-column: 1 / -1; /* Botão "End Day" ocupa a largura total */
 }
 
-/* Coluna 3: Log */
+/* ================== Coluna 3: Log ================== */
 .log-window {
     background: rgba(0,0,0,0.2);
     border-radius: 5px;
