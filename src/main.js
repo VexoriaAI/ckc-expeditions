@@ -1,8 +1,7 @@
 /* ====================================================================
 // CORE: main.js
-// VERSÃO COMPLETA (V3.3 - Pós-Refatoração CSS)
-// Gerencia todos os listeners de clique (App e Modal),
-// lógica de filtros (Input/Change) e navegação.
+// VERSÃO COMPLETA (V3.4 - CORREÇÃO DE REGRESSÃO)
+// Re-adiciona o 'ExpeditionManager' e todos os sistemas.
 // ==================================================================== */
 
 // Importa o Estado e suas funções de mutação
@@ -16,6 +15,7 @@ import { ModalManager } from './ui/ModalManager.js';
 import { EquipmentSystem } from './systems/EquipmentSystem.js';
 import { CraftingSystem } from './systems/CraftingSystem.js'; 
 import { Web3Manager } from './web3/Web3Manager.js'; 
+import { ExpeditionManager } from './systems/ExpeditionManager.js'; // (CORREÇÃO: Importação adicionada)
 
 // Importa Bancos de Dados (apenas os necessários para o main.js)
 import { MATERIALS_DB } from '../database/materials.js'; 
@@ -56,7 +56,7 @@ function initializeApp() {
 }
 
 /**
- * (NOVO) Lógica para o letreiro animado do ranking no header.
+ * Lógica para o letreiro animado do ranking no header.
  */
 function startRankingTicker() {
     // Dados estáticos do Top 1 de cada categoria
@@ -192,8 +192,10 @@ function handleGlobalClick(event) {
         // A. Page Actions
         if (target.id === 'btn-back-to-selection') {
             setCurrentScreen('hub-selection-screen');
-        } else if (target.id === 'btn-start-expedition') {
-            setCurrentScreen('game-screen');
+        } 
+        // (CORREÇÃO) Chama o ExpeditionManager
+        else if (target.id === 'btn-start-expedition') {
+            ExpeditionManager.startExpedition();
         }
         
         // B. Equipment & Mannequin Actions
@@ -286,10 +288,25 @@ function handleGlobalClick(event) {
         }
     }
 
-    // --- 5. game-screen Logic ---
+    // --- 5. (ATUALIZADO) game-screen Logic ---
     else if (currentState.currentScreen === 'game-screen') {
         if (target.id === 'btn-end-expedition') {
-            setCurrentScreen('hub-selection-screen'); 
+            // (Futuro: Chamar ExpeditionManager.endExpedition())
+            alert("Expedição encerrada. Loot salvo (simulado).");
+            setCurrentScreen('hub-preparation-screen'); 
+        }
+        // (Ações da Expedição)
+        else if (target.id === 'btn-action-collect') {
+            alert("Ação: Coletar (Lógica pendente)");
+        }
+        else if (target.id === 'btn-action-investigate') {
+            alert("Ação: Investigar (Lógica pendente)");
+        }
+         else if (target.id === 'btn-action-search') {
+            alert("Ação: Procurar Inimigo (Lógica pendente)");
+        }
+         else if (target.id === 'btn-action-end-day') {
+            alert("Ação: Encerrar o Dia (Lógica pendente)");
         }
     }
     
