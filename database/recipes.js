@@ -49,7 +49,7 @@ export const RECIPES_DB = {
     },
     
     // =================================================
-    // --- (NOVAS) TIER 1 CRAFT RECIPES (Rustic Set) ---
+    // --- TIER 1 CRAFT RECIPES (Rustic Set) ---
     // =================================================
     'craft_rust_helmet': {
         recipeId: 'craft_rust_helmet',
