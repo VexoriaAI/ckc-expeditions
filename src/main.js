@@ -376,6 +376,10 @@ function handleGlobalChange(event) {
     else if (target.id === 'craft-filter-tribe') {
         updateState({ uiState: { craftFilterTribe: target.value } });
     }
+    // (NOVO) Checkbox da Tela de Expedição
+    else if (target.id === 'chk-skip-animations') {
+        updateState({ uiState: { skipAnimations: target.checked } });
+    }
 }
 
 // Inicializa a aplicação
