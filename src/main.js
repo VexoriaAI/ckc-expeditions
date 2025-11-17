@@ -143,7 +143,7 @@ function handleGlobalClick(event) {
     
     // --- 1. Global Header Logic ---
     if (target.id === 'btn-logout') {
-        resetState(); 
+        window.location.reload(); // (ATUALIZADO) Força o refresh da página
         return; 
     }
     if (target.id === 'btn-store') {
