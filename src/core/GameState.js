@@ -1,10 +1,12 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: Altera a aba padrão do Workshop de 'refine' para 'craft'.
+// UPDATE: (CORREÇÃO DE SINCRONIZAÇÃO) Garante que 'hubSelectionFilters'
+// e 'uiState' estejam definidos no INITIAL_STATE e no updateState.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
+// Exportamos o INITIAL_STATE para uso na função Reset
 export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
@@ -23,12 +25,18 @@ export const INITIAL_STATE = {
     },
 
     // 4. Expedition Data
-    expedition: { /* ... */ },
+    expedition: {
+        kidStats: null, 
+        currentLocation: null,
+        AP: 0, 
+        MP: 0, 
+        log: [],
+    },
     
-    // 5. UI State
+    // 5. UI State (Filtros de Inventário, Abas Ativas)
     uiState: {
         activeInventoryTab: 'equipments',
-        activeWorkshopTab: 'craft', // (ATUALIZADO - 'craft' é a nova aba principal)
+        activeWorkshopTab: 'refine',
         
         inventoryEquipmentFilter: 'all', 
         inventoryEquipmentSort: 'power',  
@@ -47,8 +55,14 @@ export const INITIAL_STATE = {
     modalContent: null,
     modalTargetSlot: null,
     
-    // 8. Hub Selection Filters
-    hubSelectionFilters: { /* ... */ }
+    // 8. Hub Selection Filters (O OBJETO QUE ESTÁ FALTANDO)
+    hubSelectionFilters: {
+        searchQuery: '',
+        selectedTribes: [],
+        sortBy: 'level',
+        itemsPerPage: 5,
+        currentPage: 1,
+    }
 };
 
 let gameState = { ...INITIAL_STATE };
@@ -61,12 +75,12 @@ export const updateState = (updates) => {
     // Deep merge para objetos de estado aninhados (Filtros e UI State)
     if (updates.hubSelectionFilters) {
         gameState.hubSelectionFilters = {
-            ...gameState.hubSelectionFilters,
+            ...gameState.hubSelectionFilters, // <-- Merge
             ...updates.hubSelectionFilters
         };
         delete updates.hubSelectionFilters;
     }
-    if (updates.uiState) { // (NOVO) Deep merge para uiState
+    if (updates.uiState) { 
         gameState.uiState = {
             ...gameState.uiState,
             ...updates.uiState
@@ -74,7 +88,7 @@ export const updateState = (updates) => {
         delete updates.uiState;
     }
 
-    gameState = { ...gameState, ...updates };
+    gameState = { ...gameState, ...updates }; // <-- Shallow merge
     
     if (window.onGameStateChange) {
         window.onGameStateChange(gameState);
