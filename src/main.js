@@ -303,11 +303,11 @@ function handleGlobalClick(event) {
             ExpeditionManager.investigate(); // (LÓGICA REAL)
         }
          else if (target.id === 'btn-action-search') {
-            ExpeditionManager.searchForEnemy(); // (LÓGICA REAL)
-        }
-         else if (target.id === 'btn-action-end-day') {
-            alert("Ação: Encerrar o Dia (Lógica pendente)");
-        }
+            ExpeditionManager.searchForEnemy(); // (LÓGICA REAL)
+        }
+         else if (target.id === 'btn-action-end-day') {
+            ExpeditionManager.endDay(); // (LÓGICA REAL)
+        }
     }
     
     // --- 6. store-screen Logic ---
