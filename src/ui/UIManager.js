@@ -1,6 +1,6 @@
 /* ====================================================================
 // UI: UIManager.js (Refatorado)
-// UPDATE: Importa e chama 'renderRankingScreen'.
+// UPDATE: Importa e chama o 'renderGameScreen' (Tela de Expedição).
 // ==================================================================== */
 
 // Importações dos Renderers
@@ -8,9 +8,9 @@ import { renderHeader } from './Renderers/renderHeader.js';
 import { renderLoggedOutScreen } from './Renderers/renderLoggedOutScreen.js';
 import { renderHubSelectionScreen } from './Renderers/renderHubSelection.js';
 import { renderHubPreparationScreen } from './Renderers/renderHubPreparation.js';
-import { renderGameScreen } from './Renderers/renderGameScreen.js';
+import { renderGameScreen } from './Renderers/renderGameScreen.js'; // (ATUALIZADO)
 import { renderStoreScreen } from './Renderers/renderStoreScreen.js';
-import { renderRankingScreen } from './Renderers/renderRankingScreen.js'; // (NOVO)
+import { renderRankingScreen } from './Renderers/renderRankingScreen.js'; 
 
 let appRoot; 
 
@@ -45,15 +45,18 @@ export const UIManager = {
             case 'hub-preparation-screen':
                 htmlContent = renderHubPreparationScreen(state);
                 break;
-            case 'game-screen': 
+            
+            case 'game-screen': // (ATUALIZADO)
                 htmlContent = renderGameScreen(state);
                 break;
+            
             case 'store-screen':
                 htmlContent = renderStoreScreen(state);
                 break;
-            case 'ranking-screen': // (NOVO)
+            case 'ranking-screen': 
                 htmlContent = renderRankingScreen(state);
                 break;
+
             default:
                 htmlContent = `<h2>[ERROR] Screen Not Found: ${screenId}</h2>`;
         }
