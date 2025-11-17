@@ -1,7 +1,8 @@
 /* ====================================================================
 // STYLES: header.css
-// Contém apenas os estilos para o .main-header e seus filhos
-// (Tezerium, Wallet, Store, Ranking Ticker).
+// UPDATE: (V3.1 - Mobile Responsivo)
+// Adiciona flex-wrap e 'order' para reordenar o cabeçalho
+// e seguir a hierarquia mobile (Wallet > Logout > Tezerium > Store).
 // ==================================================================== */
 
 .main-header {
@@ -16,39 +17,38 @@
     position: relative;
     left: 50%;
     transform: translateX(-50%);
+    
+    /* (NOVO) Permite que os grupos quebrem a linha */
+    flex-wrap: wrap;
+    gap: 10px; /* Espaçamento quando quebrar a linha */
 }
 .header-left, .header-right { 
     display: flex; 
     align-items: center; 
     gap: 15px; 
+    flex-wrap: wrap; /* Permite que os botões dentro dos grupos quebrem */
 }
+
+/* (NOVO) Define a ordem padrão (Desktop) */
+.header-left { order: 1; }
+.header-right { order: 2; }
+
 
 /* Estilo Tezerium */
 .tezerium-display { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
     background-color: var(--color-bg-dark); 
     border: 1px solid var(--color-accent-blue); 
-    padding: 8px 12px; 
-    border-radius: 5px;
-    font-weight: bold; 
-    color: var(--color-accent-blue); 
+    padding: 8px 12px; border-radius: 5px;
+    font-weight: bold; color: var(--color-accent-blue); 
 }
-.tezerium-icon { 
-    width: 20px; 
-    height: 20px; 
-    object-fit: contain; 
-}
-.tezerium-display span { 
-    color: white; 
-    font-size: 1.1em; 
-}
+.tezerium-icon { width: 20px; height: 20px; object-fit: contain; }
+.tezerium-display span { color: white; font-size: 1.1em; }
 
 /* Estilo Botão Store */
 .store-btn { 
     width: auto; 
-    padding: 8px 12px; /* Garante o mesmo tamanho */
+    padding: 8px 12px;
 }
 .store-btn img { 
     width: 20px; 
@@ -61,11 +61,11 @@
 
 /* Estilo Ranking Ticker */
 .ranking-ticker-btn {
-    width: auto; /* Tamanho automático */
-    padding: 8px 12px; /* Mesmo padding do Store */
+    width: auto; 
+    padding: 8px 12px;
     gap: 10px;
-    background-color: var(--color-bg-dark); /* Fundo escuro */
-    border: 1px solid #444; /* Borda sutil */
+    background-color: var(--color-bg-dark); 
+    border: 1px solid #444; 
 }
 .ranking-ticker-btn:hover {
     background-color: var(--color-panel-dark);
@@ -80,7 +80,7 @@
 .ranking-ticker {
     color: var(--color-text-dim);
     font-size: 0.9em;
-    text-transform: none; /* Remove uppercase do .action-btn */
+    text-transform: none; 
     overflow: hidden;
     width: 350px; 
     text-align: left;
@@ -96,21 +96,40 @@
 
 /* Estilo Wallet Info */
 .wallet-info { 
-    background: var(--color-bg-dark); 
-    padding: 8px 12px; 
-    border-radius: 5px; 
-    font-size: 0.9em; 
-    text-align: left;
-    display: flex; 
-    flex-direction: column;
+    background: var(--color-bg-dark); padding: 8px 12px; 
+    border-radius: 5px; font-size: 0.9em; text-align: left;
+    display: flex; flex-direction: column;
 }
-.wallet-status-label { 
-    color: var(--color-accent-blue); 
-    font-weight: bold; 
-    font-size: 0.8em; 
-    text-transform: uppercase; 
+.wallet-status-label { color: var(--color-accent-blue); font-weight: bold; font-size: 0.8em; text-transform: uppercase; }
+.wallet-address { color: var(--color-text-dim); font-size: 0.9em; }
+
+
+/* ================== (NOVO) Responsividade do Header ================== */
+@media (max-width: 1024px) {
+    .ranking-ticker {
+        width: 200px; /* Encurta o ticker em telas menores */
+    }
 }
-.wallet-address { 
-    color: var(--color-text-dim); 
-    font-size: 0.9em; 
+
+@media (max-width: 850px) {
+    /* Em telas médias/pequenas, quebra para 2 linhas */
+    .main-header {
+        justify-content: center; /* Centraliza os grupos */
+    }
+    
+    /* (NOVO) Reordena os grupos para a hierarquia mobile */
+    .header-left { 
+        order: 2; /* (Tezerium, Store, Ranking) ficam ABAIXO */
+        width: 100%;
+        justify-content: center;
+    }
+    .header-right { 
+        order: 1; /* (Wallet, Logout) ficam ACIMA */
+        width: 100%;
+        justify-content: space-between;
+    }
+    .ranking-ticker {
+        width: 100%; /* Ocupa todo o espaço no mobile */
+        text-align: center;
+    }
 }
