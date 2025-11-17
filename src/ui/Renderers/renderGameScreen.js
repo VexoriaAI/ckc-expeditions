@@ -1,15 +1,15 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: (Refatoração de Layout)
-// Coluna 1 refeita (Info, Stats, Loot).
-// AP/MP movidos para a Coluna 2 (Ações).
-// Barra de HP com lógica de cor.
+// UPDATE: (Refatoração de Layout V2)
+// - Move 'Loot Found' para a Coluna 3.
+// - Adiciona 'Consumables' (Shop Items) à Coluna 1.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../../database/maps.js';
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
+import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; // (NOVO) Importa Shop Items
 
 // Helper local
 const getKidDataById = (kidId) => {
@@ -17,10 +17,12 @@ const getKidDataById = (kidId) => {
 };
 
 /**
- * (NOVO) Helper para renderizar a lista de Loot Encontrado
+ * Helper para renderizar a lista de Loot Encontrado
  */
 const renderLootList = (loot) => {
     const materials = Object.keys(loot.materials);
+    // (Futuro: Adicionar components e equipment)
+    
     if (materials.length === 0) {
         return '<li>No loot found yet.</li>';
     }
@@ -33,6 +35,40 @@ const renderLootList = (loot) => {
                 <img src="${itemData.iconPath}" alt="${itemData.name}">
                 <span>${itemData.name}</span>
                 <span class="loot-quantity">x ${quantity}</span>
+            </li>
+        `;
+    }).join('');
+};
+
+/**
+ * (NOVO) Helper para renderizar a lista de Consumíveis (Shop Items)
+ */
+const renderConsumablesList = (state) => {
+    const shopItems = state.playerInventory.shopItems; // Pega do inventário principal
+    const keys = Object.keys(shopItems);
+    
+    if (keys.length === 0) {
+        return '<li>No consumables available.</li>';
+    }
+
+    return keys.map(itemId => {
+        const itemData = SHOP_ITEMS_DB[itemId];
+        const quantity = shopItems[itemId];
+        if (!itemData) return '';
+        
+        // (Placeholder para itens não usáveis aqui)
+        const useButton = (itemId === 'ap_refill') 
+            ? `<button id="btn-use-consumable" data-item-id="${itemId}" class="action-btn btn-xs btn-info">USE</button>`
+            : '';
+
+        return `
+            <li class="consumable-item">
+                <img src="${itemData.iconPath}" alt="${itemData.name}" title="${itemData.description}">
+                <div class="consumable-details">
+                    <span>${itemData.name} (x${quantity})</span>
+                    <p>${itemData.description}</p>
+                </div>
+                ${useButton}
             </li>
         `;
     }).join('');
@@ -54,11 +90,9 @@ export const renderGameScreen = (state) => {
     const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot } = expedition;
     const currentTile = STATIC_MAP_DATA.find(t => t.q === position.q && t.r === position.r);
     const currentBiome = MAP_BIOMES[currentTile.biome];
-    
-    // Calcula o Power Score Total (Base + Equipamento)
     const totalPowerScore = calculatePowerScore(kidStats);
     
-    // (NOVO) Lógica da Barra de HP
+    // Lógica da Barra de HP
     const hpPercent = (currentHP / maxHP) * 100;
     let hpColorClass = 'hp-fill-green'; // 40-100%
     if (hpPercent < 40) hpColorClass = 'hp-fill-orange'; // 20-40%
@@ -110,16 +144,16 @@ export const renderGameScreen = (state) => {
                 </ul>
             </div>
             
-            <div class="loot-display panel">
-                <h4>Loot Found</h4>
-                <ul class="loot-display-list">
-                    ${renderLootList(foundLoot)}
+            <div class="consumables-display panel">
+                <h4>Consumables</h4>
+                <ul class="consumables-display-list">
+                    ${renderConsumablesList(state)}
                 </ul>
             </div>
         </div>
     `;
 
-    // --- (ATUALIZADO) Coluna 2: Mapa e Ações ---
+    // --- Coluna 2: Mapa e Ações ---
     const column2_Map = `
         <div class="game-column" id="game-col-map">
             
@@ -162,9 +196,17 @@ export const renderGameScreen = (state) => {
         </div>
     `;
 
-    // --- Coluna 3: Log e Saída ---
+    // --- (ATUALIZADO) Coluna 3: Log e Saída ---
     const column3_Log = `
         <div class="game-column panel" id="game-col-log">
+            
+            <div class="loot-display panel">
+                <h4>Loot Found</h4>
+                <ul class="loot-display-list">
+                    ${renderLootList(foundLoot)}
+                </ul>
+            </div>
+
             <h3>Expedition Log (Day ${currentDay})</h3>
             <div class="log-window">
                 ${log.map(entry => `<p>${entry}</p>`).join('')}
@@ -175,7 +217,6 @@ export const renderGameScreen = (state) => {
             </button>
         </div>
     `;
-
 
     // --- Montagem Final ---
     return `
