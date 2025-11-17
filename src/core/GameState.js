@@ -1,12 +1,10 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: Centraliza o estado da UI (filtros, abas) no objeto 'uiState'.
-// Exporta INITIAL_STATE para a lógica de Reset.
+// UPDATE: Altera a aba padrão do Workshop de 'refine' para 'craft'.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
-// (ATUALIZADO) Exporta o INITIAL_STATE para o Reset de Filtros
 export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
@@ -25,22 +23,18 @@ export const INITIAL_STATE = {
     },
 
     // 4. Expedition Data
-    expedition: {
-        kidStats: null, 
-        currentLocation: null,
-        AP: 0, 
-        MP: 0, 
-        log: [],
-    },
+    expedition: { /* ... */ },
     
-    // 5. (ATUALIZADO) UI State
+    // 5. UI State
     uiState: {
         activeInventoryTab: 'equipments',
-        activeWorkshopTab: 'refine',
+        activeWorkshopTab: 'craft', // (ATUALIZADO - 'craft' é a nova aba principal)
         
-        // Filtros da aba Inventory (Conforme sugestão aprovada)
-        inventoryEquipmentFilter: 'all', // 'all', 'helmet', 'weapon', etc.
-        inventoryEquipmentSort: 'power',  // 'power', 'rarity', 'tier'
+        inventoryEquipmentFilter: 'all', 
+        inventoryEquipmentSort: 'power',  
+        
+        craftFilterType: 'all', 
+        craftFilterTribe: 'all'
     },
     
     // 6. UI State para o Workshop EMBED
@@ -54,13 +48,7 @@ export const INITIAL_STATE = {
     modalTargetSlot: null,
     
     // 8. Hub Selection Filters
-    hubSelectionFilters: {
-        searchQuery: '',
-        selectedTribes: [],
-        sortBy: 'level',
-        itemsPerPage: 5,
-        currentPage: 1,
-    }
+    hubSelectionFilters: { /* ... */ }
 };
 
 let gameState = { ...INITIAL_STATE };
