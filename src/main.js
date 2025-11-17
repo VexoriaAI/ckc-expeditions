@@ -300,7 +300,7 @@ function handleGlobalClick(event) {
             ExpeditionManager.collectResources(); // (LÓGICA REAL)
         }
         else if (target.id === 'btn-action-investigate') {
-            alert("Ação: Investigar (Lógica pendente)");
+            ExpeditionManager.investigate(); // (LÓGICA REAL)
         }
          else if (target.id === 'btn-action-search') {
             alert("Ação: Procurar Inimigo (Lógica pendente)");
