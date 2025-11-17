@@ -1,7 +1,7 @@
 /* ====================================================================
 // RENDERER: renderWorkshopCraft.js
-// UPDATE: (CORREÇÃO DE LÓGICA V2) Garante que a lógica de filtro
-// `craftFilterType` e o filtro `type: 'CRAFT'` funcionem.
+// UPDATE: (CORREÇÃO DE LÓGICA V3) Corrige o bug onde o filtro "All"
+// não exibia 'CRAFT' e 'UPGRADE' no carregamento inicial.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
@@ -24,16 +24,16 @@ export const renderCraftTab = (state) => {
         .map(recipeId => RECIPES_DB[recipeId])
         .filter(Boolean); // Filtra (remove) receitas indefinidas
 
-    // 2. (CORREÇÃO) Filtra para incluir APENAS tipos 'CRAFT' ou 'UPGRADE'.
+    // 2. (CORREÇÃO) Filtra APENAS pelos tipos 'CRAFT' ou 'UPGRADE'.
     // A aba 'REFINE' tem seu próprio renderer.
     knownRecipes = knownRecipes.filter(recipe => recipe.type === 'CRAFT' || recipe.type === 'UPGRADE');
 
     // 3. Aplica os filtros da UI (Type e Tribe)
     if (craftFilterType !== 'all') {
         knownRecipes = knownRecipes.filter(recipe => {
-            // Verifica se o output da receita está no DB correto
-            if (craftFilterType === 'equipment') return !!EQUIPMENT_DB[recipe.output.itemId];
-            if (craftFilterType === 'component') return !!COMPONENTS_DB[recipe.output.itemId];
+            // (CORREÇÃO) Verifica o TIPO da receita, não o output DB
+            if (craftFilterType === 'equipment') return recipe.type === 'CRAFT';
+            if (craftFilterType === 'component') return recipe.type === 'UPGRADE';
             return false;
         });
     }
@@ -46,8 +46,8 @@ export const renderCraftTab = (state) => {
                 <label>Filter Type:</label>
                 <select id="craft-filter-type">
                     <option value="all" ${craftFilterType === 'all' ? 'selected' : ''}>All</option>
-                    <option value="equipment" ${craftFilterType === 'equipment' ? 'selected' : ''}>Equipment</option>
-                    <option value="component" ${craftFilterType === 'component' ? 'selected' : ''}>Components</option>
+                    <option value="equipment" ${craftFilterType === 'equipment' ? 'selected' : ''}>Equipment (Craft)</option>
+                    <option value="component" ${craftFilterType === 'component' ? 'selected' : ''}>Components (Upgrade)</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -98,23 +98,24 @@ export const renderCraftTab = (state) => {
             return `
                 <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
                     <h4>${recipe.name}</h4>
-                    <div class="recipe-io">
-                        <div class="input-section">
-                            ${inputMaterialsHTML}
-                            ${inputComponentsHTML}
+                    <div class="recipe-content-wrapper"> <div class="recipe-io">
+                            <div class="input-section">
+                                ${inputMaterialsHTML}
+                                ${inputComponentsHTML}
+                            </div>
+                            <span class="arrow-separator">→</span>
+                            <div class="output-section">
+                                <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
+                                <span>${outputItemData.name} (x${recipe.output.amount})</span>
+                            </div>
                         </div>
-                        <span class="arrow-separator">→</span>
-                        <div class="output-section">
-                            <img src="${outputIconPath}" alt="${outputItemData.name}" title="${outputItemData.name}">
-                            <span>${outputItemData.name} (x${recipe.output.amount})</span>
-                        </div>
+                        <button 
+                            id="btn-execute-craft" 
+                            data-recipe-id="${recipe.recipeId}"
+                            class="btn-sm action-btn btn-success ${allInputsAvailable ? '' : 'disabled'}"
+                            ${allInputsAvailable ? '' : 'disabled'}
+                        >CRAFT</button>
                     </div>
-                    <button 
-                        id="btn-execute-craft" 
-                        data-recipe-id="${recipe.recipeId}"
-                        class="btn-sm action-btn btn-success ${allInputsAvailable ? '' : 'disabled'}"
-                        ${allInputsAvailable ? '' : 'disabled'}
-                    >CRAFT</button>
                 </div>
             `;
         }).join('');
