@@ -1,7 +1,7 @@
 /* ====================================================================
 // RENDERER: renderWorkshopCraft.js
-// UPDATE: (CORREÇÃO DE LÓGICA) Garante que o filtro
-// 'craftFilterType' (All, Equipment, Component) funcione corretamente.
+// UPDATE: (CORREÇÃO DE LÓGICA V2) Garante que a lógica de filtro
+// `craftFilterType` e o filtro `type: 'CRAFT'` funcionem.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
@@ -19,12 +19,13 @@ export const renderCraftTab = (state) => {
     const { playerInventory, uiState } = state;
     const { craftFilterType, craftFilterTribe } = uiState;
     
-    // 1. Filtra as receitas baseadas nos Blueprints que o jogador conhece
+    // 1. Pega TODOS os blueprints conhecidos
     let knownRecipes = MOCK_KNOWN_BLUEPRINTS
         .map(recipeId => RECIPES_DB[recipeId])
         .filter(Boolean); // Filtra (remove) receitas indefinidas
 
-    // 2. Filtra APENAS pelos tipos 'CRAFT' e 'UPGRADE' (Refine tem sua própria aba)
+    // 2. (CORREÇÃO) Filtra para incluir APENAS tipos 'CRAFT' ou 'UPGRADE'.
+    // A aba 'REFINE' tem seu próprio renderer.
     knownRecipes = knownRecipes.filter(recipe => recipe.type === 'CRAFT' || recipe.type === 'UPGRADE');
 
     // 3. Aplica os filtros da UI (Type e Tribe)
@@ -65,7 +66,9 @@ export const renderCraftTab = (state) => {
     } else {
         recipesHTML = knownRecipes.map(recipe => {
             const outputItemData = EQUIPMENT_DB[recipe.output.itemId] || COMPONENTS_DB[recipe.output.itemId];
-            const outputIconPath = outputItemData ? outputItemData.iconPath : 'assets/ui/icon_unknown.png';
+            if (!outputItemData) return ''; // Proteção contra dados ruins
+
+            const outputIconPath = outputItemData.iconPath || 'assets/ui/icon_unknown.png';
             let allInputsAvailable = true;
 
             // Checa Materiais
