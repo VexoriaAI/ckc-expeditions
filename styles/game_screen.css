@@ -1,6 +1,8 @@
 /* ====================================================================
 // STYLES: game_screen.css
-// UPDATE: Adiciona estilos para a Coluna 1 (Status, Stats, Loot).
+// UPDATE: Adiciona estilos para as badges de Level/Power.
+// Adiciona cores da barra de HP (Vermelho/Laranja).
+// Adiciona o painel de AP/MP na Coluna 2.
 // ==================================================================== */
 
 .game-container {
@@ -14,7 +16,6 @@
     flex-direction: column;
     gap: 15px;
 }
-/* Remove o padding padrão do .panel para colunas de status/mapa */
 #game-col-status.panel,
 #game-col-map .panel,
 #game-col-log.panel {
@@ -33,7 +34,7 @@
 #game-col-status .kid-info-box {
     padding: 10px;
     gap: 10px;
-    background-color: var(--color-bg-dark); /* Fundo mais escuro */
+    background-color: var(--color-bg-dark); 
 }
 #game-col-status .kid-info-box .kid-image {
     width: 80px;
@@ -43,13 +44,31 @@
     font-size: 1.1em;
     color: var(--color-text-light);
 }
-/* Badge de Power Score menor */
-.power-score-badge.small {
-    font-size: 0.9em;
+
+/* (NOVO) Badges de Level e Power (Estilo de image_a62e9a.png) */
+.kid-card-stats.game-screen-stats {
+    display: flex;
+    gap: 10px;
     margin-top: 5px;
 }
-.power-score-badge.small span {
-    padding: 1px 4px;
+.game-screen-stats .stat-badge {
+    background-color: var(--color-bg-dark);
+    border: 1px solid #444;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+.game-screen-stats .stat-badge.level-badge {
+    color: var(--color-accent-green);
+    border-color: var(--color-accent-green);
+}
+.game-screen-stats .stat-badge.power-badge {
+    color: var(--color-accent-red);
+    border-color: var(--color-accent-red);
+}
+.game-screen-stats .stat-badge span {
+    color: var(--color-text-light);
 }
 
 
@@ -79,7 +98,11 @@
     height: 100%;
     transition: width 0.3s ease;
 }
-.hp-fill { background-color: var(--color-accent-green); }
+/* (ATUALIZADO) Cores da Barra de HP */
+.hp-fill-green { background-color: var(--color-accent-green); }
+.hp-fill-orange { background-color: #f39c12; } /* Laranja */
+.hp-fill-red { background-color: var(--color-accent-red); } /* Vermelho */
+
 .ap-fill { background-color: var(--color-accent-blue); }
 .mp-fill { background-color: var(--color-accent-red); }
 
@@ -163,6 +186,19 @@
     pointer-events: none;
     text-shadow: 0 0 5px white;
 }
+
+/* (NOVO) Painel de AP/MP */
+.action-points-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.action-points-bar .stat-bar {
+    grid-template-columns: 40px 1fr 50px; /* Ajusta para AP e MP */
+    gap: 10px;
+    font-size: 1.1em;
+}
+
 .action-bar {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -203,5 +239,11 @@
     }
     #game-col-log .log-window {
         height: 200px; /* Reduz a altura do log no mobile */
+    }
+}
+@media (max-width: 768px) {
+    .action-points-bar {
+        grid-template-columns: 1fr; /* Empilha AP e MP */
+        gap: 10px;
     }
 }
