@@ -68,6 +68,9 @@ export const calculatePowerScore = (stats) => {
 
 /**
  * Calcula o Power Score de UMA Instância de Equipamento (Base + Componentes).
+ * Esta é a função usada pelo AutoEquip e pelo Sort By.
+ * @param {object} itemInstance - Uma Instância de item do playerInventory.equipment.
+ * @returns {number} O Power Score calculado.
  */
 export const getEquipmentPowerScore = (itemInstance) => {
     const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
