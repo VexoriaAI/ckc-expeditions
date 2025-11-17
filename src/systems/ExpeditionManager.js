@@ -241,7 +241,7 @@ export const ExpeditionManager = {
         updateState({ expedition: expedition });
 
         alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    }, // <-- (A VÍRGULA FALTANTE ESTAVA AQUI)
+    }, // <-- (A CORREÇÃO ESTÁ AQUI. A VÍRGULA FALTAVA)
 
     /**
      * Finaliza o turno (dia) atual.
