@@ -1,13 +1,14 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (CORREÇÃO DE LÓGICA) Altera o 'getSpawnPoint()'
-// de 'CYBERCITY' para 'WASTELAND' para alinhar com o drops.js.
+// UPDATE: Adiciona a lógica da ação 'investigate()'.
+// (Consome AP, lê spawn_logic.js, aplica Luck, rola drops.js).
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../database/maps.js';
-import { DROP_TABLES } from '../../database/drops.js'; 
+import { DROP_TABLES } from '../../database/drops.js';
+import { SPAWN_LOGIC } from '../../database/spawn_logic.js'; // (NOVO) Importa as regras de Risco
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
 
@@ -19,11 +20,9 @@ const getKidDataById = (kidId) => {
 };
 
 /**
- * (Helper - CORRIGIDO) Encontra o local de spawn inicial no mapa.
- * (Procura o bioma 'WASTELAND' como ponto de partida).
+ * (Helper) Encontra o local de spawn inicial no mapa (WASTELAND).
  */
 const getSpawnPoint = () => {
-    // (CORRIGIDO) O jogador deve começar na Wasteland, não em CyberCity.
     let spawn = STATIC_MAP_DATA.find(tile => tile.biome === 'WASTELAND');
     if (!spawn) {
         spawn = STATIC_MAP_DATA[0]; // Fallback
@@ -62,8 +61,6 @@ export const ExpeditionManager = {
         const kidStaticData = getKidDataById(kidId);
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
-        
-        // (CORRIGIDO) Pega o spawn point da Wasteland
         const startPosition = getSpawnPoint();
         const startBiomeKey = getCurrentBiomeKey(startPosition);
 
@@ -92,17 +89,15 @@ export const ExpeditionManager = {
 
     /**
      * Executa a ação "Collect Resources".
-     * Consome 1 AP, rola a tabela de loot "collect" e atualiza o estado.
      */
     collectResources: function() {
         const state = getState();
-        let { expedition } = state; // Pega uma cópia do objeto expedição
+        let { expedition } = state; 
 
         // 1. Checagem de Custo de AP
         if (expedition.currentAP < 1) {
-            console.warn("Collect: Not enough AP.");
-            expedition.log.unshift(`Not enough AP to collect.`); // Adiciona ao log
-            updateState({ expedition: expedition }); // Atualiza apenas o log
+            expedition.log.unshift(`Not enough AP to collect.`);
+            updateState({ expedition: expedition });
             return;
         }
         expedition.currentAP -= 1; // Paga o custo
@@ -112,7 +107,6 @@ export const ExpeditionManager = {
         const lootTable = DROP_TABLES[biomeKey]?.collect;
 
         if (!lootTable || lootTable.length === 0) {
-            // (Esta é a mensagem de erro que você viu)
             console.error(`Collect: Nenhuma tabela 'collect' encontrada para o bioma ${biomeKey}.`);
             expedition.log.unshift(`Cannot collect here.`);
             updateState({ expedition: expedition });
@@ -127,7 +121,6 @@ export const ExpeditionManager = {
             const amountFound = rollDice(quantity[0], quantity[1]);
             
             if (amountFound > 0) {
-                // Adiciona ao inventário da expedição
                 expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                 lootFoundLog += `${amountFound}x ${item}, `;
             }
@@ -140,9 +133,95 @@ export const ExpeditionManager = {
              expedition.log.unshift(lootFoundLog.slice(0, -2)); // Remove a vírgula final
         }
         updateState({ expedition: expedition });
+    },
+
+    /**
+     * (NOVO) Executa a ação "Investigate".
+     * Consome 1 AP, rola a tabela de Risco (spawn_logic) e depois a tabela de Loot (drops).
+     */
+    investigate: function() {
+        const state = getState();
+        let { expedition } = state;
+
+        // 1. Checagem de Custo de AP
+        if (expedition.currentAP < 1) {
+            expedition.log.unshift(`Not enough AP to investigate.`);
+            updateState({ expedition: expedition });
+            return;
+        }
+        expedition.currentAP -= 1;
+
+        // 2. Lógica de Evento (Risco)
+        const biomeKey = getCurrentBiomeKey(expedition.position);
+        const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
+        
+        if (!eventTable) {
+             console.error(`Investigate: Nenhuma tabela 'investigate' encontrada para o bioma ${biomeKey} em spawn_logic.js.`);
+             return;
+        }
+
+        const luck = expedition.kidStats.luck || 0;
+        const eventRoll = rollDice(1, 100) + luck; // Aplica Sorte
+
+        let eventResult = eventTable[eventTable.length - 1]; // Assume o pior caso (ou 'loot')
+        for (const event of eventTable) {
+            if (eventRoll <= event.chance) {
+                eventResult = event;
+                break;
+            }
+        }
+
+        // 3. Processa o Resultado do Evento
+        switch (eventResult.type) {
+            case "nothing":
+                expedition.log.unshift("Investigated the area... but found nothing.");
+                updateState({ expedition: expedition });
+                break;
+            
+            case "ambush":
+                expedition.log.unshift(`Ambush! A ${eventResult.enemyRarity} enemy attacks!`);
+                updateState({ expedition: expedition });
+                // (Futuro: Chamar CombatManager.startCombat(eventResult.enemyRarity))
+                alert("COMBATE INICIADO (Placeholder)");
+                break;
+
+            case "loot":
+                // Se o evento for "loot", nós AGORA rolamos na tabela de loot
+                const lootTable = DROP_TABLES[biomeKey]?.investigate;
+                if (!lootTable) {
+                     expedition.log.unshift("Found a quiet spot... but nothing of value.");
+                     updateState({ expedition: expedition });
+                     return;
+                }
+                
+                const lootRoll = rollDice(1, 100) + luck; // Sorte se aplica ao loot também
+                let lootResult = lootTable[lootTable.length - 1];
+                for (const loot of lootTable) {
+                    if (lootRoll <= loot.chance) {
+                        lootResult = loot;
+                        break;
+                    }
+                }
+
+                if (lootResult.type === 'nothing') {
+                    expedition.log.unshift("Found a hidden cache... but it was empty.");
+                    updateState({ expedition: expedition });
+                } else {
+                    // Encontrou loot!
+                    const { item, quantity } = lootResult;
+                    const amountFound = rollDice(quantity[0], quantity[1]);
+                    
+                    if (amountFound > 0) {
+                        // (Assume que 'investigate' só dropa materiais por enquanto)
+                        expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
+                        expedition.log.unshift(`Success! Found ${amountFound}x ${item} (${lootResult.type})!`);
+                    }
+                    updateState({ expedition: expedition });
+                }
+                break;
+        }
     }
 
-    // (Futuro: investigate())
     // (Futuro: searchForEnemy())
     // (Futuro: endDay())
     // (Futuro: endExpedition())
