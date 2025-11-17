@@ -2,6 +2,7 @@
 // DATABASE: MOCK_WALLET
 // UPDATE: Adiciona os blueprints (IDs) do Rustic Set 
 // ao 'MOCK_KNOWN_BLUEPRINTS'.
+// Adiciona materiais de craft ao inventário mock.
 // ==================================================================== */
 
 // --- Estruturas de Dados Essenciais ---
@@ -62,6 +63,9 @@ export const MOCK_INVENTORY = {
         'mat_animal_skin': 20, // (Adicionado para as novas receitas)
         'mat_nanochips': 5,
         'mat_energized_crystals': 3,
+        'mat_healing_plants': 10,
+        'mat_strange_fluid': 10,
+        'mat_magma': 10,
     },
     equipment: [
         {
@@ -135,7 +139,7 @@ export const MOCK_KNOWN_BLUEPRINTS = [
     'refine_plants_to_hp1',
     'refine_fluid_to_crit1',
 
-    // --- Receitas de Equipamento T1 (Iniciais) ---
+    // --- (NOVAS) Receitas de Equipamento T1 (Iniciais) ---
     'craft_rust_helmet',
     'craft_rust_armor',
     'craft_rust_weapon',
@@ -145,5 +149,5 @@ export const MOCK_KNOWN_BLUEPRINTS = [
     'craft_rust_accessory',
     
     // --- Receitas T2 (Raras - Simula um drop encontrado) ---
-    'upgrade_def1_to_def2', // (Tipo 'UPGRADE', não aparecerá na aba 'CRAFT')
+    'upgrade_def1_to_def2',
 ];
