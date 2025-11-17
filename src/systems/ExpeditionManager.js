@@ -1,14 +1,15 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: Adiciona a lógica da ação 'investigate()'.
-// (Consome AP, lê spawn_logic.js, aplica Luck, rola drops.js).
+// UPDATE: Adiciona a lógica da ação 'searchForEnemy()'.
+// (Consome 2 AP, lê enemies.js e simula um combate).
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../database/maps.js';
-import { DROP_TABLES } from '../../database/drops.js';
-import { SPAWN_LOGIC } from '../../database/spawn_logic.js'; // (NOVO) Importa as regras de Risco
+import { DROP_TABLES } from '../../database/drops.js'; 
+import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
+import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; // (NOVO) Importa Inimigos
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
 
@@ -97,7 +98,7 @@ export const ExpeditionManager = {
         // 1. Checagem de Custo de AP
         if (expedition.currentAP < 1) {
             expedition.log.unshift(`Not enough AP to collect.`);
-            updateState({ expedition: expedition });
+            updateState({ expedition: expedition }); 
             return;
         }
         expedition.currentAP -= 1; // Paga o custo
@@ -130,14 +131,13 @@ export const ExpeditionManager = {
         if (lootFoundLog === "Collected: ") {
              expedition.log.unshift("Collected... but found nothing.");
         } else {
-             expedition.log.unshift(lootFoundLog.slice(0, -2)); // Remove a vírgula final
+             expedition.log.unshift(lootFoundLog.slice(0, -2)); 
         }
         updateState({ expedition: expedition });
     },
 
     /**
-     * (NOVO) Executa a ação "Investigate".
-     * Consome 1 AP, rola a tabela de Risco (spawn_logic) e depois a tabela de Loot (drops).
+     * Executa a ação "Investigate".
      */
     investigate: function() {
         const state = getState();
@@ -161,9 +161,9 @@ export const ExpeditionManager = {
         }
 
         const luck = expedition.kidStats.luck || 0;
-        const eventRoll = rollDice(1, 100) + luck; // Aplica Sorte
+        const eventRoll = rollDice(1, 100) + luck; 
 
-        let eventResult = eventTable[eventTable.length - 1]; // Assume o pior caso (ou 'loot')
+        let eventResult = eventTable[eventTable.length - 1]; 
         for (const event of eventTable) {
             if (eventRoll <= event.chance) {
                 eventResult = event;
@@ -186,7 +186,6 @@ export const ExpeditionManager = {
                 break;
 
             case "loot":
-                // Se o evento for "loot", nós AGORA rolamos na tabela de loot
                 const lootTable = DROP_TABLES[biomeKey]?.investigate;
                 if (!lootTable) {
                      expedition.log.unshift("Found a quiet spot... but nothing of value.");
@@ -194,7 +193,7 @@ export const ExpeditionManager = {
                      return;
                 }
                 
-                const lootRoll = rollDice(1, 100) + luck; // Sorte se aplica ao loot também
+                const lootRoll = rollDice(1, 100) + luck; 
                 let lootResult = lootTable[lootTable.length - 1];
                 for (const loot of lootTable) {
                     if (lootRoll <= loot.chance) {
@@ -207,12 +206,10 @@ export const ExpeditionManager = {
                     expedition.log.unshift("Found a hidden cache... but it was empty.");
                     updateState({ expedition: expedition });
                 } else {
-                    // Encontrou loot!
                     const { item, quantity } = lootResult;
                     const amountFound = rollDice(quantity[0], quantity[1]);
                     
                     if (amountFound > 0) {
-                        // (Assume que 'investigate' só dropa materiais por enquanto)
                         expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                         expedition.log.unshift(`Success! Found ${amountFound}x ${item} (${lootResult.type})!`);
                     }
@@ -220,9 +217,46 @@ export const ExpeditionManager = {
                 }
                 break;
         }
+    },
+
+    /**
+     * (NOVO) Executa a ação "Search For Enemy".
+     * Consome 2 AP e garante um combate.
+     */
+    searchForEnemy: function() {
+        const state = getState();
+        let { expedition } = state;
+
+        // 1. Checagem de Custo de AP
+        if (expedition.currentAP < 2) { // Custo de 2 AP 
+            expedition.log.unshift(`Not enough AP to search for enemies.`);
+            updateState({ expedition: expedition });
+            return;
+        }
+        expedition.currentAP -= 2; // Paga o custo
+
+        // 2. Lógica de Spawn (Garante um inimigo comum)
+        const biomeKey = getCurrentBiomeKey(expedition.position);
+        const enemyTable = ENEMIES_BY_BIOME[biomeKey];
+        
+        if (!enemyTable || !enemyTable.common) {
+            console.error(`SearchEnemy: Nenhuma tabela 'common' encontrada para o bioma ${biomeKey} em enemies.js.`);
+            expedition.log.unshift(`The area seems quiet... for now.`);
+            updateState({ expedition: expedition });
+            return;
+        }
+        
+        // (Lógica simples: 'Search' sempre encontra um inimigo 'common')
+        const enemyName = enemyTable.common.name;
+
+        // 3. Atualiza o Log e Inicia o Combate (Simulado)
+        expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
+        updateState({ expedition: expedition });
+
+        // (Futuro: Chamar CombatManager.startCombat('common'))
+        alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
     }
 
-    // (Futuro: searchForEnemy())
     // (Futuro: endDay())
     // (Futuro: endExpedition())
 };
