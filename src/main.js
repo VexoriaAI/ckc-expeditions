@@ -303,7 +303,7 @@ function handleGlobalClick(event) {
             ExpeditionManager.investigate(); // (LÓGICA REAL)
         }
          else if (target.id === 'btn-action-search') {
-            alert("Ação: Procurar Inimigo (Lógica pendente)");
+            ExpeditionManager.searchForEnemy(); // (LÓGICA REAL)
         }
          else if (target.id === 'btn-action-end-day') {
             alert("Ação: Encerrar o Dia (Lógica pendente)");
