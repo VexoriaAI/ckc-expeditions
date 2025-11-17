@@ -42,7 +42,10 @@ export const INITIAL_STATE = {
         inventoryEquipmentSort: 'power',  
         
         craftFilterType: 'all', 
-        craftFilterTribe: 'all'
+        craftFilterTribe: 'all',
+
+        // (NOVO) Controle da Tela de Expedição
+        skipAnimations: false // Se true, não abre modais de resultado
     },
     
     // 6. UI State para o Workshop EMBED
