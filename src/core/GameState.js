@@ -1,12 +1,12 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: (CORREÇÃO DE SINCRONIZAÇÃO) Garante que 'hubSelectionFilters'
-// e 'uiState' estejam definidos no INITIAL_STATE e no updateState.
+// UPDATE: (Arquitetura do Modal de Resultado)
+// - Adiciona 'modalData' ao estado para armazenar o loot do resultado.
+// - Atualiza 'openModal' para aceitar 'modalData' e 'autoClose'.
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 
-// Exportamos o INITIAL_STATE para uso na função Reset
 export const INITIAL_STATE = {
     // 1. Flow Control
     currentScreen: 'logged-out-screen', 
@@ -36,16 +36,12 @@ export const INITIAL_STATE = {
     // 5. UI State (Filtros de Inventário, Abas Ativas)
     uiState: {
         activeInventoryTab: 'equipments',
-        activeWorkshopTab: 'refine',
-        
+        activeWorkshopTab: 'craft', 
         inventoryEquipmentFilter: 'all', 
         inventoryEquipmentSort: 'power',  
-        
         craftFilterType: 'all', 
         craftFilterTribe: 'all',
-
-        // (NOVO) Controle da Tela de Expedição
-        skipAnimations: false // Se true, não abre modais de resultado
+        skipAnimations: false // O checkbox da expedição
     },
     
     // 6. UI State para o Workshop EMBED
@@ -53,19 +49,12 @@ export const INITIAL_STATE = {
     embedTargetComponentId: null, 
     embedTargetSlotIndex: null,
 
-    // 7. Estado do Modal Global
+    // 7. (ATUALIZADO) Estado do Modal Global
     isModalOpen: false,
-    modalContent: null,
+    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT'
     modalTargetSlot: null,
-    
-    // 8. Hub Selection Filters (O OBJETO QUE ESTÁ FALTANDO)
-    hubSelectionFilters: {
-        searchQuery: '',
-        selectedTribes: [],
-        sortBy: 'level',
-        itemsPerPage: 5,
-        currentPage: 1,
-    }
+    modalData: null, // (NOVO) Armazena dados para o modal (ex: loot encontrado)
+    isModalAutoClose: false // (NOVO) Flag para o ModalManager saber se deve fechar sozinho
 };
 
 let gameState = { ...INITIAL_STATE };
@@ -78,7 +67,7 @@ export const updateState = (updates) => {
     // Deep merge para objetos de estado aninhados (Filtros e UI State)
     if (updates.hubSelectionFilters) {
         gameState.hubSelectionFilters = {
-            ...gameState.hubSelectionFilters, // <-- Merge
+            ...gameState.hubSelectionFilters,
             ...updates.hubSelectionFilters
         };
         delete updates.hubSelectionFilters;
@@ -91,7 +80,7 @@ export const updateState = (updates) => {
         delete updates.uiState;
     }
 
-    gameState = { ...gameState, ...updates }; // <-- Shallow merge
+    gameState = { ...gameState, ...updates }; 
     
     if (window.onGameStateChange) {
         window.onGameStateChange(gameState);
@@ -104,7 +93,6 @@ export const setCurrentScreen = (screenId) => {
 
 export const resetState = () => {
     const kidz = gameState.playerKidz;
-    // Preserva os Kidz e o status da carteira, reseta o resto
     gameState = { 
         ...INITIAL_STATE, 
         playerKidz: kidz, 
@@ -144,19 +132,32 @@ export const loadDemoData = () => {
     gameState.isWalletConnected = true;
 };
 
-// --- Funções de Controle do Modal ---
+// --- (ATUALIZADO) Funções de Controle do Modal ---
 
-export const openModal = (contentId) => {
+/**
+ * Abre o modal global e define seu conteúdo.
+ * @param {string} contentId - O ID do conteúdo (ex: 'MODAL_SELECT_EQUIPMENT').
+ * @param {object} [data=null] - Dados opcionais para o modal (ex: loot).
+ * @param {boolean} [autoClose=false] - Se o modal deve fechar após 3s.
+ */
+export const openModal = (contentId, data = null, autoClose = false) => {
     updateState({
         isModalOpen: true,
-        modalContent: contentId
+        modalContent: contentId,
+        modalData: data,
+        isModalAutoClose: autoClose
     });
 };
 
+/**
+ * Fecha o modal global.
+ */
 export const closeModal = () => {
     updateState({
         isModalOpen: false,
         modalContent: null,
+        modalData: null,
+        isModalAutoClose: false,
         // Limpa o estado temporário
         embedTargetEquipmentId: null,
         embedTargetComponentId: null,
