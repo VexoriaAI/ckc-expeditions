@@ -220,43 +220,86 @@ export const ExpeditionManager = {
     },
 
     /**
-     * (NOVO) Executa a ação "Search For Enemy".
-     * Consome 2 AP e garante um combate.
+     * Executa a ação "Search For Enemy".
      */
     searchForEnemy: function() {
+        // ... (lógica do searchForEnemy - sem alteração) ...
         const state = getState();
         let { expedition } = state;
-
-        // 1. Checagem de Custo de AP
-        if (expedition.currentAP < 2) { // Custo de 2 AP 
+        if (expedition.currentAP < 2) {
             expedition.log.unshift(`Not enough AP to search for enemies.`);
             updateState({ expedition: expedition });
             return;
         }
-        expedition.currentAP -= 2; // Paga o custo
-
-        // 2. Lógica de Spawn (Garante um inimigo comum)
+        expedition.currentAP -= 2;
         const biomeKey = getCurrentBiomeKey(expedition.position);
         const enemyTable = ENEMIES_BY_BIOME[biomeKey];
-        
         if (!enemyTable || !enemyTable.common) {
-            console.error(`SearchEnemy: Nenhuma tabela 'common' encontrada para o bioma ${biomeKey} em enemies.js.`);
             expedition.log.unshift(`The area seems quiet... for now.`);
             updateState({ expedition: expedition });
             return;
         }
-        
-        // (Lógica simples: 'Search' sempre encontra um inimigo 'common')
         const enemyName = enemyTable.common.name;
-
-        // 3. Atualiza o Log e Inicia o Combate (Simulado)
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
-
-        // (Futuro: Chamar CombatManager.startCombat('common'))
         alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    }
+    },
 
-    // (Futuro: endDay())
-    // (Futuro: endExpedition())
+    /**
+     * (NOVO) Finaliza o turno (dia) atual.
+     * Restaura AP/MP. Se for o último dia, encerra a expedição.
+     */
+    endDay: function() {
+        const state = getState();
+        let { expedition } = state;
+
+        // Verifica se é o último dia
+        if (expedition.currentDay >= expedition.maxDays) {
+            expedition.log.unshift("This was the final day. The expedition is ending.");
+            updateState({ expedition: expedition }); // Atualiza o log antes de encerrar
+            this.endExpedition(); // Chama a função de encerramento
+            return;
+        }
+
+        // Avança o dia e restaura AP/MP
+        expedition.currentDay += 1;
+        expedition.currentAP = expedition.maxAP;
+        expedition.currentMP = expedition.maxMP;
+        expedition.log.unshift(`Day ${expedition.currentDay}: AP and MP have been restored.`);
+        
+        updateState({ expedition: expedition });
+    },
+
+    /**
+     * (NOVO) Encerra a expedição manualmente.
+     * Salva o loot encontrado no inventário principal e retorna ao Hub.
+     */
+    endExpedition: function() {
+        const state = getState();
+        let { expedition, playerInventory } = state;
+
+        if (!expedition) return; // Proteção
+
+        // 1. Salva o Loot (Materiais)
+        for (const matId in expedition.foundLoot.materials) {
+            const amount = expedition.foundLoot.materials[matId];
+            playerInventory.materials[matId] = (playerInventory.materials[matId] || 0) + amount;
+        }
+
+        // 2. Salva o Loot (Equipamentos e Componentes)
+        playerInventory.equipment = playerInventory.equipment.concat(expedition.foundLoot.equipment);
+        playerInventory.components = playerInventory.components.concat(expedition.foundLoot.components);
+
+        // 3. Prepara o log
+        const lootCount = Object.keys(expedition.foundLoot.materials).length;
+        const logMessage = lootCount > 0 ? "Expedition ended. Loot secured in main inventory." : "Expedition ended. No loot found.";
+        alert(logMessage); // Feedback temporário
+
+        // 4. Reseta o estado da expedição e retorna ao Hub
+        updateState({ 
+            playerInventory: playerInventory,
+            expedition: INITIAL_STATE.expedition // Reseta o objeto expedition
+        });
+        setCurrentScreen('hub-preparation-screen');
+    }
 };
