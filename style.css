@@ -1,15 +1,16 @@
 /* ====================================================================
-// STYLE.CSS - FASE 2 (V4.2 - CORREÇÃO DE IMPORT)
-// UPDATE: Adiciona o @import para 'item_card.css' que estava faltando.
+// STYLE.CSS - FASE 2 (V4.3 - CORREÇÃO DE IMPORT)
+// UPDATE: Adiciona o @import para 'game_screen.css' que estava faltando.
 // ==================================================================== */
 
-/* 1. Módulos de Estilo */
+/* Módulos de Estilo */
 @import url('styles/global.css');        /* Estilos base (body, :root, .panel) */
 @import url('styles/header.css');         /* Estilos do .main-header, .ranking-ticker */
 @import url('styles/modal.css');          /* Estilos do .modal-overlay */
-@import url('styles/item_card.css');      /* (A CORREÇÃO ESTÁ AQUI) Estilos do .item-card */
+@import url('styles/item_card.css');      /* Estilos do .item-card (Rich Card) */
 @import url('styles/logged_out.css');     /* Estilos da tela de Login */
 @import url('styles/hub_selection.css');  /* Estilos dos Filtros, Grid de NFTs, Paginação */
 @import url('styles/hub_preparation.css');/* Estilos do Mannequin, Workshop, Stats */
 @import url('styles/store.css');          /* Estilos da Loja */
 @import url('styles/ranking.css');        /* Estilos da tela de Ranking */
+@import url('styles/game_screen.css');    /* (A CORREÇÃO ESTÁ AQUI) */
