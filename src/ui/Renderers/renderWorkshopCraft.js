@@ -1,13 +1,14 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderWorkshopCraft.js
-// Renderiza a aba 'Craft' (Livro de Receitas / Blueprints).
+// RENDERER: renderWorkshopCraft.js
+// UPDATE: (CORREÇÃO DE LÓGICA) Filtra apenas receitas com 
+// type: 'CRAFT' para esta aba.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
 import { COMPONENTS_DB } from '../../../database/components.js';
 import { EQUIPMENT_DB } from '../../../database/equipment.js';
-import { MOCK_KNOWN_BLUEPRINTS } from '../../../database/mock_wallet.js'; // A "lista de receitas conhecidas"
+import { MOCK_KNOWN_BLUEPRINTS } from '../../../database/mock_wallet.js'; 
 
 /**
  * Renderiza a aba de Crafting (Craft)
@@ -23,21 +24,20 @@ export const renderCraftTab = (state) => {
         .map(recipeId => RECIPES_DB[recipeId])
         .filter(Boolean); // Filtra (remove) receitas indefinidas
 
-    // 2. Aplica os filtros da UI (Type e Tribe)
-    // (Filtro de Tipo - 'equipment' ou 'component')
+    // (ATUALIZADO) 2. Filtra APENAS pelo tipo 'CRAFT'
+    knownRecipes = knownRecipes.filter(recipe => recipe.type === 'CRAFT');
+
+    // 3. Aplica os filtros da UI (Type e Tribe)
     if (craftFilterType !== 'all') {
         knownRecipes = knownRecipes.filter(recipe => {
-            const outputItem = EQUIPMENT_DB[recipe.output.itemId] || COMPONENTS_DB[recipe.output.itemId];
             if (craftFilterType === 'equipment') return !!EQUIPMENT_DB[recipe.output.itemId];
             if (craftFilterType === 'component') return !!COMPONENTS_DB[recipe.output.itemId];
             return false;
         });
     }
-    // (Filtro de Tribo - A ser implementado. Requer que as receitas tenham uma 'tribe' associada)
-    // if (craftFilterTribe !== 'all') { ... }
+    // (Filtro de Tribo - A ser implementado...)
 
-
-    // 3. Renderiza os Filtros da UI
+    // 4. Renderiza os Filtros da UI
     const filterHTML = `
         <div class="inventory-filters">
             <div class="filter-group">
@@ -50,16 +50,14 @@ export const renderCraftTab = (state) => {
             </div>
             <div class="filter-group">
                 <label>Filter Tribe:</label>
-                <select id="craft-filter-tribe">
+                <select id="craft-filter-tribe" disabled>
                     <option value="all" ${craftFilterTribe === 'all' ? 'selected' : ''}>All Tribes</option>
-                    <option value="nocturnals" disabled>Nocturnals</option>
-                    <option value="volcanics" disabled>Volcanics</option>
                 </select>
             </div>
         </div>
     `;
 
-    // 4. Renderiza os Cards de Receita
+    // 5. Renderiza os Cards de Receita
     let recipesHTML = '';
     if (knownRecipes.length === 0) {
         recipesHTML = '<p>No matching blueprints found.</p>';
@@ -76,8 +74,11 @@ export const renderCraftTab = (state) => {
                 const matData = MATERIALS_DB[matId];
                 const isAvailable = owned >= required;
                 if (!isAvailable) allInputsAvailable = false;
-                return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${matData.name} (${owned}/${required})</span>`;
-            }).join('<br>');
+                // (Visual melhorado para inputs)
+                return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}" title="${matData.name}">
+                            <img src="${matData.iconPath}" alt="${matData.name}"> ${owned}/${required}
+                        </span>`;
+            }).join(' ');
             
             // Checa Componentes
             const inputComponentsHTML = Object.keys(recipe.inputComponents).map(compId => {
@@ -86,8 +87,10 @@ export const renderCraftTab = (state) => {
                 const compData = COMPONENTS_DB[compId];
                 const isAvailable = owned >= required;
                 if (!isAvailable) allInputsAvailable = false;
-                return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}">${compData.name} (${owned}/${required})</span>`;
-            }).join('<br>');
+                return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}" title="${compData.name}">
+                            <img src="${compData.iconPath}" alt="${compData.name}"> ${owned}/${required}
+                        </span>`;
+            }).join(' ');
 
             return `
                 <div class="recipe-card craft-recipe" data-recipe-id="${recipe.recipeId}">
