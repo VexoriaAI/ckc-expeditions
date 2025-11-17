@@ -220,30 +220,42 @@ export const ExpeditionManager = {
     },
 
     /**
-     * Executa a ação "Search For Enemy".
+     * (NOVO) Executa a ação "Search For Enemy".
+     * Consome 2 AP e garante um combate.
      */
     searchForEnemy: function() {
-        // ... (lógica do searchForEnemy - sem alteração) ...
         const state = getState();
         let { expedition } = state;
-        if (expedition.currentAP < 2) {
+
+        // 1. Checagem de Custo de AP
+        if (expedition.currentAP < 2) { // Custo de 2 AP
             expedition.log.unshift(`Not enough AP to search for enemies.`);
             updateState({ expedition: expedition });
             return;
         }
-        expedition.currentAP -= 2;
+        expedition.currentAP -= 2; // Paga o custo
+
+        // 2. Lógica de Spawn (Garante um inimigo comum)
         const biomeKey = getCurrentBiomeKey(expedition.position);
         const enemyTable = ENEMIES_BY_BIOME[biomeKey];
+        
         if (!enemyTable || !enemyTable.common) {
+            console.error(`SearchEnemy: Nenhuma tabela 'common' encontrada para o bioma ${biomeKey} em enemies.js.`);
             expedition.log.unshift(`The area seems quiet... for now.`);
             updateState({ expedition: expedition });
             return;
         }
+        
+        // (Lógica simples: 'Search' sempre encontra um inimigo 'common')
         const enemyName = enemyTable.common.name;
+
+        // 3. Atualiza o Log e Inicia o Combate (Simulado)
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
+
+        // (Futuro: Chamar CombatManager.startCombat('common'))
         alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    },
+    }
 
     /**
      * (NOVO) Finaliza o turno (dia) atual.
