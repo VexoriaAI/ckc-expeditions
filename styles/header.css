@@ -1,8 +1,8 @@
 /* ====================================================================
 // STYLES: header.css
-// UPDATE: (V3.1 - Mobile Responsivo)
-// Adiciona flex-wrap e 'order' para reordenar o cabeçalho
-// e seguir a hierarquia mobile (Wallet > Logout > Tezerium > Store).
+// UPDATE: (V3.2 - Correção de Layout)
+// Força os botões em .header-right (Logout, Connect)
+// a terem 'width: auto' para não quebrarem o layout.
 // ==================================================================== */
 
 .main-header {
@@ -18,18 +18,16 @@
     left: 50%;
     transform: translateX(-50%);
     
-    /* (NOVO) Permite que os grupos quebrem a linha */
     flex-wrap: wrap;
-    gap: 10px; /* Espaçamento quando quebrar a linha */
+    gap: 10px; 
 }
 .header-left, .header-right { 
     display: flex; 
     align-items: center; 
     gap: 15px; 
-    flex-wrap: wrap; /* Permite que os botões dentro dos grupos quebrem */
+    flex-wrap: wrap; 
 }
 
-/* (NOVO) Define a ordem padrão (Desktop) */
 .header-left { order: 1; }
 .header-right { order: 2; }
 
@@ -104,7 +102,14 @@
 .wallet-address { color: var(--color-text-dim); font-size: 0.9em; }
 
 
-/* ================== (NOVO) Responsividade do Header ================== */
+/* (CORREÇÃO) Força os botões de Wallet/Logout a terem tamanho automático */
+.header-right .action-btn {
+    width: auto; /* Sobrescreve o width: 100% global */
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+
+/* ================== Responsividade do Header ================== */
 @media (max-width: 1024px) {
     .ranking-ticker {
         width: 200px; /* Encurta o ticker em telas menores */
@@ -112,12 +117,10 @@
 }
 
 @media (max-width: 850px) {
-    /* Em telas médias/pequenas, quebra para 2 linhas */
     .main-header {
         justify-content: center; /* Centraliza os grupos */
     }
     
-    /* (NOVO) Reordena os grupos para a hierarquia mobile */
     .header-left { 
         order: 2; /* (Tezerium, Store, Ranking) ficam ABAIXO */
         width: 100%;
