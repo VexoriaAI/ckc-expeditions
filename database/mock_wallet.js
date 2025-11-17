@@ -132,3 +132,24 @@ export const MOCK_INVENTORY = {
 
 // 3. DADOS MOCK: Saldo de Token Tezerium
 export const MOCK_TEZERIUM_BALANCE = 1000;
+
+// ====================================================================
+// 4. DADOS MOCK: Receitas Conhecidas (Blueprints)
+// ====================================================================
+// Define quais receitas (pelo recipeId) o jogador já "conhece".
+// Usado pela aba 'Craft' (Livro de Receitas).
+// ====================================================================
+export const MOCK_KNOWN_BLUEPRINTS = [
+    // --- Receitas de Equipamento T1 (Iniciais) ---
+    'craft_rustic_helmet',
+    'craft_rustic_weapon',
+    'craft_volc_helmet', // (Receita do novo item que adicionamos)
+
+    // --- Receitas de Componentes T1 (Iniciais) ---
+    'refine_scrap_to_def1',
+    'refine_magma_to_dmg1',
+    'refine_water_to_spd1',
+    
+    // --- Receitas T2 (Raras - Simula um drop encontrado) ---
+    'upgrade_def1_to_def2',
+];
