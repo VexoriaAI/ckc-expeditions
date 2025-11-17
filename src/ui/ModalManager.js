@@ -1,10 +1,12 @@
 /* ====================================================================
 // UI: ModalManager.js
-// UPDATE: Importa e usa os renderers de conteúdo do modal.
+// UPDATE: Importa e chama o 'renderLootResultModal'
+// para os novos tipos de modal de resultado.
 // ==================================================================== */
 
-// (NOVO) Importa os renderers de conteúdo
 import { renderEquipmentListModal, renderComponentListModal } from './Renderers/renderModalContent.js';
+// (NOVO) Importa o renderer de resultado
+import { renderLootResultModal } from './Renderers/renderModalResult.js';
 
 let modalRoot;
 
@@ -32,14 +34,28 @@ export const ModalManager = {
         
         // Determina qual conteúdo renderizar dentro do modal
         switch (state.modalContent) {
+            // --- Modais de Seleção (Antigos) ---
             case 'MODAL_SELECT_EQUIPMENT':
-                // (ATUALIZADO) Chama o renderer real
                 contentHTML = renderEquipmentListModal(state);
                 break;
             case 'MODAL_SELECT_COMPONENT':
-                // (ATUALIZADO) Chama o renderer real
                 contentHTML = renderComponentListModal(state);
                 break;
+
+            // --- (NOVOS) Modais de Resultado ---
+            case 'MODAL_COLLECT_RESULT':
+            case 'MODAL_INVESTIGATE_RESULT':
+                contentHTML = renderLootResultModal(state.modalData);
+                break;
+
+            // (Placeholder para futuros modais de "USE" do inventário)
+            case 'MODAL_SELECT_EQUIPMENT_FOR_RARITY':
+                contentHTML = `<h2>Select Equipment to Upgrade Rarity</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
+                break;
+            case 'MODAL_SELECT_EQUIPMENT_FOR_SLOT':
+                contentHTML = `<h2>Select Equipment to Unlock Slot</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
+                break;
+                
             default:
                 contentHTML = `<h2>Error</h2><p>Modal content ID "${state.modalContent}" not found.</p>`;
         }
