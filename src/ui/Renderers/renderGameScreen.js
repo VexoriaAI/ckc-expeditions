@@ -1,15 +1,13 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: (Refatoração de Layout V2)
-// - Move 'Loot Found' para a Coluna 3.
-// - Adiciona 'Consumables' (Shop Items) à Coluna 1.
+// UPDATE: Adiciona o checkbox "Skip Animations" na Coluna 3 (Log).
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../../database/maps.js';
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
-import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; // (NOVO) Importa Shop Items
+import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; 
 
 // Helper local
 const getKidDataById = (kidId) => {
@@ -17,12 +15,10 @@ const getKidDataById = (kidId) => {
 };
 
 /**
- * Helper para renderizar a lista de Loot Encontrado
+ * (Helper) Renderiza a lista de Loot Encontrado
  */
 const renderLootList = (loot) => {
     const materials = Object.keys(loot.materials);
-    // (Futuro: Adicionar components e equipment)
-    
     if (materials.length === 0) {
         return '<li>No loot found yet.</li>';
     }
@@ -41,7 +37,7 @@ const renderLootList = (loot) => {
 };
 
 /**
- * (NOVO) Helper para renderizar a lista de Consumíveis (Shop Items)
+ * (Helper) Renderiza a lista de Consumíveis (Shop Items)
  */
 const renderConsumablesList = (state) => {
     const shopItems = state.playerInventory.shopItems; // Pega do inventário principal
@@ -56,7 +52,6 @@ const renderConsumablesList = (state) => {
         const quantity = shopItems[itemId];
         if (!itemData) return '';
         
-        // (Placeholder para itens não usáveis aqui)
         const useButton = (itemId === 'ap_refill') 
             ? `<button id="btn-use-consumable" data-item-id="${itemId}" class="action-btn btn-xs btn-info">USE</button>`
             : '';
@@ -80,7 +75,7 @@ const renderConsumablesList = (state) => {
  * @returns {string} HTML para a tela do jogo.
  */
 export const renderGameScreen = (state) => {
-    const { expedition, currentPlayerKidId } = state;
+    const { expedition, currentPlayerKidId, uiState } = state;
     const kidStaticData = getKidDataById(currentPlayerKidId);
 
     if (!expedition || !kidStaticData) {
@@ -99,7 +94,7 @@ export const renderGameScreen = (state) => {
     if (hpPercent < 20) hpColorClass = 'hp-fill-red';    // 0-20%
 
 
-    // --- (ATUALIZADO) Coluna 1: Status do Kid ---
+    // --- Coluna 1: Status do Kid ---
     const column1_Status = `
         <div class="game-column panel" id="game-col-status">
             
@@ -196,7 +191,7 @@ export const renderGameScreen = (state) => {
         </div>
     `;
 
-    // --- (ATUALIZADO) Coluna 3: Log e Saída ---
+    // --- Coluna 3: Log e Saída ---
     const column3_Log = `
         <div class="game-column panel" id="game-col-log">
             
@@ -210,6 +205,15 @@ export const renderGameScreen = (state) => {
             <h3>Expedition Log (Day ${currentDay})</h3>
             <div class="log-window">
                 ${log.map(entry => `<p>${entry}</p>`).join('')}
+            </div>
+            
+            <div class="skip-animations-toggle">
+                <input 
+                    type="checkbox" 
+                    id="chk-skip-animations" 
+                    ${uiState.skipAnimations ? 'checked' : ''}
+                >
+                <label for="chk-skip-animations">Skip Result Modals</label>
             </div>
             
             <button id="btn-end-expedition" class="action-btn btn-primary">
