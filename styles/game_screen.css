@@ -1,8 +1,7 @@
 /* ====================================================================
 // STYLES: game_screen.css
-// UPDATE: Adiciona estilos para as badges de Level/Power.
-// Adiciona cores da barra de HP (Vermelho/Laranja).
-// Adiciona o painel de AP/MP na Coluna 2.
+// UPDATE: Adiciona estilos para o novo painel 'Consumables'.
+// Move o 'Loot Found' para a Coluna 3.
 // ==================================================================== */
 
 .game-container {
@@ -30,7 +29,7 @@
     padding-bottom: 5px;
 }
 
-/* Reutiliza o .kid-info-box (do hub_preparation) mas ajusta o padding */
+/* Info Box do Kid */
 #game-col-status .kid-info-box {
     padding: 10px;
     gap: 10px;
@@ -45,7 +44,7 @@
     color: var(--color-text-light);
 }
 
-/* (NOVO) Badges de Level e Power (Estilo de image_a62e9a.png) */
+/* Badges de Level/Power */
 .kid-card-stats.game-screen-stats {
     display: flex;
     gap: 10px;
@@ -72,7 +71,7 @@
 }
 
 
-/* Barras de Status */
+/* Barras de Status (HP) */
 .status-bars {
     display: flex;
     flex-direction: column;
@@ -98,11 +97,9 @@
     height: 100%;
     transition: width 0.3s ease;
 }
-/* (ATUALIZADO) Cores da Barra de HP */
 .hp-fill-green { background-color: var(--color-accent-green); }
-.hp-fill-orange { background-color: #f39c12; } /* Laranja */
-.hp-fill-red { background-color: var(--color-accent-red); } /* Vermelho */
-
+.hp-fill-orange { background-color: #f39c12; } 
+.hp-fill-red { background-color: var(--color-accent-red); } 
 .ap-fill { background-color: var(--color-accent-blue); }
 .mp-fill { background-color: var(--color-accent-red); }
 
@@ -132,13 +129,106 @@
 }
 
 
-/* Lista de Loot */
-.loot-display {
+/* (NOVO) Lista de Consumíveis */
+.consumables-display {
     background: rgba(0,0,0,0.2);
     padding: 10px;
     flex-grow: 1; /* Ocupa o espaço restante */
 }
-.loot-display h4 { font-size: 1em; }
+.consumables-display h4 { font-size: 1em; }
+.consumables-display-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+.consumable-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.consumable-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: var(--color-bg-dark);
+}
+.consumable-details {
+    flex-grow: 1;
+}
+.consumable-details span {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    font-weight: bold;
+}
+.consumable-details p {
+    font-size: 0.8em;
+    color: var(--color-text-dim);
+    margin: 0;
+    line-height: 1.2;
+}
+.consumable-item .action-btn {
+    width: auto; /* Botão "USE" */
+    flex-shrink: 0;
+}
+
+
+/* ================== Coluna 2: Mapa e Ações ================== */
+.map-container {
+    position: relative;
+    overflow: hidden;
+    padding: 0; 
+}
+.map-background-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.kid-marker {
+    position: absolute;
+    font-size: 2em;
+    transform: translate(-50%, -100%);
+    z-index: 10;
+    pointer-events: none;
+    text-shadow: 0 0 5px white;
+}
+
+/* Painel de AP/MP */
+.action-points-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.action-points-bar .stat-bar {
+    grid-template-columns: 40px 1fr 50px; /* Ajusta para AP e MP */
+    gap: 10px;
+    font-size: 1.1em;
+}
+
+.action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.action-bar .btn-secondary {
+    grid-column: 1 / -1; /* Botão "End Day" */
+}
+
+/* ================== Coluna 3: Log ================== */
+
+/* (MOVIDO) Lista de Loot */
+#game-col-log .loot-display {
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+}
+#game-col-log .loot-display h4 { font-size: 1em; }
 .loot-display-list {
     list-style: none;
     padding: 0;
@@ -162,60 +252,18 @@
     object-fit: contain;
 }
 .loot-item .loot-quantity {
-    margin-left: auto; /* Alinha a quantidade à direita */
+    margin-left: auto; 
     color: var(--color-text-light);
 }
 
-
-/* ================== Coluna 2: Mapa e Ações ================== */
-.map-container {
-    position: relative;
-    overflow: hidden;
-    padding: 0; /* Remove o padding do .panel */
-}
-.map-background-image {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-.kid-marker {
-    position: absolute;
-    font-size: 2em;
-    transform: translate(-50%, -100%);
-    z-index: 10;
-    pointer-events: none;
-    text-shadow: 0 0 5px white;
-}
-
-/* (NOVO) Painel de AP/MP */
-.action-points-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-.action-points-bar .stat-bar {
-    grid-template-columns: 40px 1fr 50px; /* Ajusta para AP e MP */
-    gap: 10px;
-    font-size: 1.1em;
-}
-
-.action-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-.action-bar .btn-secondary {
-    grid-column: 1 / -1; /* Botão "End Day" ocupa a largura total */
-}
-
-/* ================== Coluna 3: Log ================== */
+/* Log */
 .log-window {
     background: rgba(0,0,0,0.2);
     border-radius: 5px;
     padding: 10px;
-    height: 60vh;
     overflow-y: auto;
-    flex-grow: 1;
+    flex-grow: 1; /* Ocupa o espaço entre Loot e Botão */
+    min-height: 30vh; /* Garante altura mínima */
 }
 .log-window p {
     font-size: 0.85em;
@@ -239,6 +287,7 @@
     }
     #game-col-log .log-window {
         height: 200px; /* Reduz a altura do log no mobile */
+        min-height: 200px;
     }
 }
 @media (max-width: 768px) {
