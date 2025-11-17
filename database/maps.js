@@ -1,52 +1,75 @@
 /* ====================================================================
-// DATABASE: MAPS
-// Define a estrutura do mapa estático (Hex Grid) e seus biomas.
-// As chaves são coordenadas axiais "q,r".
+// (NOVO) DATABASE: MAPS
+// Define os biomas e a estrutura do grid para o mapa de expedição.
 // ==================================================================== */
 
-export const STATIC_MAP_DATA = new Map([
-    // --- Volcanics (Vermelho) ---
-    ["-3,0", { biome: "volcanics" }],
-    ["-3,1", { biome: "volcanics" }],
-    ["-3,2", { biome: "volcanics" }],
-    ["-2,-1", { biome: "volcanics" }],
-    ["-2,0", { biome: "volcanics" }],
-    ["-2,1", { biome: "volcanics" }],
+/**
+ * Define os biomas (regiões) do mapa.
+ * Os IDs (ex: 'WASTELAND') são usados para linkar com drops e inimigos.
+ */
+export const MAP_BIOMES = {
+    'WASTELAND': { 
+        name: 'Wasteland', 
+        description: 'The barren plains outside CyberCity.' 
+    },
+    'BURNING_RIDGE': { 
+        name: 'Burning Ridge', 
+        description: 'Volcanic peaks, home of the Volcanics.' 
+    },
+    'LAKE_RANCID': { 
+        name: 'Lake Rancid', 
+        description: 'Toxic waters, home of the Radioactives.' 
+    },
+    'COVENANT_SWAMP': { 
+        name: 'Covenant Swamp', 
+        description: 'Dense, humid jungles, home of the Reptilians.' 
+    },
+    'ABANDONED_MINES': { 
+        name: 'Abandoned Mines', 
+        description: 'Deep tunnels, home of the Undergrounders.' 
+    },
+    'ANCIENT_RUINS': { 
+        name: 'Ancient Ruins', 
+        description: 'Shadowy remains of a metropolis, home of the Nocturnals.' 
+    },
+    'CYBERCITY': {
+        name: 'CyberCity',
+        description: 'The last bastion of the old world. (Inaccessible)'
+    }
+};
 
-    // --- Undergrounders (Marrom) ---
-    ["-1,-2", { biome: "undergrounders" }],
-    ["-1,-1", { biome: "undergrounders" }],
-    ["-1,0", { biome: "undergrounders" }],
-    ["0,-2", { biome: "undergrounders" }],
-    ["0,-1", { biome: "undergrounders" }],
-
-    // --- Wasteland (Amarelo - Centro) ---
-    ["0,0", { biome: "wasteland" }],
-    ["-1,1", { biome: "wasteland" }],
-    ["1,-1", { biome: "wasteland" }],
-    ["1,0", { biome: "wasteland" }],
-    ["0,1", { biome: "wasteland" }],
-
-    // --- Nocturnals (Azul) ---
-    ["-2,2", { biome: "nocturnals" }],
-    ["-2,3", { biome: "nocturnals" }],
-    ["-1,2", { biome: "nocturnals" }],
-    ["-1,3", { biome: "nocturnals" }],
-    ["0,2", { biome: "nocturnals" }],
-    ["0,3", { biome: "nocturnals" }],
-
-    // --- Radioactives (Verde Claro) ---
-    ["1,-2", { biome: "radioactives" }],
-    ["2,-3", { biome: "radioactives" }],
-    ["2,-2", { biome: "radioactives" }],
-    ["3,-3", { biome: "radioactives" }],
-    ["3,-2", { biome: "radioactives" }],
-
-    // --- Reptilians (Verde Escuro) ---
-    ["1,1", { biome: "reptilians" }],
-    ["1,2", { biome: "reptilians" }],
-    ["2,0", { biome: "reptilians" }],
-    ["2,1", { biome: "reptilians" }],
-    ["3,-1", { biome: "reptilians" }],
-    ["3,0", { biome: "reptilians" }],
-]);
+/**
+ * (GDD: V, VI)
+ * Define os dados estáticos do mapa (layout do grid).
+ * Usamos um grid 2D simples para o protótipo.
+ * Cada célula (hexágono) é um objeto com sua posição (q, r) e seu bioma.
+ */
+export const STATIC_MAP_DATA = [
+    // Linha 0
+    { q: 0, r: 0, biome: 'BURNING_RIDGE' },
+    { q: 1, r: 0, biome: 'BURNING_RIDGE' },
+    { q: 2, r: 0, biome: 'LAKE_RANCID' },
+    { q: 3, r: 0, biome: 'LAKE_RANCID' },
+    { q: 4, r: 0, biome: 'COVENANT_SWAMP' },
+    
+    // Linha 1
+    { q: 0, r: 1, biome: 'BURNING_RIDGE' },
+    { q: 1, r: 1, biome: 'ABANDONED_MINES' },
+    { q: 2, r: 1, biome: 'LAKE_RANCID' }, // (Dead Lake no GDD, parte do Lake Rancid)
+    { q: 3, r: 1, biome: 'WASTELAND' },
+    { q: 4, r: 1, biome: 'COVENANT_SWAMP' },
+    
+    // Linha 2
+    { q: 0, r: 2, biome: 'ANCIENT_RUINS' },
+    { q: 1, r: 2, biome: 'ABANDONED_MINES' },
+    { q: 2, r: 2, biome: 'WASTELAND' },
+    { q: 3, r: 2, biome: 'WASTELAND' },
+    { q: 4, r: 2, biome: 'COVENANT_SWAMP' },
+    
+    // Linha 3
+    { q: 0, r: 3, biome: 'ANCIENT_RUINS' },
+    { q: 1, r: 3, biome: 'ANCIENT_RUINS' },
+    { q: 2, r: 3, biome: 'WASTELAND' },
+    { q: 3, r: 3, biome: 'CYBERCITY' },
+    { q: 4, r: 3, biome: 'WASTELAND' },
+];
