@@ -1,7 +1,8 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: (Refatoração) Importa dos 3 novos renderers de 
-// inventário (Equipments, Components, Lists).
+// UPDATE: (Refatoração Final do Workshop)
+// Importa de renderWorkshopRefine, renderWorkshopCraft,
+// e renderWorkshopEmbed.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -9,9 +10,13 @@ import { calculateFinalStats, calculatePowerScore } from '../../systems/StatCalc
 import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 import { renderMannequinSlots } from './renderMannequin.js';
-import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
 
-// (ATUALIZADO) Importa dos novos arquivos de inventário
+// (ATUALIZADO) Importa das 3 abas separadas do Workshop
+import { renderRefineTab } from './renderWorkshopRefine.js';
+import { renderCraftTab } from './renderWorkshopCraft.js';
+import { renderEmbedTab } from './renderWorkshopEmbed.js';
+
+// Importa os renderers do Inventário
 import { renderInventoryEquipments } from './renderInventoryEquipments.js'; 
 import { renderInventoryComponents } from './renderInventoryComponents.js';
 import { renderInventoryMaterials } from './renderInventoryLists.js';
@@ -65,7 +70,7 @@ export const renderHubPreparationScreen = (state) => {
     let workshopContent = '';
     let inventoryContent = '';
     
-    // Define conteúdo do Workshop
+    // (ATUALIZADO) Define conteúdo do Workshop (lendo dos imports separados)
     if (activeWorkshopTab === 'refine') {
         workshopContent = renderRefineTab(state);
     } else if (activeWorkshopTab === 'craft') {
@@ -74,19 +79,19 @@ export const renderHubPreparationScreen = (state) => {
         workshopContent = renderEmbedTab(state);
     }
     
-    // (ATUALIZADO) Define conteúdo do Inventário
+    // Define conteúdo do Inventário
     switch (activeInventoryTab) {
         case 'equipments':
             inventoryContent = renderInventoryEquipments(state);
             break;
         case 'components':
-            inventoryContent = renderInventoryComponents(state); // (NOVO)
+            inventoryContent = renderInventoryComponents(state); 
             break;
         case 'materials':
-            inventoryContent = renderInventoryMaterials(state); // (NOVO)
+            inventoryContent = renderInventoryMaterials(state); 
             break;
         case 'shop-items':
-            inventoryContent = renderInventoryShopItems(state); // (NOVO)
+            inventoryContent = renderInventoryShopItems(state); 
             break;
         default:
             inventoryContent = "<p>Erro: Aba de inventário desconhecida.</p>";
