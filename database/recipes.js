@@ -17,7 +17,7 @@ export const RECIPES_DB = {
     },
     'refine_magma_to_dmg1': {
         recipeId: 'refine_magma_to_dmg1',
-        name: 'Refine Magma to Attack Core', // Nome corrigido
+        name: 'Refine Magma to Attack Core', 
         type: 'REFINE',
         inputMaterials: { 'mat_magma': 9 },
         inputComponents: {}, inputShopItems: {},
@@ -54,7 +54,7 @@ export const RECIPES_DB = {
     'craft_rust_helmet': {
         recipeId: 'craft_rust_helmet',
         name: 'Craft Rustic Helmet',
-        type: 'CRAFT',
+        type: 'CRAFT', // Define o tipo para o filtro
         inputMaterials: { 'mat_scrap': 15, 'mat_polymer': 5 },
         inputComponents: {}, inputShopItems: {},
         output: { itemId: 'eq_rust_helmet', amount: 1 } 
@@ -112,7 +112,7 @@ export const RECIPES_DB = {
     'upgrade_def1_to_def2': {
         recipeId: 'upgrade_def1_to_def2',
         name: 'Upgrade Defense Plate T1 to T2',
-        type: 'UPGRADE', // (Tipo futuro, ainda não renderizado)
+        type: 'UPGRADE', // (Tipo futuro, não aparecerá em 'CRAFT')
         inputMaterials: { 'mat_metal': 20 },
         inputComponents: { 'comp_def_1': 3 }, 
         inputShopItems: { 'boost_token': 1 },
