@@ -1,0 +1,125 @@
+/* ====================================================================
+// (NOVO) STYLES: game_screen.css
+// Estilos para a tela de Expedição (Layout de 3 colunas, etc.)
+// ==================================================================== */
+
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr; /* Layout de 3 colunas */
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.game-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Coluna 1: Status */
+#game-col-status h3 {
+    color: var(--color-text-light);
+    border-bottom: 1px solid var(--color-accent-blue);
+    padding-bottom: 5px;
+}
+.status-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.stat-bar {
+    display: grid;
+    grid-template-columns: 30px 1fr 50px;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+.stat-label { font-weight: bold; color: var(--color-accent-blue); }
+.stat-value { font-weight: bold; color: var(--color-text-light); }
+.bar-track {
+    height: 15px;
+    background-color: var(--color-bg-dark);
+    border: 1px solid #444;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+.hp-fill { background-color: var(--color-accent-green); }
+.ap-fill { background-color: var(--color-accent-blue); }
+.mp-fill { background-color: var(--color-accent-red); }
+
+.loot-display {
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 5px;
+    flex-grow: 1;
+}
+.loot-display ul { list-style: none; padding-left: 5px; }
+.loot-display li { font-size: 0.9em; color: var(--color-text-dim); }
+
+
+/* Coluna 2: Mapa e Ações */
+.map-container {
+    position: relative;
+    overflow: hidden;
+    padding: 0; /* Remove o padding do .panel */
+}
+.map-background-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.kid-marker {
+    position: absolute;
+    font-size: 2em;
+    transform: translate(-50%, -100%);
+    z-index: 10;
+    pointer-events: none;
+    text-shadow: 0 0 5px white;
+}
+.action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.action-bar .btn-secondary {
+    grid-column: 1 / -1; /* Botão "End Day" ocupa a largura total */
+}
+
+/* Coluna 3: Log */
+.log-window {
+    background: rgba(0,0,0,0.2);
+    border-radius: 5px;
+    padding: 10px;
+    height: 60vh;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.log-window p {
+    font-size: 0.85em;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+    color: var(--color-text-dim);
+}
+.log-window p:first-child {
+    color: var(--color-text-light);
+    font-weight: bold;
+}
+#game-col-log .action-btn {
+    width: 100%; /* Botão "Return to Hub" */
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .game-container {
+        grid-template-columns: 1fr; /* Empilha as colunas */
+    }
+    #game-col-log .log-window {
+        height: 200px; /* Reduz a altura do log no mobile */
+    }
+}
