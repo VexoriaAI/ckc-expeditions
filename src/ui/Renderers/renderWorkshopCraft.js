@@ -1,7 +1,7 @@
 /* ====================================================================
 // RENDERER: renderWorkshopCraft.js
-// UPDATE: (CORREÇÃO DE LÓGICA) Filtra apenas receitas com 
-// type: 'CRAFT' para esta aba.
+// UPDATE: (CORREÇÃO DE LÓGICA) Garante que o filtro
+// 'craftFilterType' (All, Equipment, Component) funcione corretamente.
 // ==================================================================== */
 
 import { RECIPES_DB } from '../../../database/recipes.js';
@@ -24,12 +24,13 @@ export const renderCraftTab = (state) => {
         .map(recipeId => RECIPES_DB[recipeId])
         .filter(Boolean); // Filtra (remove) receitas indefinidas
 
-    // (ATUALIZADO) 2. Filtra APENAS pelo tipo 'CRAFT'
-    knownRecipes = knownRecipes.filter(recipe => recipe.type === 'CRAFT');
+    // 2. Filtra APENAS pelos tipos 'CRAFT' e 'UPGRADE' (Refine tem sua própria aba)
+    knownRecipes = knownRecipes.filter(recipe => recipe.type === 'CRAFT' || recipe.type === 'UPGRADE');
 
     // 3. Aplica os filtros da UI (Type e Tribe)
     if (craftFilterType !== 'all') {
         knownRecipes = knownRecipes.filter(recipe => {
+            // Verifica se o output da receita está no DB correto
             if (craftFilterType === 'equipment') return !!EQUIPMENT_DB[recipe.output.itemId];
             if (craftFilterType === 'component') return !!COMPONENTS_DB[recipe.output.itemId];
             return false;
@@ -74,7 +75,6 @@ export const renderCraftTab = (state) => {
                 const matData = MATERIALS_DB[matId];
                 const isAvailable = owned >= required;
                 if (!isAvailable) allInputsAvailable = false;
-                // (Visual melhorado para inputs)
                 return `<span class="recipe-input-item ${isAvailable ? 'available' : 'missing'}" title="${matData.name}">
                             <img src="${matData.iconPath}" alt="${matData.name}"> ${owned}/${required}
                         </span>`;
