@@ -1,8 +1,7 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// UPDATE: Adiciona os blueprints (IDs) do Rustic Set 
-// ao 'MOCK_KNOWN_BLUEPRINTS'.
-// Adiciona materiais de craft ao inventário mock.
+// UPDATE: (CORREÇÃO) Garante que o MOCK_KNOWN_BLUEPRINTS
+// contenha todas as receitas de Craft T1.
 // ==================================================================== */
 
 // --- Estruturas de Dados Essenciais ---
@@ -60,7 +59,7 @@ export const MOCK_INVENTORY = {
         'mat_metal': 25,
         'mat_polymer': 50,
         'mat_water': 10,
-        'mat_animal_skin': 20, // (Adicionado para as novas receitas)
+        'mat_animal_skin': 20,
         'mat_nanochips': 5,
         'mat_energized_crystals': 3,
         'mat_healing_plants': 10,
