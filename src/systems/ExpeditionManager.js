@@ -1,12 +1,13 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: Adiciona a lógica da ação 'collectResources()'.
+// UPDATE: (CORREÇÃO DE LÓGICA) Altera o 'getSpawnPoint()'
+// de 'CYBERCITY' para 'WASTELAND' para alinhar com o drops.js.
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../database/maps.js';
-import { DROP_TABLES } from '../../database/drops.js'; // (NOVO) Importa as tabelas de loot
+import { DROP_TABLES } from '../../database/drops.js'; 
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
 
@@ -18,10 +19,12 @@ const getKidDataById = (kidId) => {
 };
 
 /**
- * (Helper) Encontra o local de spawn inicial no mapa.
+ * (Helper - CORRIGIDO) Encontra o local de spawn inicial no mapa.
+ * (Procura o bioma 'WASTELAND' como ponto de partida).
  */
 const getSpawnPoint = () => {
-    let spawn = STATIC_MAP_DATA.find(tile => tile.biome === 'CYBERCITY');
+    // (CORRIGIDO) O jogador deve começar na Wasteland, não em CyberCity.
+    let spawn = STATIC_MAP_DATA.find(tile => tile.biome === 'WASTELAND');
     if (!spawn) {
         spawn = STATIC_MAP_DATA[0]; // Fallback
     }
@@ -59,6 +62,8 @@ export const ExpeditionManager = {
         const kidStaticData = getKidDataById(kidId);
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
+        
+        // (CORRIGIDO) Pega o spawn point da Wasteland
         const startPosition = getSpawnPoint();
         const startBiomeKey = getCurrentBiomeKey(startPosition);
 
@@ -86,7 +91,7 @@ export const ExpeditionManager = {
     },
 
     /**
-     * (NOVO) Executa a ação "Collect Resources".
+     * Executa a ação "Collect Resources".
      * Consome 1 AP, rola a tabela de loot "collect" e atualiza o estado.
      */
     collectResources: function() {
@@ -97,7 +102,7 @@ export const ExpeditionManager = {
         if (expedition.currentAP < 1) {
             console.warn("Collect: Not enough AP.");
             expedition.log.unshift(`Not enough AP to collect.`); // Adiciona ao log
-            updateState({ log: expedition.log });
+            updateState({ expedition: expedition }); // Atualiza apenas o log
             return;
         }
         expedition.currentAP -= 1; // Paga o custo
@@ -107,7 +112,10 @@ export const ExpeditionManager = {
         const lootTable = DROP_TABLES[biomeKey]?.collect;
 
         if (!lootTable || lootTable.length === 0) {
+            // (Esta é a mensagem de erro que você viu)
             console.error(`Collect: Nenhuma tabela 'collect' encontrada para o bioma ${biomeKey}.`);
+            expedition.log.unshift(`Cannot collect here.`);
+            updateState({ expedition: expedition });
             return;
         }
 
@@ -126,7 +134,11 @@ export const ExpeditionManager = {
         });
 
         // 4. Atualiza o Log e o Estado
-        expedition.log.unshift(lootFoundLog.slice(0, -2)); // Remove a vírgula final
+        if (lootFoundLog === "Collected: ") {
+             expedition.log.unshift("Collected... but found nothing.");
+        } else {
+             expedition.log.unshift(lootFoundLog.slice(0, -2)); // Remove a vírgula final
+        }
         updateState({ expedition: expedition });
     }
 
