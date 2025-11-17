@@ -1,6 +1,7 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: Importa dos novos renderers de inventário separados.
+// UPDATE: (Refatoração) Importa dos 3 novos renderers de 
+// inventário (Equipments, Components, Lists).
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -9,13 +10,13 @@ import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 import { renderMannequinSlots } from './renderMannequin.js';
 import { renderRefineTab, renderCraftTab, renderEmbedTab } from './renderWorkshop.js';
+
 // (ATUALIZADO) Importa dos novos arquivos de inventário
 import { renderInventoryEquipments } from './renderInventoryEquipments.js'; 
-import { 
-    renderInventoryComponents, 
-    renderInventoryMaterials, 
-    renderInventoryShopItems 
-} from './renderInventoryPlaceholders.js'; 
+import { renderInventoryComponents } from './renderInventoryComponents.js';
+import { renderInventoryMaterials } from './renderInventoryLists.js';
+import { renderInventoryShopItems } from './renderInventoryShopItems.js';
+
 
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
@@ -79,13 +80,13 @@ export const renderHubPreparationScreen = (state) => {
             inventoryContent = renderInventoryEquipments(state);
             break;
         case 'components':
-            inventoryContent = renderInventoryComponents(state);
+            inventoryContent = renderInventoryComponents(state); // (NOVO)
             break;
         case 'materials':
-            inventoryContent = renderInventoryMaterials(state);
+            inventoryContent = renderInventoryMaterials(state); // (NOVO)
             break;
         case 'shop-items':
-            inventoryContent = renderInventoryShopItems(state);
+            inventoryContent = renderInventoryShopItems(state); // (NOVO)
             break;
         default:
             inventoryContent = "<p>Erro: Aba de inventário desconhecida.</p>";
