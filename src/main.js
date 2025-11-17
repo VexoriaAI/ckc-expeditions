@@ -297,7 +297,7 @@ function handleGlobalClick(event) {
         }
         // (Ações da Expedição)
         else if (target.id === 'btn-action-collect') {
-            alert("Ação: Coletar (Lógica pendente)");
+            ExpeditionManager.collectResources(); // (LÓGICA REAL)
         }
         else if (target.id === 'btn-action-investigate') {
             alert("Ação: Investigar (Lógica pendente)");
