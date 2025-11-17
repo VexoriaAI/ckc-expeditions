@@ -1,6 +1,6 @@
 /* ====================================================================
 // DATABASE: COMPONENTS
-// UPDATE: Padroniza o atributo 'damage' para 'attack'.
+// UPDATE: Adiciona 5 novos componentes de Tier 2.
 // ==================================================================== */
 
 export const COMPONENTS_DB = { 
@@ -23,10 +23,10 @@ export const COMPONENTS_DB = {
     },
     'comp_dmg_1': { 
         id: 'comp_dmg_1', 
-        name: "Volcanic Core T1", 
+        name: "Attack Core T1", // Nome padronizado
         description: "Enhances base attack power using stabilized magma.",
         type: "damage", 
-        stats: { attack: 5 }, // <-- ATUALIZADO
+        stats: { attack: 5 }, 
         iconPath: "assets/items/components/comp_dmg_1.png" 
     },
     'comp_crit_1': { 
@@ -76,7 +76,7 @@ export const COMPONENTS_DB = {
         name: "Volcanics Core", 
         description: "Essence from a Volcanic enemy, focused on Damage.",
         type: "damage", 
-        stats: { attack: 1 }, // <-- ATUALIZADO
+        stats: { attack: 1 }, 
         iconPath: "assets/items/components/volcanics_core.png" 
     },
     'undergrounders_core': { 
@@ -118,5 +118,49 @@ export const COMPONENTS_DB = {
         type: "universal", 
         stats: { luck: 1 }, 
         iconPath: "assets/items/components/wasteland_core.png" 
+    },
+
+    // =================================================
+    // --- (NOVOS) TIER 2 COMPONENTS ---
+    // =================================================
+    'comp_hp_2': {
+        id: 'comp_hp_2',
+        name: "HP Matrix T2",
+        description: "A high-capacity life matrix.",
+        type: "defense",
+        stats: { hp: 50 },
+        iconPath: "assets/items/components/comp_hp_2.png" 
+    },
+    'comp_atk_2': {
+        id: 'comp_atk_2',
+        name: "Attack Module T2",
+        description: "An overclocked attack processor.",
+        type: "damage",
+        stats: { attack: 10 },
+        iconPath: "assets/items/components/comp_atk_2.png" 
+    },
+    'comp_def_2': {
+        id: 'comp_def_2',
+        name: "Defense Plate T2",
+        description: "Processed polymer plates, surprisingly strong.",
+        type: "defense",
+        stats: { defense: 12 },
+        iconPath: "assets/items/components/comp_def_2.png" 
+    },
+    'comp_spd_2': {
+        id: 'comp_spd_2',
+        name: "Speed Injector T2",
+        description: "A refined crystal injector for rapid movement.",
+        type: "speed",
+        stats: { speed: 6 },
+        iconPath: "assets/items/components/comp_spd_2.png" 
+    },
+    'comp_crit_2': {
+        id: 'comp_crit_2',
+        name: "Precision Lens T2",
+        description: "A lens stabilized with a rare isotope.",
+        type: "damage",
+        stats: { critChance: 7 },
+        iconPath: "assets/items/components/comp_crit_2.png" 
     }
 };
