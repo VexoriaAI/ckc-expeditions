@@ -1,7 +1,7 @@
 /* ====================================================================
 // DATABASE: EQUIPMENT
-// UPDATE: Padroniza o atributo 'damage' para 'attack'
-// para consistência com o StatCalculationSystem.
+// UPDATE: Adiciona novos sets T1 (Volcanic, Radioactive)
+// e um set T3 (Tech).
 // ==================================================================== */
 
 export const EQUIPMENT_SLOTS = ["helmet", "armor", "weapon", "boots", "gloves", "implant", "accessory"];
@@ -37,7 +37,7 @@ export const EQUIPMENT_DB = {
         description: "A primitive, heavy-duty club that delivers reasonable damage.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 7 }, // <-- ATUALIZADO
+        base_stats: { attack: 7 }, 
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_weapon.png'
@@ -59,7 +59,7 @@ export const EQUIPMENT_DB = {
         description: "Improves precision and handling slightly, increasing crit chance.",
         slot: "gloves",
         synergy: "damage",
-        base_stats: { speed: 1, attack: 1, critChance: 1 }, // <-- ATUALIZADO
+        base_stats: { speed: 1, attack: 1, critChance: 1 }, 
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_gloves.png'
@@ -105,9 +105,109 @@ export const EQUIPMENT_DB = {
         description: "A fast, lethal weapon focused on maximizing critical damage output.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2 }, // <-- ATUALIZADO
+        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2 }, 
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_noct_weapon.png'
     },
+
+    // =================================================
+    // --- (NOVOS) VOLCANIC SET (TIER 1) ---
+    // =================================================
+    "eq_volc_helmet": {
+        id: "eq_volc_helmet",
+        name: "Volcanic Helm",
+        description: "A helm forged in magma, offering solid protection and offensive capability.",
+        slot: "helmet",
+        synergy: "defense",
+        base_stats: { attack: 2, defense: 3 },
+        tier: 1,
+        base_rarity: "COMMON",
+        iconPath: 'assets/items/equipment/eq_volc_helmet.png'
+    },
+    "eq_volc_armor": {
+        id: "eq_volc_armor",
+        name: "Volcanic Plate",
+        description: "Obsidian plating that withstands high temperatures and heavy blows.",
+        slot: "armor",
+        synergy: "defense",
+        base_stats: { hp: 15, defense: 5 },
+        tier: 1,
+        base_rarity: "COMMON",
+        iconPath: 'assets/items/equipment/eq_volc_armor.png'
+    },
+    "eq_volc_weapon": {
+        id: "eq_volc_weapon",
+        name: "Magma Hammer",
+        description: "A slow but devastating hammer, infused with magma.",
+        slot: "weapon",
+        synergy: "damage",
+        base_stats: { attack: 9, speed: -1 },
+        tier: 1,
+        base_rarity: "COMMON",
+        iconPath: 'assets/items/equipment/eq_volc_weapon.png'
+    },
+
+    // =================================================
+    // --- (NOVOS) RADIOACTIVE SET (TIER 1) ---
+    // =================================================
+    "eq_rad_mask": {
+        id: "eq_rad_mask",
+        name: "Radioactive Mask",
+        description: "A leaking gas mask that seems to... regenerate the wearer?",
+        slot: "helmet",
+        synergy: "defense",
+        base_stats: { hp: 10, hpRegen: 1 },
+        tier: 1,
+        base_rarity: "COMMON",
+        iconPath: 'assets/items/equipment/eq_rad_mask.png'
+    },
+    "eq_rad_plating": {
+        id: "eq_rad_plating",
+        name: "Radioactive Plating",
+        description: "Unstable isotopes fused into armor plating. Heavy and tough.",
+        slot: "armor",
+        synergy: "defense",
+        base_stats: { hp: 25, defense: 2 },
+        tier: 1,
+        base_rarity: "COMMON",
+        iconPath: 'assets/items/equipment/eq_rad_plating.png'
+    },
+
+    // =================================================
+    // --- (NOVOS) TECH SET (TIER 3 / RARE) ---
+    // =================================================
+    "eq_tech_helmet": {
+        id: "eq_tech_helmet",
+        name: "Tech Helmet",
+        description: "An advanced helmet with a tactical HUD, improving reaction time.",
+        slot: "helmet",
+        synergy: "universal",
+        base_stats: { defense: 10, speed: 3, ap: 1 },
+        tier: 3,
+        base_rarity: "RARE",
+        iconPath: 'assets/items/equipment/eq_tech_helmet.png'
+    },
+    "eq_tech_rig": {
+        id: "eq_tech_rig",
+        name: "Tech Rig",
+        description: "A light combat rig with micro-servos for enhanced mobility.",
+        slot: "armor",
+        synergy: "defense",
+        base_stats: { hp: 40, defense: 8, speed: 2 },
+        tier: 3,
+        base_rarity: "RARE",
+        iconPath: 'assets/items/equipment/eq_tech_rig.png'
+    },
+    "eq_tech_gauntlet": {
+        id: "eq_tech_gauntlet",
+        name: "Tech Gauntlet",
+        description: "A high-frequency blade attached to a gauntlet.",
+        slot: "weapon",
+        synergy: "damage",
+        base_stats: { attack: 12, critChance: 5 },
+        tier: 3,
+        base_rarity: "RARE",
+        iconPath: 'assets/items/equipment/eq_tech_gauntlet.png'
+    }
 };
