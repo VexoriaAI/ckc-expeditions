@@ -1,11 +1,10 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (Passo 4) 'collectResources' e 'investigate' agora
-// leem 'state.uiState.skipAnimations' para decidir se abrem o 
-// modal de resultado (alert).
+// UPDATE: (Passo 3) 'collectResources' e 'investigate' agora
+// chamam 'openModal()' com os dados de resultado, em vez de 'alert()'.
 // ==================================================================== */
 
-import { getState, updateState, setCurrentScreen, INITIAL_STATE } from '../core/GameState.js';
+import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js'; // (Importa openModal)
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../database/maps.js';
 import { DROP_TABLES } from '../../database/drops.js'; 
@@ -81,7 +80,7 @@ export const ExpeditionManager = {
      */
     collectResources: function() {
         const state = getState();
-        let { expedition, uiState } = state; // (Lê o uiState)
+        let { expedition, uiState } = state; 
 
         if (expedition.currentAP < 1) {
             expedition.log.unshift(`Not enough AP to collect.`);
@@ -100,8 +99,9 @@ export const ExpeditionManager = {
         }
 
         let lootFoundLog = "Collected: ";
-        let logMessage = "Collected... but found nothing."; // Mensagem padrão
-        
+        let logMessage = "Collected... but found nothing."; 
+        let itemsFound = []; // (NOVO) Array para o modal
+
         lootTable.forEach(entry => {
             const { item, quantity } = entry;
             const amountFound = rollDice(quantity[0], quantity[1]);
@@ -109,21 +109,24 @@ export const ExpeditionManager = {
             if (amountFound > 0) {
                 expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                 lootFoundLog += `${amountFound}x ${item}, `;
+                itemsFound.push({ itemId: item, quantity: amountFound }); // (NOVO) Adiciona ao array do modal
             }
         });
 
         if (lootFoundLog !== "Collected: ") {
-             logMessage = lootFoundLog.slice(0, -2); // Remove a vírgula final
+             logMessage = lootFoundLog.slice(0, -2); 
         }
         
         expedition.log.unshift(logMessage);
         updateState({ expedition: expedition });
         
-        // (ATUALIZADO) Passo 4: Aciona o modal de resultado (se não estiver pulando)
+        // (ATUALIZADO) Passo 4: Aciona o modal (se não estiver pulando)
         if (!uiState.skipAnimations) {
-            // (Placeholder para o Modal de Resultado)
-            // No futuro: openModal('MODAL_COLLECT_RESULT', { items: [...] })
-            alert(`[Modal de Resultado]:\n${logMessage}`);
+            openModal(
+                'MODAL_COLLECT_RESULT', 
+                { type: 'collect_success', message: logMessage, items: itemsFound },
+                true // Auto-fecha em 3 segundos
+            );
         }
     },
 
@@ -132,7 +135,7 @@ export const ExpeditionManager = {
      */
     investigate: function() {
         const state = getState();
-        let { expedition, uiState } = state; // (Lê o uiState)
+        let { expedition, uiState } = state; 
 
         if (expedition.currentAP < 1) {
             expedition.log.unshift(`Not enough AP to investigate.`);
@@ -168,9 +171,12 @@ export const ExpeditionManager = {
                 expedition.log.unshift(logMessage);
                 updateState({ expedition: expedition });
                 
-                // (ATUALIZADO) Aciona o modal (se não estiver pulando)
                 if (!uiState.skipAnimations) {
-                    alert(`[Modal de Resultado]:\n${logMessage}`);
+                    openModal(
+                        'MODAL_INVESTIGATE_RESULT', 
+                        { type: 'investigate_nothing', message: logMessage, items: [] },
+                        true // Auto-fecha
+                    );
                 }
                 break;
             
@@ -179,8 +185,7 @@ export const ExpeditionManager = {
                 expedition.log.unshift(logMessage);
                 updateState({ expedition: expedition });
                 
-                // (ATUALIZADO) Combate NUNCA é pulado
-                // (Futuro: Chamar CombatManager.startCombat(eventResult.enemyRarity))
+                // Combate NUNCA é pulado
                 alert("COMBATE INICIADO (Placeholder)");
                 break;
 
@@ -206,21 +211,34 @@ export const ExpeditionManager = {
                     logMessage = "Found a hidden cache... but it was empty.";
                     expedition.log.unshift(logMessage);
                     updateState({ expedition: expedition });
+                    
+                    if (!uiState.skipAnimations) {
+                         openModal(
+                            'MODAL_INVESTIGATE_RESULT', 
+                            { type: 'investigate_nothing', message: logMessage, items: [] },
+                            true // Auto-fecha
+                        );
+                    }
                 } else {
                     const { item, quantity } = lootResult;
                     const amountFound = rollDice(quantity[0], quantity[1]);
+                    let itemsFound = [];
                     
                     if (amountFound > 0) {
                         expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                         logMessage = `Success! Found ${amountFound}x ${item} (${lootResult.type})!`;
                         expedition.log.unshift(logMessage);
+                        itemsFound.push({ itemId: item, quantity: amountFound }); // Adiciona ao array do modal
                     }
                     updateState({ expedition: expedition });
-                }
-                
-                // (ATUALIZADO) Aciona o modal (se não estiver pulando)
-                if (!uiState.skipAnimations) {
-                    alert(`[Modal de Resultado]:\n${logMessage}`);
+
+                    if (!uiState.skipAnimations) {
+                        openModal(
+                            'MODAL_INVESTIGATE_RESULT', 
+                            { type: 'investigate_success', message: logMessage, items: itemsFound },
+                            true // Auto-fecha
+                        );
+                    }
                 }
                 break;
         }
@@ -253,9 +271,9 @@ export const ExpeditionManager = {
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
 
-        // (ATUALIZADO) Combate NUNCA é pulado
+        // Combate NUNCA é pulado
         alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    }, 
+    },
 
     /**
      * Finaliza o turno (dia) atual.
@@ -300,7 +318,6 @@ export const ExpeditionManager = {
         const lootCount = Object.keys(expedition.foundLoot.materials).length;
         const logMessage = lootCount > 0 ? "Expedition ended. Loot secured in main inventory." : "Expedition ended. No loot found.";
         
-        // (ATUALIZADO) O 'alert' de fim de expedição não deve ser pulado
         alert(logMessage); 
 
         // 4. Reseta o estado da expedição e retorna ao Hub
