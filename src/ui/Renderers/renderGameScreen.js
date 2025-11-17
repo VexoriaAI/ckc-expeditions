@@ -217,7 +217,7 @@ export const renderGameScreen = (state) => {
             </div>
             
             <button id="btn-end-expedition" class="action-btn btn-primary">
-                Return to Hub
+                End Expedition
             </button>
         </div>
     `;
