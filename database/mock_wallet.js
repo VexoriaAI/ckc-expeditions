@@ -1,6 +1,6 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// UPDATE: (CORREÇÃO) Garante que o MOCK_KNOWN_BLUEPRINTS
+// UPDATE: Garante que o MOCK_KNOWN_BLUEPRINTS
 // contenha todas as receitas de Craft T1.
 // ==================================================================== */
 
@@ -128,7 +128,6 @@ export const MOCK_TEZERIUM_BALANCE = 1000;
 
 // ====================================================================
 // 4. DADOS MOCK: Receitas Conhecidas (Blueprints)
-// (ATUALIZADO: Contém todas as receitas do Rustic Set)
 // ====================================================================
 export const MOCK_KNOWN_BLUEPRINTS = [
     // --- Receitas de Componentes T1 (Iniciais) ---
@@ -138,7 +137,7 @@ export const MOCK_KNOWN_BLUEPRINTS = [
     'refine_plants_to_hp1',
     'refine_fluid_to_crit1',
 
-    // --- (NOVAS) Receitas de Equipamento T1 (Iniciais) ---
+    // --- Receitas de Equipamento T1 (Iniciais) ---
     'craft_rust_helmet',
     'craft_rust_armor',
     'craft_rust_weapon',
