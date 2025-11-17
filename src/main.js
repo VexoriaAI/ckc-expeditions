@@ -291,10 +291,8 @@ function handleGlobalClick(event) {
     // --- 5. (ATUALIZADO) game-screen Logic ---
     else if (currentState.currentScreen === 'game-screen') {
         if (target.id === 'btn-end-expedition') {
-            // (Futuro: Chamar ExpeditionManager.endExpedition())
-            alert("Expedição encerrada. Loot salvo (simulado).");
-            setCurrentScreen('hub-preparation-screen'); 
-        }
+            ExpeditionManager.endExpedition(); // (LÓGICA REAL)
+        }
         // (Ações da Expedição)
         else if (target.id === 'btn-action-collect') {
             ExpeditionManager.collectResources(); // (LÓGICA REAL)
