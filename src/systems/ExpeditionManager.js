@@ -1,15 +1,15 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: Adiciona a lógica da ação 'searchForEnemy()'.
-// (Consome 2 AP, lê enemies.js e simula um combate).
+// UPDATE: (CORREÇÃO DE SINTAXE) Adiciona a vírgula (,) que 
+// faltava após a função searchForEnemy().
 // ==================================================================== */
 
-import { getState, updateState, setCurrentScreen } from '../core/GameState.js';
+import { getState, updateState, setCurrentScreen, INITIAL_STATE } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
 import { STATIC_MAP_DATA, MAP_BIOMES } from '../../database/maps.js';
 import { DROP_TABLES } from '../../database/drops.js'; 
 import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
-import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; // (NOVO) Importa Inimigos
+import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; 
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
 
@@ -95,15 +95,13 @@ export const ExpeditionManager = {
         const state = getState();
         let { expedition } = state; 
 
-        // 1. Checagem de Custo de AP
         if (expedition.currentAP < 1) {
             expedition.log.unshift(`Not enough AP to collect.`);
             updateState({ expedition: expedition }); 
             return;
         }
-        expedition.currentAP -= 1; // Paga o custo
+        expedition.currentAP -= 1; 
 
-        // 2. Lógica de Loot
         const biomeKey = getCurrentBiomeKey(expedition.position);
         const lootTable = DROP_TABLES[biomeKey]?.collect;
 
@@ -116,7 +114,6 @@ export const ExpeditionManager = {
 
         let lootFoundLog = "Collected: ";
         
-        // 3. Rola cada item na tabela de coleta
         lootTable.forEach(entry => {
             const { item, quantity } = entry;
             const amountFound = rollDice(quantity[0], quantity[1]);
@@ -127,7 +124,6 @@ export const ExpeditionManager = {
             }
         });
 
-        // 4. Atualiza o Log e o Estado
         if (lootFoundLog === "Collected: ") {
              expedition.log.unshift("Collected... but found nothing.");
         } else {
@@ -143,7 +139,6 @@ export const ExpeditionManager = {
         const state = getState();
         let { expedition } = state;
 
-        // 1. Checagem de Custo de AP
         if (expedition.currentAP < 1) {
             expedition.log.unshift(`Not enough AP to investigate.`);
             updateState({ expedition: expedition });
@@ -151,7 +146,6 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1;
 
-        // 2. Lógica de Evento (Risco)
         const biomeKey = getCurrentBiomeKey(expedition.position);
         const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
         
@@ -171,7 +165,6 @@ export const ExpeditionManager = {
             }
         }
 
-        // 3. Processa o Resultado do Evento
         switch (eventResult.type) {
             case "nothing":
                 expedition.log.unshift("Investigated the area... but found nothing.");
@@ -181,7 +174,6 @@ export const ExpeditionManager = {
             case "ambush":
                 expedition.log.unshift(`Ambush! A ${eventResult.enemyRarity} enemy attacks!`);
                 updateState({ expedition: expedition });
-                // (Futuro: Chamar CombatManager.startCombat(eventResult.enemyRarity))
                 alert("COMBATE INICIADO (Placeholder)");
                 break;
 
@@ -220,22 +212,19 @@ export const ExpeditionManager = {
     },
 
     /**
-     * (NOVO) Executa a ação "Search For Enemy".
-     * Consome 2 AP e garante um combate.
+     * Executa a ação "Search For Enemy".
      */
     searchForEnemy: function() {
         const state = getState();
         let { expedition } = state;
 
-        // 1. Checagem de Custo de AP
-        if (expedition.currentAP < 2) { // Custo de 2 AP
+        if (expedition.currentAP < 2) { 
             expedition.log.unshift(`Not enough AP to search for enemies.`);
             updateState({ expedition: expedition });
             return;
         }
-        expedition.currentAP -= 2; // Paga o custo
+        expedition.currentAP -= 2; 
 
-        // 2. Lógica de Spawn (Garante um inimigo comum)
         const biomeKey = getCurrentBiomeKey(expedition.position);
         const enemyTable = ENEMIES_BY_BIOME[biomeKey];
         
@@ -246,34 +235,28 @@ export const ExpeditionManager = {
             return;
         }
         
-        // (Lógica simples: 'Search' sempre encontra um inimigo 'common')
         const enemyName = enemyTable.common.name;
 
-        // 3. Atualiza o Log e Inicia o Combate (Simulado)
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
 
-        // (Futuro: Chamar CombatManager.startCombat('common'))
         alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    }
+    }, // <-- (A VÍRGULA FALTANTE ESTAVA AQUI)
 
     /**
-     * (NOVO) Finaliza o turno (dia) atual.
-     * Restaura AP/MP. Se for o último dia, encerra a expedição.
+     * Finaliza o turno (dia) atual.
      */
     endDay: function() {
         const state = getState();
         let { expedition } = state;
 
-        // Verifica se é o último dia
         if (expedition.currentDay >= expedition.maxDays) {
             expedition.log.unshift("This was the final day. The expedition is ending.");
-            updateState({ expedition: expedition }); // Atualiza o log antes de encerrar
-            this.endExpedition(); // Chama a função de encerramento
+            updateState({ expedition: expedition }); 
+            this.endExpedition(); 
             return;
         }
 
-        // Avança o dia e restaura AP/MP
         expedition.currentDay += 1;
         expedition.currentAP = expedition.maxAP;
         expedition.currentMP = expedition.maxMP;
@@ -283,14 +266,13 @@ export const ExpeditionManager = {
     },
 
     /**
-     * (NOVO) Encerra a expedição manualmente.
-     * Salva o loot encontrado no inventário principal e retorna ao Hub.
+     * Encerra a expedição manualmente.
      */
     endExpedition: function() {
         const state = getState();
         let { expedition, playerInventory } = state;
 
-        if (!expedition) return; // Proteção
+        if (!expedition) return; 
 
         // 1. Salva o Loot (Materiais)
         for (const matId in expedition.foundLoot.materials) {
@@ -302,15 +284,14 @@ export const ExpeditionManager = {
         playerInventory.equipment = playerInventory.equipment.concat(expedition.foundLoot.equipment);
         playerInventory.components = playerInventory.components.concat(expedition.foundLoot.components);
 
-        // 3. Prepara o log
         const lootCount = Object.keys(expedition.foundLoot.materials).length;
         const logMessage = lootCount > 0 ? "Expedition ended. Loot secured in main inventory." : "Expedition ended. No loot found.";
-        alert(logMessage); // Feedback temporário
+        alert(logMessage); 
 
         // 4. Reseta o estado da expedição e retorna ao Hub
         updateState({ 
             playerInventory: playerInventory,
-            expedition: INITIAL_STATE.expedition // Reseta o objeto expedition
+            expedition: INITIAL_STATE.expedition 
         });
         setCurrentScreen('hub-preparation-screen');
     }
