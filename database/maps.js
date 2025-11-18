@@ -1,75 +1,159 @@
 /* ====================================================================
-// (NOVO) DATABASE: MAPS
-// Define os biomas e a estrutura do grid para o mapa de expedição.
+// DATABASE: maps.js
+// UPDATE: (Refatoração de Mapa - Node-Based)
+// Define os BIOMAS e os NÓS do mapa, com suas coordenadas e conexões.
 // ==================================================================== */
 
-/**
- * Define os biomas (regiões) do mapa.
- * Os IDs (ex: 'WASTELAND') são usados para linkar com drops e inimigos.
- */
+// --- 1. Definições de Biomas ---
+// Estes biomas são usados para lógica de drops, inimigos, etc.
 export const MAP_BIOMES = {
-    'WASTELAND': { 
-        name: 'Wasteland', 
-        description: 'The barren plains outside CyberCity.' 
+    WASTELAND: {
+        id: 'WASTELAND',
+        name: 'Wasteland',
+        description: 'Um deserto árido e perigoso.',
+        color: '#a0522d' // Sienna
     },
-    'BURNING_RIDGE': { 
-        name: 'Burning Ridge', 
-        description: 'Volcanic peaks, home of the Volcanics.' 
+    RUINS: {
+        id: 'RUINS',
+        name: 'Ruínas da Cidade',
+        description: 'Os destroços de uma antiga metrópole.',
+        color: '#696969' // DimGray
     },
-    'LAKE_RANCID': { 
-        name: 'Lake Rancid', 
-        description: 'Toxic waters, home of the Radioactives.' 
+    BURNING_RIDGE: {
+        id: 'BURNING_RIDGE',
+        name: 'Cordilheira Ardente',
+        description: 'Montanhas vulcânicas com fluxos de lava.',
+        color: '#b22222' // FireBrick
     },
-    'COVENANT_SWAMP': { 
-        name: 'Covenant Swamp', 
-        description: 'Dense, humid jungles, home of the Reptilians.' 
+    SWAMP: {
+        id: 'SWAMP',
+        name: 'Pântano Contaminado',
+        description: 'Um pântano tóxico e cheio de perigos ocultos.',
+        color: '#556b2f' // DarkOliveGreen
     },
-    'ABANDONED_MINES': { 
-        name: 'Abandoned Mines', 
-        description: 'Deep tunnels, home of the Undergrounders.' 
-    },
-    'ANCIENT_RUINS': { 
-        name: 'Ancient Ruins', 
-        description: 'Shadowy remains of a metropolis, home of the Nocturnals.' 
-    },
-    'CYBERCITY': {
-        name: 'CyberCity',
-        description: 'The last bastion of the old world. (Inaccessible)'
+    FOREST: {
+        id: 'FOREST',
+        name: 'Floresta Antiga',
+        description: 'Uma floresta densa e misteriosa.',
+        color: '#228b22' // ForestGreen
     }
 };
 
-/**
- * (GDD: V, VI)
- * Define os dados estáticos do mapa (layout do grid).
- * Usamos um grid 2D simples para o protótipo.
- * Cada célula (hexágono) é um objeto com sua posição (q, r) e seu bioma.
- */
-export const STATIC_MAP_DATA = [
-    // Linha 0
-    { q: 0, r: 0, biome: 'BURNING_RIDGE' },
-    { q: 1, r: 0, biome: 'BURNING_RIDGE' },
-    { q: 2, r: 0, biome: 'LAKE_RANCID' },
-    { q: 3, r: 0, biome: 'LAKE_RANCID' },
-    { q: 4, r: 0, biome: 'COVENANT_SWAMP' },
-    
-    // Linha 1
-    { q: 0, r: 1, biome: 'BURNING_RIDGE' },
-    { q: 1, r: 1, biome: 'ABANDONED_MINES' },
-    { q: 2, r: 1, biome: 'LAKE_RANCID' }, // (Dead Lake no GDD, parte do Lake Rancid)
-    { q: 3, r: 1, biome: 'WASTELAND' },
-    { q: 4, r: 1, biome: 'COVENANT_SWAMP' },
-    
-    // Linha 2
-    { q: 0, r: 2, biome: 'ANCIENT_RUINS' },
-    { q: 1, r: 2, biome: 'ABANDONED_MINES' },
-    { q: 2, r: 2, biome: 'WASTELAND' },
-    { q: 3, r: 2, biome: 'WASTELAND' },
-    { q: 4, r: 2, biome: 'COVENANT_SWAMP' },
-    
-    // Linha 3
-    { q: 0, r: 3, biome: 'ANCIENT_RUINS' },
-    { q: 1, r: 3, biome: 'ANCIENT_RUINS' },
-    { q: 2, r: 3, biome: 'WASTELAND' },
-    { q: 3, r: 3, biome: 'CYBERCITY' },
-    { q: 4, r: 3, biome: 'WASTELAND' },
+// --- 2. Dados dos NÓS do Mapa ---
+// Cada objeto representa um ponto de interesse clicável no mapa.
+// 'x' e 'y' são coordenadas percentuais para posicionar o nó visualmente no mapa.
+export const MAP_NODES = [
+    // --- NÓS DO BIOMA: WASTELAND ---
+    {
+        id: 'wasteland_crossroads',
+        name: 'Wasteland Crossroads',
+        biome: 'WASTELAND',
+        x: 50, y: 50, // Posição central no mapa
+        connections: ['ruins_outskirts', 'burning_entrance', 'swamp_edge']
+    },
+    {
+        id: 'wasteland_camp',
+        name: 'Isolated Camp',
+        biome: 'WASTELAND',
+        x: 60, y: 65,
+        connections: ['wasteland_crossroads', 'forest_path']
+    },
+    {
+        id: 'wasteland_old_dump',
+        name: 'Old Dump Site',
+        biome: 'WASTELAND',
+        x: 35, y: 60,
+        connections: ['wasteland_crossroads', 'ruins_outskirts']
+    },
+    // --- NÓS DO BIOMA: RUINS ---
+    {
+        id: 'ruins_outskirts',
+        name: 'Ruins Outskirts',
+        biome: 'RUINS',
+        x: 25, y: 70,
+        connections: ['wasteland_crossroads', 'wasteland_old_dump', 'city_center']
+    },
+    {
+        id: 'city_center',
+        name: 'City Center',
+        biome: 'RUINS',
+        x: 15, y: 80,
+        connections: ['ruins_outskirts', 'abandoned_market']
+    },
+    {
+        id: 'abandoned_market',
+        name: 'Abandoned Market',
+        biome: 'RUINS',
+        x: 20, y: 88,
+        connections: ['city_center']
+    },
+    // --- NÓS DO BIOMA: BURNING_RIDGE ---
+    {
+        id: 'burning_entrance',
+        name: 'Ridge Entrance',
+        biome: 'BURNING_RIDGE',
+        x: 40, y: 35,
+        connections: ['wasteland_crossroads', 'volcano_base']
+    },
+    {
+        id: 'volcano_base',
+        name: 'Volcano Base',
+        biome: 'BURNING_RIDGE',
+        x: 25, y: 20,
+        connections: ['burning_entrance', 'lava_river']
+    },
+    {
+        id: 'lava_river',
+        name: 'Lava River',
+        biome: 'BURNING_RIDGE',
+        x: 35, y: 15,
+        connections: ['volcano_base']
+    },
+    // --- NÓS DO BIOMA: SWAMP ---
+    {
+        id: 'swamp_edge',
+        name: 'Swamp Edge',
+        biome: 'SWAMP',
+        x: 70, y: 40,
+        connections: ['wasteland_crossroads', 'murky_waters']
+    },
+    {
+        id: 'murky_waters',
+        name: 'Murky Waters',
+        biome: 'SWAMP',
+        x: 80, y: 25,
+        connections: ['swamp_edge', 'ancient_sanctuary']
+    },
+    {
+        id: 'ancient_sanctuary',
+        name: 'Ancient Sanctuary',
+        biome: 'SWAMP',
+        x: 88, y: 35,
+        connections: ['murky_waters']
+    },
+    // --- NÓS DO BIOMA: FOREST ---
+    {
+        id: 'forest_path',
+        name: 'Forest Path',
+        biome: 'FOREST',
+        x: 75, y: 70,
+        connections: ['wasteland_camp', 'deep_forest']
+    },
+    {
+        id: 'deep_forest',
+        name: 'Deep Forest',
+        biome: 'FOREST',
+        x: 85, y: 80,
+        connections: ['forest_path', 'crystal_cave']
+    },
+    {
+        id: 'crystal_cave',
+        name: 'Crystal Cave',
+        biome: 'FOREST',
+        x: 90, y: 65,
+        connections: ['deep_forest']
+    }
 ];
+
+// O ponto de spawn padrão para novas expedições
+export const SPAWN_NODE_ID = 'wasteland_crossroads';
