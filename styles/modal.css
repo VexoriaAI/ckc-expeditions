@@ -1,7 +1,7 @@
 /* ====================================================================
 // STYLES: modal.css
-// UPDATE: (V3.1) Remove os estilos do .item-card 
-// (movidos para styles/item_card.css).
+// UPDATE: (V3.2) Adiciona estilos para o Modal de Resultado
+// (Layout de 2 colunas e responsividade).
 // ==================================================================== */
 
 #modal-root { 
@@ -20,6 +20,14 @@
     justify-content: center;
     align-items: center; 
     padding: 20px;
+    
+    /* (NOVO) Animação de fade-in para o overlay */
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-content {
@@ -35,7 +43,22 @@
     position: relative;
     display: flex; 
     flex-direction: column;
+
+    /* (NOVO) Animação de "pop-in" para o conteúdo */
+    animation: popIn 0.3s ease-out;
 }
+
+@keyframes popIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 
 .modal-close-btn {
     position: absolute; 
@@ -48,22 +71,112 @@
     font-weight: bold;
     cursor: pointer; 
     line-height: 1;
+    z-index: 10;
 }
 
 .modal-body { 
     overflow-y: auto; 
+    padding-top: 10px; /* Espaço para o título */
 }
 
-/* ================== Conteúdo do Modal (Item Grids) ================== */
+/* ================== Conteúdo: Grid de Seleção (Equip/Comp) ================== */
 
 .modal-item-grid {
     display: grid;
-    /* (ATUALIZADO) O grid do modal deve ter 2 colunas */
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 15px;
     max-height: 60vh;
     overflow-y: auto;
     padding-top: 5px;
 }
+/* (Estilos do .item-card estão em styles/item_card.css) */
 
-/* (Estilos do .item-card removidos daqui) */
+
+/* ================== (NOVO) Conteúdo: Modal de Resultado ================== */
+
+.modal-result-layout {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.modal-image-column {
+    flex-basis: 40%; /* Imagem ocupa 40% */
+    flex-shrink: 0;
+    text-align: center;
+}
+.modal-result-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.modal-loot-column {
+    flex-basis: 60%; /* Loot ocupa 60% */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-result-message {
+    font-size: 1.1em;
+    color: var(--color-text-light);
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Reutiliza o estilo do Loot da tela de Expedição */
+.modal-loot-column .loot-display-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px; /* Limita a altura da lista de loot */
+    overflow-y: auto;
+}
+.modal-loot-column .loot-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1em;
+    color: var(--color-text-dim);
+    background: rgba(0,0,0,0.2);
+    padding: 5px;
+    border-radius: 4px;
+}
+.modal-loot-column .loot-item img {
+    width: 32px; /* Ícone 32px (Solicitado) */
+    height: 32px;
+    object-fit: contain;
+    border: 1px solid #444;
+    background: var(--color-bg-dark);
+    border-radius: 4px;
+}
+.modal-loot-column .loot-item span {
+    color: var(--color-text-light);
+    font-weight: bold;
+}
+.modal-loot-column .loot-item .loot-quantity {
+    margin-left: auto; 
+    color: var(--color-text-light);
+}
+
+/* Responsividade do Modal de Resultado */
+@media (max-width: 768px) {
+    .modal-result-layout {
+        flex-direction: column; /* Empilha a imagem e o loot */
+    }
+    .modal-image-column {
+        flex-basis: auto;
+        width: 100%;
+        max-height: 150px;
+    }
+    .modal-loot-column {
+        flex-basis: auto;
+        width: 100%;
+        margin-top: 15px;
+    }
+}
