@@ -1,8 +1,8 @@
 /* ====================================================================
 // DATABASE: EQUIPMENT
-// UPDATE: (Etapa 1.1 - Atributos de Combate)
-// Adiciona os novos atributos de combate (Block, Dodge, Resist, 
-// Lifesteal, Thorns, etc.) ao base_stats dos itens.
+// UPDATE: (Etapa 4.2 - Skills)
+// Adiciona a propriedade 'skills' (array de IDs) aos itens,
+// conectando-os ao skills.js.
 // ==================================================================== */
 
 export const EQUIPMENT_SLOTS = ["helmet", "armor", "weapon", "boots", "gloves", "implant", "accessory"];
@@ -16,20 +16,22 @@ export const EQUIPMENT_DB = {
         description: "A basic, slightly rusty helmet, ideal for beginners.",
         slot: "helmet", 
         synergy: "defense", 
-        base_stats: { hp: 10, defense: 2, blockChance: 1 }, // (NOVO)
+        base_stats: { hp: 10, defense: 2, blockChance: 1 }, 
         tier: 1,
         base_rarity: "COMMON",
+        skills: [], // Sem skills especiais
         iconPath: 'assets/items/equipment/eq_rust_helmet.png' 
     },
     "eq_rust_armor": {
         id: "eq_rust_armor",
         name: "Rustic Armor",
         description: "A simple armor piece, offering minimal body protection.",
-        slot: "armor",
+        slot: "armor", 
         synergy: "defense",
-        base_stats: { hp: 20, defense: 3, thorns: 3 }, // (NOVO)
+        base_stats: { hp: 20, defense: 3, thorns: 3 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_armor.png'
     },
     "eq_rust_weapon": {
@@ -38,9 +40,10 @@ export const EQUIPMENT_DB = {
         description: "A primitive, heavy-duty club that delivers reasonable damage.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 7, stunChance: 1 }, // (NOVO)
+        base_stats: { attack: 7, stunChance: 1 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: ['skill_heavy_smash'], // (NOVO) Skill Básica
         iconPath: 'assets/items/equipment/eq_rust_weapon.png'
     },
     "eq_rust_boots": {
@@ -49,9 +52,10 @@ export const EQUIPMENT_DB = {
         description: "Simple boots that grant a slight increase in speed and mobility.",
         slot: "boots",
         synergy: "speed",
-        base_stats: { hp: 5, defense: 1, speed: 2, dodgeChance: 1 }, // (NOVO)
+        base_stats: { hp: 5, defense: 1, speed: 2, dodgeChance: 1 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_boots.png'
     },
     "eq_rust_gloves": {
@@ -60,9 +64,10 @@ export const EQUIPMENT_DB = {
         description: "Improves precision and handling slightly, increasing crit chance.",
         slot: "gloves",
         synergy: "damage",
-        base_stats: { speed: 1, attack: 1, critChance: 1 }, 
+        base_stats: { speed: 1, attack: 1, critChance: 1 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_gloves.png'
     },
     "eq_rust_implant": {
@@ -74,6 +79,7 @@ export const EQUIPMENT_DB = {
         base_stats: { hp: 5, ap: 1 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_implant.png'
     },
     "eq_rust_accessory": {
@@ -85,6 +91,7 @@ export const EQUIPMENT_DB = {
         base_stats: { luck: 2 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_accessory.png'
     },
 
@@ -95,9 +102,10 @@ export const EQUIPMENT_DB = {
         description: "Optimizes night vision and significantly increases critical hit chance.",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { hp: 15, defense: 3, critChance: 2, dodgeChance: 2 }, // (NOVO)
+        base_stats: { hp: 15, defense: 3, critChance: 2, dodgeChance: 2 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_noct_helmet.png'
     },
     "eq_noct_weapon": {
@@ -106,9 +114,10 @@ export const EQUIPMENT_DB = {
         description: "A fast, lethal weapon focused on maximizing critical damage output.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2, lifesteal: 1 }, // (NOVO)
+        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2, lifesteal: 1 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: ['skill_quick_stab', 'skill_shadow_strike'], // (NOVO) Skills de Assassino
         iconPath: 'assets/items/equipment/eq_noct_weapon.png'
     },
 
@@ -119,9 +128,10 @@ export const EQUIPMENT_DB = {
         description: "A helm forged in magma, offering solid protection and offensive capability.",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { attack: 2, defense: 3, fireResist: 5 }, // (NOVO)
+        base_stats: { attack: 2, defense: 3, fireResist: 5 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_volc_helmet.png'
     },
     "eq_volc_armor": {
@@ -130,9 +140,10 @@ export const EQUIPMENT_DB = {
         description: "Obsidian plating that withstands high temperatures and heavy blows.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 15, defense: 5, thorns: 5 }, // (NOVO)
+        base_stats: { hp: 15, defense: 5, thorns: 5 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: ['passive_flame_aura'], // (NOVO) Passiva de Dano
         iconPath: 'assets/items/equipment/eq_volc_armor.png'
     },
     "eq_volc_weapon": {
@@ -141,9 +152,10 @@ export const EQUIPMENT_DB = {
         description: "A slow but devastating hammer, infused with magma.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 9, speed: -1, fireDamage: 3 }, // (NOVO)
+        base_stats: { attack: 9, speed: -1, fireDamage: 3 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: ['skill_heavy_smash', 'skill_magma_slash'], // (NOVO) Skills de Fogo
         iconPath: 'assets/items/equipment/eq_volc_weapon.png'
     },
 
@@ -154,9 +166,10 @@ export const EQUIPMENT_DB = {
         description: "A leaking gas mask that seems to... regenerate the wearer?",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { hp: 10, hpRegen: 1, toxinResist: 10 }, // (NOVO)
+        base_stats: { hp: 10, hpRegen: 1, toxinResist: 10 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: ['passive_rad_regen'], // (NOVO) Passiva de Cura
         iconPath: 'assets/items/equipment/eq_rad_mask.png'
     },
     "eq_rad_plating": {
@@ -165,9 +178,10 @@ export const EQUIPMENT_DB = {
         description: "Unstable isotopes fused into armor plating. Heavy and tough.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 25, defense: 2, toxinResist: 5 }, // (NOVO)
+        base_stats: { hp: 25, defense: 2, toxinResist: 5 },
         tier: 1,
         base_rarity: "COMMON",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rad_plating.png'
     },
 
@@ -178,9 +192,10 @@ export const EQUIPMENT_DB = {
         description: "An advanced helmet with a tactical HUD, improving reaction time.",
         slot: "helmet",
         synergy: "universal",
-        base_stats: { defense: 10, speed: 3, ap: 1, cooldownReduction: 1 }, // (NOVO)
+        base_stats: { defense: 10, speed: 3, ap: 1, cooldownReduction: 1 },
         tier: 3,
         base_rarity: "RARE",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_tech_helmet.png'
     },
     "eq_tech_rig": {
@@ -189,9 +204,10 @@ export const EQUIPMENT_DB = {
         description: "A light combat rig with micro-servos for enhanced mobility.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 40, defense: 8, speed: 2, blockAmount: 10 }, // (NOVO)
+        base_stats: { hp: 40, defense: 8, speed: 2, blockAmount: 10 },
         tier: 3,
         base_rarity: "RARE",
+        skills: [],
         iconPath: 'assets/items/equipment/eq_tech_rig.png'
     },
     "eq_tech_gauntlet": {
@@ -200,9 +216,10 @@ export const EQUIPMENT_DB = {
         description: "A high-frequency blade attached to a gauntlet.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 12, critChance: 5, lifesteal: 3, stunChance: 2 }, // (NOVO)
+        base_stats: { attack: 12, critChance: 5, lifesteal: 3, stunChance: 2 },
         tier: 3,
         base_rarity: "RARE",
+        skills: ['skill_shock_blade'], // (NOVO) Skill de Choque
         iconPath: 'assets/items/equipment/eq_tech_gauntlet.png'
     }
 };
