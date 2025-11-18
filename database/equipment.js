@@ -1,7 +1,8 @@
 /* ====================================================================
 // DATABASE: EQUIPMENT
-// UPDATE: Adiciona novos sets T1 (Volcanic, Radioactive)
-// e um set T3 (Tech).
+// UPDATE: (Etapa 1.1 - Atributos de Combate)
+// Adiciona os novos atributos de combate (Block, Dodge, Resist, 
+// Lifesteal, Thorns, etc.) ao base_stats dos itens.
 // ==================================================================== */
 
 export const EQUIPMENT_SLOTS = ["helmet", "armor", "weapon", "boots", "gloves", "implant", "accessory"];
@@ -15,7 +16,7 @@ export const EQUIPMENT_DB = {
         description: "A basic, slightly rusty helmet, ideal for beginners.",
         slot: "helmet", 
         synergy: "defense", 
-        base_stats: { hp: 10, defense: 2 }, 
+        base_stats: { hp: 10, defense: 2, blockChance: 1 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_helmet.png' 
@@ -26,7 +27,7 @@ export const EQUIPMENT_DB = {
         description: "A simple armor piece, offering minimal body protection.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 20, defense: 3 },
+        base_stats: { hp: 20, defense: 3, thorns: 3 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_armor.png'
@@ -37,7 +38,7 @@ export const EQUIPMENT_DB = {
         description: "A primitive, heavy-duty club that delivers reasonable damage.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 7 }, 
+        base_stats: { attack: 7, stunChance: 1 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_weapon.png'
@@ -48,7 +49,7 @@ export const EQUIPMENT_DB = {
         description: "Simple boots that grant a slight increase in speed and mobility.",
         slot: "boots",
         synergy: "speed",
-        base_stats: { hp: 5, defense: 1, speed: 2 },
+        base_stats: { hp: 5, defense: 1, speed: 2, dodgeChance: 1 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rust_boots.png'
@@ -94,7 +95,7 @@ export const EQUIPMENT_DB = {
         description: "Optimizes night vision and significantly increases critical hit chance.",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { hp: 15, defense: 3, critChance: 2 },
+        base_stats: { hp: 15, defense: 3, critChance: 2, dodgeChance: 2 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_noct_helmet.png'
@@ -105,22 +106,20 @@ export const EQUIPMENT_DB = {
         description: "A fast, lethal weapon focused on maximizing critical damage output.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2 }, 
+        base_stats: { attack: 8, critDamage: 10, attackSpeed: 2, lifesteal: 1 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_noct_weapon.png'
     },
 
-    // =================================================
-    // --- (NOVOS) VOLCANIC SET (TIER 1) ---
-    // =================================================
+    // --- VOLCANIC SET (TIER 1) ---
     "eq_volc_helmet": {
         id: "eq_volc_helmet",
         name: "Volcanic Helm",
         description: "A helm forged in magma, offering solid protection and offensive capability.",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { attack: 2, defense: 3 },
+        base_stats: { attack: 2, defense: 3, fireResist: 5 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_volc_helmet.png'
@@ -131,7 +130,7 @@ export const EQUIPMENT_DB = {
         description: "Obsidian plating that withstands high temperatures and heavy blows.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 15, defense: 5 },
+        base_stats: { hp: 15, defense: 5, thorns: 5 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_volc_armor.png'
@@ -142,22 +141,20 @@ export const EQUIPMENT_DB = {
         description: "A slow but devastating hammer, infused with magma.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 9, speed: -1 },
+        base_stats: { attack: 9, speed: -1, fireDamage: 3 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_volc_weapon.png'
     },
 
-    // =================================================
-    // --- (NOVOS) RADIOACTIVE SET (TIER 1) ---
-    // =================================================
+    // --- RADIOACTIVE SET (TIER 1) ---
     "eq_rad_mask": {
         id: "eq_rad_mask",
         name: "Radioactive Mask",
         description: "A leaking gas mask that seems to... regenerate the wearer?",
         slot: "helmet",
         synergy: "defense",
-        base_stats: { hp: 10, hpRegen: 1 },
+        base_stats: { hp: 10, hpRegen: 1, toxinResist: 10 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rad_mask.png'
@@ -168,22 +165,20 @@ export const EQUIPMENT_DB = {
         description: "Unstable isotopes fused into armor plating. Heavy and tough.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 25, defense: 2 },
+        base_stats: { hp: 25, defense: 2, toxinResist: 5 }, // (NOVO)
         tier: 1,
         base_rarity: "COMMON",
         iconPath: 'assets/items/equipment/eq_rad_plating.png'
     },
 
-    // =================================================
-    // --- (NOVOS) TECH SET (TIER 3 / RARE) ---
-    // =================================================
+    // --- TECH SET (TIER 3 / RARE) ---
     "eq_tech_helmet": {
         id: "eq_tech_helmet",
         name: "Tech Helmet",
         description: "An advanced helmet with a tactical HUD, improving reaction time.",
         slot: "helmet",
         synergy: "universal",
-        base_stats: { defense: 10, speed: 3, ap: 1 },
+        base_stats: { defense: 10, speed: 3, ap: 1, cooldownReduction: 1 }, // (NOVO)
         tier: 3,
         base_rarity: "RARE",
         iconPath: 'assets/items/equipment/eq_tech_helmet.png'
@@ -194,7 +189,7 @@ export const EQUIPMENT_DB = {
         description: "A light combat rig with micro-servos for enhanced mobility.",
         slot: "armor",
         synergy: "defense",
-        base_stats: { hp: 40, defense: 8, speed: 2 },
+        base_stats: { hp: 40, defense: 8, speed: 2, blockAmount: 10 }, // (NOVO)
         tier: 3,
         base_rarity: "RARE",
         iconPath: 'assets/items/equipment/eq_tech_rig.png'
@@ -205,7 +200,7 @@ export const EQUIPMENT_DB = {
         description: "A high-frequency blade attached to a gauntlet.",
         slot: "weapon",
         synergy: "damage",
-        base_stats: { attack: 12, critChance: 5 },
+        base_stats: { attack: 12, critChance: 5, lifesteal: 3, stunChance: 2 }, // (NOVO)
         tier: 3,
         base_rarity: "RARE",
         iconPath: 'assets/items/equipment/eq_tech_gauntlet.png'
