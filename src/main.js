@@ -306,6 +306,11 @@ function handleGlobalClick(event) {
          else if (target.id === 'btn-action-end-day') {
             ExpeditionManager.endDay(); // (LÓGICA REAL)
         }
+        // (NOVO) Lógica de Movimento
+        else if (target.id === 'btn-move-node') {
+            const targetNodeId = target.dataset.nodeId;
+            ExpeditionManager.moveToNode(targetNodeId);
+        }
     }
     
     // --- 6. store-screen Logic ---
