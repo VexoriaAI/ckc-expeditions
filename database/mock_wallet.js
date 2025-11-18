@@ -1,14 +1,15 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// UPDATE: Garante que o MOCK_KNOWN_BLUEPRINTS
-// contenha todas as receitas de Craft T1.
+// UPDATE: (Etapa 1.4 - Atributos de Combate)
+// Adiciona os 'baseStats' secundários (Block, Dodge, etc.) aos Kidz,
+// diferenciando as tribos.
 // ==================================================================== */
 
 // --- Estruturas de Dados Essenciais ---
 /** @typedef {object} KidNFT ... */
 /** @typedef {object} InventoryItem ... */
 
-// 1. DADOS MOCK: Lista de CyberKidz NFTs (Balanceados)
+// 1. DADOS MOCK: Lista de CyberKidz NFTs (Balanceados com Novos Stats)
 export const MOCK_KIDZ_NFTS = [
     {
         id: '#333',
@@ -16,7 +17,11 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'NOCTURNALS',
         level: 1,
         spritePath: 'assets/characters/nocturnals_1.png',
-        baseStats: { maxHP: 100, attack: 8, defense: 5, speed: 5, AP: 2 }
+        // Nocturnals: Ágeis e Letais (Dodge + Crit)
+        baseStats: { 
+            maxHP: 100, attack: 8, defense: 5, speed: 5, ap: 2,
+            dodgeChance: 5, critChance: 5, critDamage: 50 
+        }
     },
     {
         id: '#104',
@@ -24,7 +29,11 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'VOLCANICS',
         level: 3,
         spritePath: 'assets/characters/volcanics_2.png',
-        baseStats: { maxHP: 115, attack: 11, defense: 9, speed: 3, AP: 2 }
+        // Volcanics: Resistentes ao calor e perigosos ao toque (FireResist + Thorns)
+        baseStats: { 
+            maxHP: 115, attack: 11, defense: 9, speed: 3, ap: 2,
+            fireResist: 10, thorns: 3 
+        }
     },
     {
         id: '#73',
@@ -32,7 +41,11 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'NOCTURNALS',
         level: 7,
         spritePath: 'assets/characters/nocturnals_4.png',
-        baseStats: { maxHP: 110, attack: 10, defense: 7, speed: 7, AP: 3 }
+        // Nível mais alto = Stats base melhores
+        baseStats: { 
+            maxHP: 110, attack: 10, defense: 7, speed: 7, ap: 3,
+            dodgeChance: 7, critChance: 8, critDamage: 60
+        }
     },
     {
         id: '#303',
@@ -40,7 +53,11 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'REPTILIANS',
         level: 4,
         spritePath: 'assets/characters/reptilians_1.png',
-        baseStats: { maxHP: 125, attack: 10, defense: 7, speed: 4, AP: 2 }
+        // Reptilians: Sobreviventes (Regen + Lifesteal leve)
+        baseStats: { 
+            maxHP: 125, attack: 10, defense: 7, speed: 4, ap: 2,
+            hpRegen: 2, lifesteal: 1
+        }
     },
     {
         id: '#88',
@@ -48,7 +65,11 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'RADIOACTIVES',
         level: 9,
         spritePath: 'assets/characters/radioactives_4.png',
-        baseStats: { maxHP: 150, attack: 7, defense: 12, speed: 2, AP: 2 }
+        // Radioactives: Imunes a toxinas e muito HP (ToxinResist + HP Alto)
+        baseStats: { 
+            maxHP: 150, attack: 7, defense: 12, speed: 2, ap: 2,
+            toxinResist: 20, hpRegen: 3
+        }
     }
 ];
 
@@ -113,7 +134,7 @@ export const MOCK_INVENTORY = {
     ],
     components: [
         { instance_id: 201, item_id: 'comp_def_1' }, 
-        { instance_id: 202, item_id: 'comp_dmg_1' },
+        { instance_id: 202, item_id: 'comp_atk_1' }, // Atualizado para comp_atk_1
         { instance_id: 203, item_id: 'comp_def_1' } 
     ],
     shopItems: {
