@@ -1,7 +1,8 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderModalResult.js
-// Renderiza o conteúdo (listas) para o Modal de Resultado
-// (ex: Collect, Investigate).
+// RENDERER: renderModalResult.js
+// UPDATE: (Refatoração de Layout)
+// Implementa o layout de 2 colunas (Imagem Esquerda, Loot Direita)
+// e melhora a exibição das mensagens.
 // ==================================================================== */
 
 import { MATERIALS_DB } from '../../../database/materials.js';
@@ -28,10 +29,11 @@ export const renderLootResultModal = (modalData) => {
     switch (type) {
         case 'collect_success':
             title = 'Recursos Coletados';
-            imageHTML = `<img src="assets/ui/modal_collect.png" class="modal-result-image" alt="Coleta">`;
+            // (Usando o baú como placeholder, idealmente teríamos 'modal_collect.png')
+            imageHTML = `<img src="assets/ui/modal_loot.png" class="modal-result-image" alt="Coleta">`;
             break;
         case 'investigate_success':
-            title = 'Loot Encontrado!';
+            title = 'Loot Raro Encontrado!';
             imageHTML = `<img src="assets/ui/modal_loot.png" class="modal-result-image" alt="Loot">`;
             break;
         case 'investigate_nothing':
@@ -41,12 +43,12 @@ export const renderLootResultModal = (modalData) => {
         // (Futuro: case 'ambush': ...)
         default:
             title = 'Ação Realizada';
+            imageHTML = `<img src="assets/ui/modal_nothing.png" class="modal-result-image" alt="Resultado">`;
     }
 
     // 2. Renderiza a lista de itens (se houver)
     if (items && items.length > 0) {
         itemsHTML = items.map(item => {
-            // Determina a fonte dos dados (Materials, Components, etc.)
             const itemData = MATERIALS_DB[item.itemId] || COMPONENTS_DB[item.itemId] || EQUIPMENT_DB[item.itemId];
             if (!itemData) return '';
             
@@ -65,10 +67,16 @@ export const renderLootResultModal = (modalData) => {
         itemsHTML = `<p class="modal-result-message">${message}</p>`;
     }
 
-    // 3. Montagem Final
+    // 3. Montagem Final (Novo Layout de 2 Colunas)
     return `
         <h2>${title}</h2>
-        ${imageHTML}
-        ${itemsHTML}
+        <div class="modal-result-layout">
+            <div class="modal-image-column">
+                ${imageHTML}
+            </div>
+            <div class="modal-loot-column">
+                ${itemsHTML}
+            </div>
+        </div>
     `;
 };
