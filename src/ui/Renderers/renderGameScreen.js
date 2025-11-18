@@ -1,10 +1,13 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: Adiciona o checkbox "Skip Animations" na Coluna 3 (Log).
+// UPDATE: (Refatoração de Mapa - Node-Based)
+// - Importa MAP_NODES do database/maps.js.
+// - Renderiza os nós (divs) sobre a imagem do mapa.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
-import { STATIC_MAP_DATA, MAP_BIOMES } from '../../../database/maps.js';
+// (ATUALIZADO) Importa a nova arquitetura de Nós do mapa
+import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../../database/maps.js';
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
 import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; 
@@ -15,7 +18,7 @@ const getKidDataById = (kidId) => {
 };
 
 /**
- * (Helper) Renderiza a lista de Loot Encontrado
+ * Helper para renderizar a lista de Loot Encontrado
  */
 const renderLootList = (loot) => {
     const materials = Object.keys(loot.materials);
@@ -37,10 +40,10 @@ const renderLootList = (loot) => {
 };
 
 /**
- * (Helper) Renderiza a lista de Consumíveis (Shop Items)
+ * Helper para renderizar a lista de Consumíveis (Shop Items)
  */
 const renderConsumablesList = (state) => {
-    const shopItems = state.playerInventory.shopItems; // Pega do inventário principal
+    const shopItems = state.playerInventory.shopItems; 
     const keys = Object.keys(shopItems);
     
     if (keys.length === 0) {
@@ -70,12 +73,54 @@ const renderConsumablesList = (state) => {
 };
 
 /**
+ * (NOVO) Helper para renderizar os Nós do Mapa
+ */
+const renderMapNodes = (state) => {
+    const { expedition } = state;
+    const currentNodeId = expedition.position.nodeId; // Posição atual é um ID de nó
+    const currentMP = expedition.currentMP;
+
+    // Encontra o nó atual para obter suas conexões
+    const currentNode = MAP_NODES.find(n => n.id === currentNodeId);
+    const reachableNodes = currentNode ? currentNode.connections : [];
+
+    return MAP_NODES.map(node => {
+        const biome = MAP_BIOMES[node.biome];
+        
+        // Define o status do nó
+        let statusClass = 'map-node-locked'; // Padrão: travado/fora de alcance
+        
+        // (Lógica de MP será implementada no ExpeditionManager)
+        // Por agora, apenas destacamos o atual e os conectados
+        if (node.id === currentNodeId) {
+            statusClass = 'map-node-current'; // Nó atual
+        } else if (reachableNodes.includes(node.id)) {
+            statusClass = 'map-node-reachable'; // Nó alcançável
+        }
+
+        return `
+            <div 
+                class="map-node ${statusClass}" 
+                id="btn-move-node"
+                data-node-id="${node.id}"
+                data-biome-color="${biome.color}"
+                style="top: ${node.y}%; left: ${node.x}%;"
+                title="${node.name} (${biome.name})"
+            >
+                <div class="node-icon">${biome.name.charAt(0)}</div>
+            </div>
+        `;
+    }).join('');
+};
+
+
+/**
  * Renderiza a tela principal da Expedição (Game Screen).
  * @param {object} state - O GameState completo.
  * @returns {string} HTML para a tela do jogo.
  */
 export const renderGameScreen = (state) => {
-    const { expedition, currentPlayerKidId, uiState } = state;
+    const { expedition, currentPlayerKidId } = state;
     const kidStaticData = getKidDataById(currentPlayerKidId);
 
     if (!expedition || !kidStaticData) {
@@ -83,15 +128,18 @@ export const renderGameScreen = (state) => {
     }
 
     const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot } = expedition;
-    const currentTile = STATIC_MAP_DATA.find(t => t.q === position.q && t.r === position.r);
-    const currentBiome = MAP_BIOMES[currentTile.biome];
+    
+    // (ATUALIZADO) Pega o bioma pelo ID do Nó
+    const currentNode = MAP_NODES.find(n => n.id === position.nodeId) || MAP_NODES.find(n => n.id === SPAWN_NODE_ID);
+    const currentBiome = MAP_BIOMES[currentNode.biome];
+    
     const totalPowerScore = calculatePowerScore(kidStats);
     
     // Lógica da Barra de HP
     const hpPercent = (currentHP / maxHP) * 100;
-    let hpColorClass = 'hp-fill-green'; // 40-100%
-    if (hpPercent < 40) hpColorClass = 'hp-fill-orange'; // 20-40%
-    if (hpPercent < 20) hpColorClass = 'hp-fill-red';    // 0-20%
+    let hpColorClass = 'hp-fill-green'; 
+    if (hpPercent < 40) hpColorClass = 'hp-fill-orange'; 
+    if (hpPercent < 20) hpColorClass = 'hp-fill-red';    
 
 
     // --- Coluna 1: Status do Kid ---
@@ -104,14 +152,9 @@ export const renderGameScreen = (state) => {
                     <h4>${kidStaticData.name}</h4>
                     <p>Tribe: <span>${kidStaticData.tribe}</span></p>
                     <p>NFT ID: <span>${kidStaticData.id}</span></p>
-                    
                     <div class="kid-card-stats game-screen-stats">
-                        <div class="stat-badge level-badge">
-                            Level: <span>${kidStaticData.level}</span>
-                        </div>
-                        <div class="stat-badge power-badge">
-                            Power: <span>${totalPowerScore}</span>
-                        </div>
+                        <div class="stat-badge level-badge">Level: <span>${kidStaticData.level}</span></div>
+                        <div class="stat-badge power-badge">Power: <span>${totalPowerScore}</span></div>
                     </div>
                 </div>
             </div>
@@ -153,9 +196,13 @@ export const renderGameScreen = (state) => {
         <div class="game-column" id="game-col-map">
             
             <div class="map-container panel">
-                <img src="assets/maps/wasteland_map_full.png" alt="Wasteland Map" class="map-background-image">
-                <div class="kid-marker" style="top: 50%; left: 50%;">🧑‍🚀</div>
-            </div>
+                <img src="${state.currentMapImage || 'assets/maps/wasteland_map_full.png'}" alt="Wasteland Map" class="map-background-image">
+                
+                <div class="map-nodes-overlay">
+                    ${renderMapNodes(state)}
+                </div>
+
+                </div>
             
             <div class="action-points-bar panel">
                 <div class="stat-bar">
@@ -211,7 +258,7 @@ export const renderGameScreen = (state) => {
                 <input 
                     type="checkbox" 
                     id="chk-skip-animations" 
-                    ${uiState.skipAnimations ? 'checked' : ''}
+                    ${state.uiState.skipAnimations ? 'checked' : ''}
                 >
                 <label for="chk-skip-animations">Skip Result Modals</label>
             </div>
@@ -222,11 +269,12 @@ export const renderGameScreen = (state) => {
         </div>
     `;
 
+
     // --- Montagem Final ---
     return `
         <div class="screen game-screen">
             <div class="page-title-bar">
-                <h1>Expedition In Progress: ${currentBiome.name}</h1>
+                <h1>Expedition In Progress: ${currentNode.name} (${currentBiome.name})</h1>
             </div>
             
             <div class="game-container">
