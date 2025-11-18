@@ -1,7 +1,7 @@
 /* ====================================================================
 // STYLES: game_screen.css
-// UPDATE: Adiciona estilos para o novo painel 'Consumables'.
-// Move o 'Loot Found' para a Coluna 3.
+// UPDATE: (Refatoração de Mapa - Node-Based)
+// Adiciona os estilos para os Nós do Mapa (posição, cor, hover).
 // ==================================================================== */
 
 .game-container {
@@ -129,7 +129,7 @@
 }
 
 
-/* (NOVO) Lista de Consumíveis */
+/* Lista de Consumíveis */
 .consumables-display {
     background: rgba(0,0,0,0.2);
     padding: 10px;
@@ -191,14 +191,59 @@
     height: auto;
     display: block;
 }
-.kid-marker {
+/* (NOVO) Overlay que contém os nós */
+.map-nodes-overlay {
     position: absolute;
-    font-size: 2em;
-    transform: translate(-50%, -100%);
-    z-index: 10;
-    pointer-events: none;
-    text-shadow: 0 0 5px white;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
+/* (NOVO) Estilo Base do Nó */
+.map-node {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: var(--color-bg-dark);
+    border: 2px solid var(--color-text-dim);
+    border-radius: 50%;
+    transform: translate(-50%, -50%); /* Centraliza o nó no X,Y */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.7);
+}
+.node-icon {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--color-text-light);
+    pointer-events: none; /* Garante que o clique vá para o .map-node */
+}
+
+/* (NOVO) Estados dos Nós */
+.map-node.map-node-locked {
+    filter: grayscale(100%);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.map-node.map-node-reachable {
+    border-color: var(--color-accent-green);
+    background-color: var(--color-accent-green);
+}
+.map-node.map-node-reachable:hover {
+    transform: translate(-50%, -50%) scale(1.5); /* Efeito de Hover */
+    box-shadow: 0 0 15px var(--color-accent-green);
+}
+.map-node.map-node-current {
+    border-color: var(--color-accent-blue);
+    background-color: var(--color-accent-blue);
+    transform: translate(-50%, -50%) scale(1.7);
+    box-shadow: 0 0 20px var(--color-accent-blue);
+    z-index: 10;
+}
+
 
 /* Painel de AP/MP */
 .action-points-bar {
@@ -207,7 +252,7 @@
     gap: 20px;
 }
 .action-points-bar .stat-bar {
-    grid-template-columns: 40px 1fr 50px; /* Ajusta para AP e MP */
+    grid-template-columns: 40px 1fr 50px; 
     gap: 10px;
     font-size: 1.1em;
 }
@@ -222,8 +267,6 @@
 }
 
 /* ================== Coluna 3: Log ================== */
-
-/* (MOVIDO) Lista de Loot */
 #game-col-log .loot-display {
     background: rgba(0,0,0,0.2);
     padding: 10px;
@@ -262,8 +305,8 @@
     border-radius: 5px;
     padding: 10px;
     overflow-y: auto;
-    flex-grow: 1; /* Ocupa o espaço entre Loot e Botão */
-    min-height: 30vh; /* Garante altura mínima */
+    flex-grow: 1; 
+    min-height: 30vh; 
 }
 .log-window p {
     font-size: 0.85em;
@@ -277,8 +320,24 @@
     font-weight: bold;
 }
 #game-col-log .action-btn {
-    width: 100%; /* Botão "Return to Hub" */
+    width: 100%; /* Botão "End Expedition" */
 }
+/* Checkbox de Pular */
+.skip-animations-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+}
+.skip-animations-toggle label {
+    color: var(--color-text-dim);
+    font-size: 0.9em;
+    cursor: pointer;
+}
+.skip-animations-toggle input {
+    cursor: pointer;
+}
+
 
 /* Responsividade */
 @media (max-width: 1200px) {
@@ -286,7 +345,7 @@
         grid-template-columns: 1fr; /* Empilha as colunas */
     }
     #game-col-log .log-window {
-        height: 200px; /* Reduz a altura do log no mobile */
+        height: 200px; 
         min-height: 200px;
     }
 }
