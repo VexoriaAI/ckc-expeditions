@@ -1,12 +1,13 @@
 /* ====================================================================
 // UI: ModalManager.js
-// UPDATE: Importa e adiciona o case 'MODAL_COMBAT_RESULT'.
+// UPDATE: Adiciona o case 'MODAL_CONFIRM_EMBED'.
 // ==================================================================== */
 
 import { renderEquipmentListModal, renderComponentListModal } from './Renderers/renderModalContent.js';
 import { renderLootResultModal } from './Renderers/renderModalResult.js';
-// (NOVO) Importa o renderer de combate
 import { renderCombatModal } from './Renderers/renderCombatModal.js';
+// (NOVO) Importa o renderer de confirmação
+import { renderEmbedConfirmationModal } from './Renderers/renderEmbedConfirmation.js';
 
 let modalRoot;
 
@@ -18,24 +19,19 @@ export const ModalManager = {
         }
     },
 
-    /**
-     * Renderiza o Modal baseado no estado (isModalOpen).
-     * @param {object} state - O GameState completo.
-     */
     renderModal: function(state) {
         if (!modalRoot) return;
 
         if (!state.isModalOpen) {
-            modalRoot.innerHTML = ''; // Limpa o modal se estiver fechado
+            modalRoot.innerHTML = ''; 
             return;
         }
 
         let contentHTML = '';
-        let modalClass = ''; // (Futuro) Para estilos específicos de modal (ex: 'modal-large')
+        let modalClass = ''; 
 
-        // Determina qual conteúdo renderizar dentro do modal
         switch (state.modalContent) {
-            // --- Modais de Seleção ---
+            // --- Seleção ---
             case 'MODAL_SELECT_EQUIPMENT':
                 contentHTML = renderEquipmentListModal(state);
                 break;
@@ -43,19 +39,22 @@ export const ModalManager = {
                 contentHTML = renderComponentListModal(state);
                 break;
 
-            // --- Modais de Resultado (Loot) ---
+            // --- Resultados ---
             case 'MODAL_COLLECT_RESULT':
             case 'MODAL_INVESTIGATE_RESULT':
                 contentHTML = renderLootResultModal(state.modalData);
                 break;
-
-            // --- (NOVO) Modal de Combate ---
             case 'MODAL_COMBAT_RESULT':
                 contentHTML = renderCombatModal(state);
-                modalClass = 'modal-large'; // Combate precisa de mais espaço
+                modalClass = 'modal-large'; 
                 break;
 
-            // --- Modais de Ação (Placeholders) ---
+            // --- (NOVO) Confirmação ---
+            case 'MODAL_CONFIRM_EMBED':
+                contentHTML = renderEmbedConfirmationModal(state);
+                break;
+
+            // --- Placeholders ---
             case 'MODAL_SELECT_EQUIPMENT_FOR_RARITY':
                 contentHTML = `<h2>Select Equipment to Upgrade Rarity</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
                 break;
@@ -70,7 +69,6 @@ export const ModalManager = {
                 contentHTML = `<h2>Error</h2><p>Modal content ID "${state.modalContent}" not found.</p>`;
         }
 
-        // Renderiza o "wrapper" (invólucro) do modal com o conteúdo
         modalRoot.innerHTML = `
             <div class="modal-overlay" id="modal-overlay">
                 <div class="modal-content panel ${modalClass}">
