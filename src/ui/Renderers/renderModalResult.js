@@ -1,8 +1,8 @@
 /* ====================================================================
 // RENDERER: renderModalResult.js
-// UPDATE: (Refatoração de Layout)
-// Implementa o layout de 2 colunas (Imagem Esquerda, Loot Direita)
-// e melhora a exibição das mensagens.
+// UPDATE: (Passo 7.2 - Robustez de Loot)
+// Garante que o renderer lide corretamente com itens de Equipamento
+// e Componentes no loot (além de Materiais).
 // ==================================================================== */
 
 import { MATERIALS_DB } from '../../../database/materials.js';
@@ -29,18 +29,16 @@ export const renderLootResultModal = (modalData) => {
     switch (type) {
         case 'collect_success':
             title = 'Recursos Coletados';
-            // (Usando o baú como placeholder, idealmente teríamos 'modal_collect.png')
             imageHTML = `<img src="assets/ui/modal_loot.png" class="modal-result-image" alt="Coleta">`;
             break;
         case 'investigate_success':
-            title = 'Loot Raro Encontrado!';
+            title = 'Loot Encontrado!';
             imageHTML = `<img src="assets/ui/modal_loot.png" class="modal-result-image" alt="Loot">`;
             break;
         case 'investigate_nothing':
             title = 'Nada Encontrado';
             imageHTML = `<img src="assets/ui/modal_nothing.png" class="modal-result-image" alt="Nada Encontrado">`;
             break;
-        // (Futuro: case 'ambush': ...)
         default:
             title = 'Ação Realizada';
             imageHTML = `<img src="assets/ui/modal_nothing.png" class="modal-result-image" alt="Resultado">`;
@@ -49,8 +47,15 @@ export const renderLootResultModal = (modalData) => {
     // 2. Renderiza a lista de itens (se houver)
     if (items && items.length > 0) {
         itemsHTML = items.map(item => {
-            const itemData = MATERIALS_DB[item.itemId] || COMPONENTS_DB[item.itemId] || EQUIPMENT_DB[item.itemId];
-            if (!itemData) return '';
+            // Tenta encontrar o item em todos os DBs
+            let itemData = MATERIALS_DB[item.itemId];
+            if (!itemData) itemData = COMPONENTS_DB[item.itemId];
+            if (!itemData) itemData = EQUIPMENT_DB[item.itemId];
+
+            if (!itemData) {
+                console.warn(`Item ID ${item.itemId} não encontrado nos DBs.`);
+                return '';
+            }
             
             return `
                 <li class="loot-item">
@@ -67,7 +72,7 @@ export const renderLootResultModal = (modalData) => {
         itemsHTML = `<p class="modal-result-message">${message}</p>`;
     }
 
-    // 3. Montagem Final (Novo Layout de 2 Colunas)
+    // 3. Montagem Final
     return `
         <h2>${title}</h2>
         <div class="modal-result-layout">
