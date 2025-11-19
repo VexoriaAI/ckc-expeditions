@@ -1,8 +1,8 @@
 /* ====================================================================
 // RENDERER: renderHubPreparation.js
-// UPDATE: (CORREÇÃO DE IMPORTAÇÃO 404)
-// Atualiza os caminhos para usar os novos arquivos modulares de
-// Workshop (Refine, Craft, Embed) e Inventário (Equip, Comp, List, Shop).
+// UPDATE: (Passo 1.2 - Stats Completos)
+// Expande o 'statsSummaryHTML' para exibir TODOS os novos atributos
+// do sistema de combate (Block, Dodge, Resist, Lifesteal, etc.).
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -11,20 +11,17 @@ import { EquipmentSystem } from '../../systems/EquipmentSystem.js';
 
 import { renderMannequinSlots } from './renderMannequin.js';
 
-// --- (CORREÇÃO) NOVOS IMPORTS MODULARES ---
-
-// 1. Workshop Modules
+// Imports Modulares do Workshop
 import { renderRefineTab } from './renderWorkshopRefine.js';
 import { renderCraftTab } from './renderWorkshopCraft.js';
 import { renderEmbedTab } from './renderWorkshopEmbed.js';
 
-// 2. Inventory Modules
+// Imports Modulares do Inventário
 import { renderInventoryEquipments } from './renderInventoryEquipments.js'; 
 import { renderInventoryComponents } from './renderInventoryComponents.js';
-import { renderInventoryMaterials } from './renderInventoryLists.js'; // (Lista simples para Materiais)
+import { renderInventoryMaterials } from './renderInventoryLists.js';
 import { renderInventoryShopItems } from './renderInventoryShopItems.js';
 
-// --- Fim dos Imports ---
 
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
@@ -36,22 +33,49 @@ export const renderHubPreparationScreen = (state) => {
     if (!kidStaticData) return `<h2>Error: Kid Data not found for ID: ${kidId}</h2>`;
 
     const equippedItems = EquipmentSystem.getEquippedItems();
+    
+    // Calcula Stats Finais (Soma Base + Itens)
     const finalStats = calculateFinalStats(kidStaticData, equippedItems);
     const totalPowerScore = calculatePowerScore(finalStats);
+    
     const mannequinHTML = renderMannequinSlots(equippedItems);
+
+    // (ATUALIZADO) Lista de Stats Completa (Grid 2 Colunas)
+    // Nota: Usamos 'ap' ou 'AP' dependendo de como foi salvo. O sistema deve padronizar,
+    // mas aqui tentamos ler ambos para garantir.
+    const displayAP = finalStats.AP || finalStats.ap || 0;
 
     const statsSummaryHTML = `
         <div class="stats-summary-card panel">
             <h4>FINAL STATS:</h4>
             <div class="power-score-badge">Power Score: <span>${totalPowerScore}</span></div>
+            
             <ul class="stats-grid">
                 <li>HP Max: <span>${finalStats.maxHP}</span></li>
-                <li>Attack: <span>${finalStats.attack}</span></li>
-                <li>Defense: <span>${finalStats.defense}</span></li>
-                <li>Speed (MP): <span>${finalStats.speed}</span></li>
-                <li>AP: <span>${finalStats.AP}</span></li>
-                <li>Crit Chance: <span>${finalStats.critChance}%</span></li>
+                <li>HP Regen: <span>${finalStats.hpRegen}/turn</span></li>
+                <li style="color: var(--color-accent-blue);">AP: <span>${displayAP}</span></li>
+                <li style="color: var(--color-accent-red);">MP (Speed): <span>${finalStats.speed}</span></li>
                 <li>Luck: <span>${finalStats.luck}</span></li>
+                
+                <li>Attack: <span>${finalStats.attack}</span></li>
+                <li>Atk Speed: <span>+${finalStats.attackSpeed}%</span></li>
+                <li>Crit Chance: <span>${finalStats.critChance}%</span></li>
+                <li>Crit Dmg: <span>+${finalStats.critDamage}%</span></li>
+                <li>Lifesteal: <span>${finalStats.lifesteal}%</span></li>
+                <li>Stun Chance: <span>${finalStats.stunChance}%</span></li>
+                <li>Fire Dmg: <span>${finalStats.fireDamage}</span></li>
+
+                <li>Defense: <span>${finalStats.defense}</span></li>
+                <li>Block Chance: <span>${finalStats.blockChance}%</span></li>
+                <li>Block Amt: <span>${finalStats.blockAmount}</span></li>
+                <li>Dodge Chance: <span>${finalStats.dodgeChance}%</span></li>
+                <li>Thorns: <span>${finalStats.thorns}</span></li>
+
+                <li>Fire Res: <span>${finalStats.fireResist}%</span></li>
+                <li>Toxin Res: <span>${finalStats.toxinResist}%</span></li>
+                <li>Energy Res: <span>${finalStats.energyResist}%</span></li>
+                
+                <li>Cooldown Red: <span>${finalStats.cooldownReduction}%</span></li>
             </ul>
         </div>
     `;
@@ -68,7 +92,7 @@ export const renderHubPreparationScreen = (state) => {
         </div>
     `;
     
-    const activeWorkshopTab = state.uiState.activeWorkshopTab || 'refine'; 
+    const activeWorkshopTab = state.uiState.activeWorkshopTab || 'craft'; 
     const activeInventoryTab = state.uiState.activeInventoryTab || 'equipments';
     let workshopContent = '';
     let inventoryContent = '';
@@ -146,8 +170,8 @@ export const renderHubPreparationScreen = (state) => {
                     <div class="workshop-panel panel">
                         <h3>Workshop</h3>
                         <div class="tabs" id="workshop-tabs">
-                            <button class="tab-btn ${activeWorkshopTab === 'refine' ? 'active' : ''}" data-tab="refine">REFINE</button>
                             <button class="tab-btn ${activeWorkshopTab === 'craft' ? 'active' : ''}" data-tab="craft">CRAFT</button>
+                            <button class="tab-btn ${activeWorkshopTab === 'refine' ? 'active' : ''}" data-tab="refine">REFINE (UPGRADE)</button>
                             <button class="tab-btn ${activeWorkshopTab === 'embed' ? 'active' : ''}" data-tab="embed">EMBED</button>
                         </div>
                         <div id="workshop-content" class="tab-content">
