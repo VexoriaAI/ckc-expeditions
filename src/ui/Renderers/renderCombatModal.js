@@ -1,10 +1,14 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderCombatModal.js
-// Renderiza o Modal de Resultado de Combate (VS, Log, Loot).
+// RENDERER: renderCombatModal.js
+// UPDATE: (CORREÇÃO DE DIAGNÓSTICO)
+// Adiciona importações de COMPONENTS_DB e EQUIPMENT_DB para que
+// o loot de vitória seja renderizado corretamente.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
+import { COMPONENTS_DB } from '../../../database/components.js'; // (NOVO)
+import { EQUIPMENT_DB } from '../../../database/equipment.js';   // (NOVO)
 
 // Helper para encontrar o Kid
 const getKidDataById = (kidId) => {
@@ -18,7 +22,9 @@ const renderCombatLoot = (items) => {
     if (!items || items.length === 0) return '';
     
     const lootHTML = items.map(item => {
-        const itemData = MATERIALS_DB[item.itemId]; // Assume materiais por enquanto
+        // (CORREÇÃO) Procura o item em todos os bancos de dados
+        const itemData = MATERIALS_DB[item.itemId] || COMPONENTS_DB[item.itemId] || EQUIPMENT_DB[item.itemId];
+        
         if (!itemData) return '';
         
         return `
@@ -88,7 +94,7 @@ export const renderCombatModal = (state) => {
         </div>
     `;
 
-    // Log de Combate (Formatado)
+    // Log de Combate
     const logHTML = combatLog.map(entry => {
         let className = 'log-entry';
         if (entry.includes('VICTORY')) className += ' log-victory';
