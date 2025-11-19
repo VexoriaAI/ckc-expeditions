@@ -363,9 +363,14 @@ function handleGlobalChange(event) {
         });
     }
     else if (target.id === 'filter-tribe') {
-        const selectedOptions = Array.from(target.selectedOptions).map(option => option.value);
+        // (ATUALIZADO) Lógica para Single Select Dropdown
+        const selectedValue = target.value;
+        // Se for 'all', passamos um array vazio ou lidamos com isso no renderer (que já lida com 'all')
+        // O renderer espera um array em 'selectedTribes'
+        const tribesArray = selectedValue === 'all' ? ['all'] : [selectedValue];
+        
         updateState({ 
-            hubSelectionFilters: { selectedTribes: selectedOptions, currentPage: 1 } 
+            hubSelectionFilters: { selectedTribes: tribesArray, currentPage: 1 } 
         });
     }
     
