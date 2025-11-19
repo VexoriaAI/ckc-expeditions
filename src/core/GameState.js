@@ -1,8 +1,8 @@
 /* ====================================================================
 // CORE: GameState.js
-// UPDATE: (Arquitetura do Modal de Resultado)
-// - Adiciona 'modalData' ao estado para armazenar o loot do resultado.
-// - Atualiza 'openModal' para aceitar 'modalData' e 'autoClose'.
+// UPDATE: (Passo 3.2 - Fix End Expedition)
+// Atualiza a estrutura do 'expedition' no INITIAL_STATE para evitar
+// crash ao resetar a expedição (adiciona position e foundLoot).
 // ==================================================================== */
 
 import { MOCK_INVENTORY, MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
@@ -24,16 +24,31 @@ export const INITIAL_STATE = {
         shopItems: {}, 
     },
 
-    // 4. Expedition Data
+    // 4. (ATUALIZADO) Expedition Data (Schema Correto)
     expedition: {
         kidStats: null, 
-        currentLocation: null,
-        AP: 0, 
-        MP: 0, 
+        
+        currentHP: 0, maxHP: 0,
+        currentAP: 0, maxAP: 0,
+        currentMP: 0, maxMP: 0,
+        
+        currentDay: 1, 
+        maxDays: 10,
+        
+        // (FIX) Inicializa position e nodeId para evitar crash no reset
+        position: { nodeId: null }, 
+        
         log: [],
+        
+        // (FIX) Inicializa foundLoot
+        foundLoot: { 
+            materials: {},
+            components: [],
+            equipment: []
+        }
     },
     
-    // 5. UI State (Filtros de Inventário, Abas Ativas)
+    // 5. UI State
     uiState: {
         activeInventoryTab: 'equipments',
         activeWorkshopTab: 'craft', 
@@ -41,7 +56,7 @@ export const INITIAL_STATE = {
         inventoryEquipmentSort: 'power',  
         craftFilterType: 'all', 
         craftFilterTribe: 'all',
-        skipAnimations: false // O checkbox da expedição
+        skipAnimations: false 
     },
     
     // 6. UI State para o Workshop EMBED
@@ -49,12 +64,12 @@ export const INITIAL_STATE = {
     embedTargetComponentId: null, 
     embedTargetSlotIndex: null,
 
-    // 7. (ATUALIZADO) Estado do Modal Global
+    // 7. Estado do Modal Global
     isModalOpen: false,
-    modalContent: null, // ex: 'MODAL_SELECT_EQUIPMENT'
+    modalContent: null, 
     modalTargetSlot: null,
-    modalData: null, // (NOVO) Armazena dados para o modal (ex: loot encontrado)
-    isModalAutoClose: false // (NOVO) Flag para o ModalManager saber se deve fechar sozinho
+    modalData: null, 
+    isModalAutoClose: false 
 };
 
 let gameState = { ...INITIAL_STATE };
@@ -64,7 +79,7 @@ export const getState = () => {
 };
 
 export const updateState = (updates) => {
-    // Deep merge para objetos de estado aninhados (Filtros e UI State)
+    // Deep merge para objetos de estado aninhados
     if (updates.hubSelectionFilters) {
         gameState.hubSelectionFilters = {
             ...gameState.hubSelectionFilters,
@@ -132,14 +147,8 @@ export const loadDemoData = () => {
     gameState.isWalletConnected = true;
 };
 
-// --- (ATUALIZADO) Funções de Controle do Modal ---
+// --- Funções de Controle do Modal ---
 
-/**
- * Abre o modal global e define seu conteúdo.
- * @param {string} contentId - O ID do conteúdo (ex: 'MODAL_SELECT_EQUIPMENT').
- * @param {object} [data=null] - Dados opcionais para o modal (ex: loot).
- * @param {boolean} [autoClose=false] - Se o modal deve fechar após 3s.
- */
 export const openModal = (contentId, data = null, autoClose = false) => {
     updateState({
         isModalOpen: true,
@@ -149,16 +158,12 @@ export const openModal = (contentId, data = null, autoClose = false) => {
     });
 };
 
-/**
- * Fecha o modal global.
- */
 export const closeModal = () => {
     updateState({
         isModalOpen: false,
         modalContent: null,
         modalData: null,
         isModalAutoClose: false,
-        // Limpa o estado temporário
         embedTargetEquipmentId: null,
         embedTargetComponentId: null,
         embedTargetSlotIndex: null,
