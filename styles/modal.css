@@ -1,7 +1,7 @@
 /* ====================================================================
 // STYLES: modal.css
-// UPDATE: (V3.2) Adiciona estilos para o Modal de Resultado
-// (Layout de 2 colunas e responsividade).
+// UPDATE: (Passo 6.3 - Estilos de Combate)
+// Adiciona estilos para a Arena de Combate, Barras de HP, Log Colorido.
 // ==================================================================== */
 
 #modal-root { 
@@ -20,8 +20,6 @@
     justify-content: center;
     align-items: center; 
     padding: 20px;
-    
-    /* (NOVO) Animação de fade-in para o overlay */
     animation: fadeIn 0.2s ease-out;
 }
 
@@ -43,22 +41,19 @@
     position: relative;
     display: flex; 
     flex-direction: column;
-
-    /* (NOVO) Animação de "pop-in" para o conteúdo */
     animation: popIn 0.3s ease-out;
 }
 
-@keyframes popIn {
-    from { 
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to { 
-        opacity: 1;
-        transform: scale(1);
-    }
+/* Classe auxiliar para modais maiores (usada no combate) */
+.modal-content.modal-large {
+    max-width: 900px;
+    min-height: 500px;
 }
 
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
 
 .modal-close-btn {
     position: absolute; 
@@ -76,11 +71,10 @@
 
 .modal-body { 
     overflow-y: auto; 
-    padding-top: 10px; /* Espaço para o título */
+    padding-top: 10px; 
 }
 
-/* ================== Conteúdo: Grid de Seleção (Equip/Comp) ================== */
-
+/* ================== Conteúdo: Grid de Seleção ================== */
 .modal-item-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -89,19 +83,15 @@
     overflow-y: auto;
     padding-top: 5px;
 }
-/* (Estilos do .item-card estão em styles/item_card.css) */
 
-
-/* ================== (NOVO) Conteúdo: Modal de Resultado ================== */
-
+/* ================== Conteúdo: Resultado (Loot) ================== */
 .modal-result-layout {
     display: flex;
     align-items: center;
     gap: 20px;
 }
-
 .modal-image-column {
-    flex-basis: 40%; /* Imagem ocupa 40% */
+    flex-basis: 40%;
     flex-shrink: 0;
     text-align: center;
 }
@@ -112,71 +102,151 @@
     object-fit: contain;
     border-radius: 5px;
 }
-
 .modal-loot-column {
-    flex-basis: 60%; /* Loot ocupa 60% */
+    flex-basis: 60%;
     display: flex;
     flex-direction: column;
 }
-
 .modal-result-message {
     font-size: 1.1em;
     color: var(--color-text-light);
     font-weight: bold;
     text-align: center;
 }
-
-/* Reutiliza o estilo do Loot da tela de Expedição */
+/* Reutiliza estilos de loot do game_screen */
 .modal-loot-column .loot-display-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 200px; /* Limita a altura da lista de loot */
-    overflow-y: auto;
+    list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;
 }
 .modal-loot-column .loot-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1em;
-    color: var(--color-text-dim);
-    background: rgba(0,0,0,0.2);
-    padding: 5px;
-    border-radius: 4px;
+    display: flex; align-items: center; gap: 10px; font-size: 1em; color: var(--color-text-dim); background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;
 }
 .modal-loot-column .loot-item img {
-    width: 32px; /* Ícone 32px (Solicitado) */
-    height: 32px;
-    object-fit: contain;
-    border: 1px solid #444;
-    background: var(--color-bg-dark);
-    border-radius: 4px;
+    width: 32px; height: 32px; object-fit: contain; border: 1px solid #444; background: var(--color-bg-dark); border-radius: 4px;
 }
-.modal-loot-column .loot-item span {
-    color: var(--color-text-light);
-    font-weight: bold;
-}
-.modal-loot-column .loot-item .loot-quantity {
-    margin-left: auto; 
-    color: var(--color-text-light);
+.modal-loot-column .loot-item span { color: var(--color-text-light); font-weight: bold; }
+.modal-loot-column .loot-item .loot-quantity { margin-left: auto; color: var(--color-text-light); }
+
+
+/* ================== (NOVO) Modal de Combate ================== */
+
+.combat-modal-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-/* Responsividade do Modal de Resultado */
+/* Títulos de Resultado */
+.combat-title-victory { color: var(--color-accent-green); text-align: center; font-size: 2em; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 255, 106, 0.3); }
+.combat-title-defeat { color: var(--color-accent-red); text-align: center; font-size: 2em; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 10px rgba(255, 58, 92, 0.3); }
+
+/* A Arena (Fighters) */
+.combat-arena {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    border: 1px solid #444;
+}
+
+.combat-fighter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40%;
+    text-align: center;
+}
+
+.fighter-img-frame {
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--color-text-dim);
+    border-radius: 50%;
+    background-color: var(--color-bg-dark);
+    overflow: hidden;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fighter-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Destaques para Player vs Enemy */
+.combat-fighter.player .fighter-img-frame { border-color: var(--color-accent-blue); box-shadow: 0 0 15px rgba(0, 224, 255, 0.2); }
+.combat-fighter.enemy .fighter-img-frame { border-color: var(--color-accent-red); box-shadow: 0 0 15px rgba(255, 58, 92, 0.2); }
+
+.fighter-stats { width: 100%; }
+.fighter-name { font-weight: bold; font-size: 1.1em; display: block; margin-bottom: 5px; }
+.fighter-hp { font-size: 0.9em; color: var(--color-text-dim); display: block; margin-bottom: 5px; }
+
+/* Mini Barra de HP */
+.hp-bar-mini {
+    width: 100%;
+    height: 8px;
+    background-color: #333;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.hp-bar-mini .hp-fill {
+    height: 100%;
+    background-color: var(--color-accent-green);
+    transition: width 0.5s ease;
+}
+.combat-fighter.enemy .hp-fill { background-color: var(--color-accent-red); }
+
+.vs-badge {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--color-text-dim);
+    font-style: italic;
+}
+
+/* Seção de Loot do Combate */
+.combat-loot-section {
+    text-align: center;
+    background: rgba(0, 255, 106, 0.1); /* Fundo esverdeado */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px dashed var(--color-accent-green);
+}
+.combat-loot-grid {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.combat-loot-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.9em;
+}
+.combat-loot-item img { width: 48px; height: 48px; object-fit: contain; margin-bottom: 5px; border: 1px solid #555; background: var(--color-bg-dark); border-radius: 4px; }
+
+/* Log de Batalha */
+.combat-log-wrapper h4 { margin-bottom: 5px; font-size: 1em; color: var(--color-text-dim); }
+.combat-log-scroll {
+    height: 150px;
+    overflow-y: auto;
+    background-color: black;
+    border: 1px solid #333;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+}
+.log-entry { margin: 2px 0; color: #aaa; }
+.log-entry.log-victory { color: var(--color-accent-green); font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+.log-entry.log-defeat { color: var(--color-accent-red); font-weight: bold; text-transform: uppercase; margin-top: 10px; }
+.log-entry.log-crit { color: var(--color-rank-1); /* Dourado/Amarelo */ }
+
+
+/* Responsividade */
 @media (max-width: 768px) {
-    .modal-result-layout {
-        flex-direction: column; /* Empilha a imagem e o loot */
-    }
-    .modal-image-column {
-        flex-basis: auto;
-        width: 100%;
-        max-height: 150px;
-    }
-    .modal-loot-column {
-        flex-basis: auto;
-        width: 100%;
-        margin-top: 15px;
-    }
+    .modal-result-layout { flex-direction: column; }
+    .combat-arena { padding: 10px; gap: 5px; }
+    .fighter-img-frame { width: 60px; height: 60px; }
+    .vs-badge { font-size: 1.2em; }
 }
