@@ -1,21 +1,16 @@
 /* ====================================================================
 // RENDERER: renderHubSelection.js
-// UPDATE: (CORREÇÃO DE SINCRONIZAÇÃO) Adiciona checagem de segurança
-// para 'filters' e 'filters.selectedTribes' para evitar crash.
+// UPDATE: (Passo 1.1 - Fix Filtros)
+// - Transforma o filtro de Tribo em Dropdown simples.
+// - Melhora o layout responsivo da toolbar.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 
-/**
- * Renders the Hub Selection screen (Kid NFT grid, filters, pagination).
- * @param {object} state - The current GameState.
- * @returns {string} HTML content for the screen.
- */
 export const renderHubSelectionScreen = (state) => {
     const kidzData = state.playerKidz || []; 
     
-    // (CORREÇÃO) Adiciona um fallback caso hubSelectionFilters seja nulo/undefined
     const filters = state.hubSelectionFilters || {
         searchQuery: '',
         selectedTribes: [],
@@ -34,9 +29,8 @@ export const renderHubSelectionScreen = (state) => {
         );
     }
 
-    // Tribe (Multiple)
-    // (CORREÇÃO) Verifica se selectedTribes existe antes de checar length
-    if (filters.selectedTribes && filters.selectedTribes.length > 0) {
+    // Tribe (Agora Single Select para mobile, mas a lógica suporta array)
+    if (filters.selectedTribes && filters.selectedTribes.length > 0 && filters.selectedTribes[0] !== 'all') {
         filteredKidz = filteredKidz.filter(kid => 
             filters.selectedTribes.includes(kid.tribe)
         );
@@ -47,10 +41,9 @@ export const renderHubSelectionScreen = (state) => {
         if (filters.sortBy === 'power') {
             const powerA = calculatePowerScore(a.baseStats);
             const powerB = calculatePowerScore(b.baseStats);
-            return powerB - powerA; // Descending
+            return powerB - powerA; 
         }
-        // Default: 'level'
-        return b.level - a.level; // Descending
+        return b.level - a.level; 
     });
 
     // 2. Lógica de Paginação
@@ -60,7 +53,7 @@ export const renderHubSelectionScreen = (state) => {
     const endIndex = startIndex + filters.itemsPerPage;
     const paginatedKidz = filteredKidz.slice(startIndex, endIndex);
     
-    // 3. Renderização dos Cards (Apenas itens paginados)
+    // 3. Renderização dos Cards
     const kidCardsHTML = paginatedKidz.map(kid => `
         <div class="kid-card panel" data-kid-id="${kid.id}">
             
@@ -90,50 +83,57 @@ export const renderHubSelectionScreen = (state) => {
         </div>
     `).join('');
 
-    // 4. Renderização dos Controles de Filtro
+    // Helper para verificar seleção
+    const currentTribe = filters.selectedTribes[0] || 'all';
+
+    // 4. Renderização dos Controles de Filtro (Responsivo)
     const filterControlsHTML = `
-        <div class="filter-toolbar">
-            <input type="text" id="filter-search-name" placeholder="Search by name..." value="${filters.searchQuery}">
+        <div class="filter-toolbar panel">
+            <div class="filter-row search-row">
+                <input type="text" id="filter-search-name" placeholder="Search by Name or ID..." value="${filters.searchQuery}">
+            </div>
             
-            <select id="filter-tribe" multiple>
-                <option value="VOLCANICS" ${filters.selectedTribes.includes('VOLCANICS') ? 'selected' : ''}>Volcanics</option>
-                <option value="NOCTURNALS" ${filters.selectedTribes.includes('NOCTURNALS') ? 'selected' : ''}>Nocturnals</option>
-                <option value="UNDERGROUNDERS" ${filters.selectedTribes.includes('UNDERGROUNDERS') ? 'selected' : ''}>Undergrounders</option>
-                <option value="REPTILIANS" ${filters.selectedTribes.includes('REPTILIANS') ? 'selected' : ''}>Reptilians</option>
-                <option value="RADIOACTIVES" ${filters.selectedTribes.includes('RADIOACTIVES') ? 'selected' : ''}>Radioactives</option>
-            </select>
-            
-            <select id="filter-sort-by">
-                <option value="level" ${filters.sortBy === 'level' ? 'selected' : ''}>Sort by Level</option>
-                <option value="power" ${filters.sortBy === 'power' ? 'selected' : ''}>Sort by Power</option>
-            </select>
-            
-            <select id="filter-items-per-page">
-                <option value="5" ${filters.itemsPerPage == 5 ? 'selected' : ''}>5 per page</option>
-                <option value="10" ${filters.itemsPerPage == 10 ? 'selected' : ''}>10 per page</option>
-                <option value="20" ${filters.itemsPerPage == 20 ? 'selected' : ''}>20 per page</option>
-                <option value="50" ${filters.itemsPerPage == 50 ? 'selected' : ''}>50 per page</option>
-            </select>
-            
-            <button id="btn-filter-reset" class="action-btn btn-secondary btn-sm">Reset</button>
+            <div class="filter-row options-row">
+                <select id="filter-tribe">
+                    <option value="all" ${currentTribe === 'all' ? 'selected' : ''}>All Tribes</option>
+                    <option value="VOLCANICS" ${currentTribe === 'VOLCANICS' ? 'selected' : ''}>Volcanics</option>
+                    <option value="NOCTURNALS" ${currentTribe === 'NOCTURNALS' ? 'selected' : ''}>Nocturnals</option>
+                    <option value="UNDERGROUNDERS" ${currentTribe === 'UNDERGROUNDERS' ? 'selected' : ''}>Undergrounders</option>
+                    <option value="REPTILIANS" ${currentTribe === 'REPTILIANS' ? 'selected' : ''}>Reptilians</option>
+                    <option value="RADIOACTIVES" ${currentTribe === 'RADIOACTIVES' ? 'selected' : ''}>Radioactives</option>
+                </select>
+                
+                <select id="filter-sort-by">
+                    <option value="level" ${filters.sortBy === 'level' ? 'selected' : ''}>Sort by Level</option>
+                    <option value="power" ${filters.sortBy === 'power' ? 'selected' : ''}>Sort by Power</option>
+                </select>
+                
+                <select id="filter-items-per-page">
+                    <option value="5" ${filters.itemsPerPage == 5 ? 'selected' : ''}>5 per page</option>
+                    <option value="10" ${filters.itemsPerPage == 10 ? 'selected' : ''}>10 per page</option>
+                    <option value="20" ${filters.itemsPerPage == 20 ? 'selected' : ''}>20 per page</option>
+                </select>
+
+                <button id="btn-filter-reset" class="action-btn btn-secondary btn-sm">RESET</button>
+            </div>
         </div>
     `;
     
-    // 5. Renderização dos Controles de Paginação
     const paginationControlsHTML = `
         <div class="pagination-controls">
-            <button id="btn-page-prev" class="action-btn btn-sm" ${filters.currentPage === 1 ? 'disabled' : ''}>Previous</button>
+            <button id="btn-page-prev" class="action-btn btn-sm" ${filters.currentPage === 1 ? 'disabled' : ''}>PREVIOUS</button>
             <span>Page ${filters.currentPage} of ${totalPages} (${totalItems} items)</span>
-            <button id="btn-page-next" class="action-btn btn-sm" ${filters.currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+            <button id="btn-page-next" class="action-btn btn-sm" ${filters.currentPage >= totalPages ? 'disabled' : ''}>NEXT</button>
         </div>
     `;
 
-    // 6. Montagem Final
     return `
         <div class="screen hub-selection-screen hub-container">
+            <h2 class="page-title">SELECT YOUR MUTANT KID</h2>
+            <p class="page-subtitle">Choose your mutant kid to manage their equipment and start an expedition.</p>
             ${filterControlsHTML}
             <div class="nft-grid">
-                ${kidCardsHTML.length > 0 ? kidCardsHTML : '<p>No CyberKidz found matching filters.</p>'}
+                ${kidCardsHTML.length > 0 ? kidCardsHTML : '<p>No CyberKidz found.</p>'}
             </div>
             ${paginationControlsHTML}
         </div>
