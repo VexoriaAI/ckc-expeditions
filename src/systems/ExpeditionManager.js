@@ -1,65 +1,47 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (Refatoração de Mapa - Node-Based)
-// - startExpedition() agora usa SPAWN_NODE_ID (em vez de {q,r}).
-// - Adiciona a nova lógica 'moveToNode()'.
+// UPDATE: (CORREÇÃO FINAL) 
+// - Inclui a vírgula de sintaxe.
+// - Inclui a integração REAL com CombatSystem (sem alerts).
+// - Inclui handleCombatExecution.
 // ==================================================================== */
 
-import { getState, updateState, setCurrentScreen, INITIAL_STATE } from '../core/GameState.js';
+import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
-// (ATUALIZADO) Importa a nova arquitetura de Nós
-import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../database/maps.js';
+import { STATIC_MAP_DATA, MAP_BIOMES, SPAWN_NODE_ID, MAP_NODES } from '../../database/maps.js'; // (ATUALIZADO IMPORT)
 import { DROP_TABLES } from '../../database/drops.js'; 
 import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
 import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; 
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
+import { CombatSystem } from './CombatSystem.js'; // (Importação do Combate)
 
-// --- Helpers (Atualizados para Nós) ---
+// --- Helpers ---
 
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-/**
- * (ATUALIZADO) Retorna o ID do nó de spawn (Ex: 'wasteland_crossroads')
- */
 const getSpawnNodeId = (kidTribe) => {
-    // (Futuro: Lógica de spawn aleatório baseado na Tribo)
-    // Por enquanto, todos começam no SPAWN_NODE_ID definido em maps.js
     return SPAWN_NODE_ID; 
 };
 
-/**
- * (ATUALIZADO) Retorna a chave do Bioma (ex: 'WASTELAND') para o Nó atual.
- */
 const getCurrentBiomeKey = (nodeId) => {
     const node = MAP_NODES.find(n => n.id === nodeId);
-    return node ? node.biome : 'WASTELAND'; // Padrão
+    return node ? node.biome : 'WASTELAND'; 
 };
 
-/**
- * (Helper) Rola um número aleatório (ex: para loot)
- */
 const rollDice = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-/**
- * (NOVO) Calcula o custo de MP entre dois nós.
- * (Por enquanto, o custo é sempre 1 MP, conforme sua regra).
- */
 const calculateMPCost = (fromNodeId, toNodeId) => {
-    // (Futuro: Podemos adicionar lógica de distância (x,y) aqui)
-    return 1; // Custo fixo de 1 MP por movimento
+    return 1; 
 };
 
 
 export const ExpeditionManager = {
 
-    /**
-     * Inicia uma nova expedição.
-     */
     startExpedition: function() {
         const state = getState();
         const kidId = state.currentPlayerKidId;
@@ -71,7 +53,6 @@ export const ExpeditionManager = {
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
         
-        // (ATUALIZADO) Define o nó de spawn
         const startNodeId = getSpawnNodeId(kidStaticData.tribe);
         const startBiomeKey = getCurrentBiomeKey(startNodeId);
 
@@ -86,7 +67,7 @@ export const ExpeditionManager = {
             currentDay: 1, 
             maxDays: 10,
             
-            position: { nodeId: startNodeId }, // (ATUALIZADO)
+            position: { nodeId: startNodeId }, 
             
             log: [`Day 1: Expedition started at ${MAP_BIOMES[startBiomeKey].name}.`],
             foundLoot: { 
@@ -100,10 +81,6 @@ export const ExpeditionManager = {
         setCurrentScreen('game-screen');
     },
 
-    /**
-     * (NOVO) Move o jogador para um novo nó adjacente.
-     * @param {string} targetNodeId - O ID do nó para onde mover.
-     */
     moveToNode: function(targetNodeId) {
         const state = getState();
         let { expedition } = state; 
@@ -111,20 +88,17 @@ export const ExpeditionManager = {
         const currentNode = MAP_NODES.find(n => n.id === expedition.position.nodeId);
         const targetNode = MAP_NODES.find(n => n.id === targetNodeId);
 
-        // 1. O nó existe?
         if (!targetNode) {
             console.error(`MoveToNode: Nó alvo "${targetNodeId}" não encontrado.`);
             return;
         }
 
-        // 2. O nó está conectado ao nó atual?
         if (!currentNode || !currentNode.connections.includes(targetNodeId)) {
             expedition.log.unshift(`Cannot move there directly.`);
             updateState({ expedition: expedition });
             return;
         }
 
-        // 3. O jogador tem MP suficiente?
         const cost = calculateMPCost(currentNode.id, targetNodeId);
         if (expedition.currentMP < cost) {
             expedition.log.unshift(`Not enough MP to move. (Costs ${cost} MP)`);
@@ -132,9 +106,8 @@ export const ExpeditionManager = {
             return;
         }
 
-        // 4. Paga o custo e move
         expedition.currentMP -= cost;
-        expedition.position.nodeId = targetNodeId; // Atualiza a Posição
+        expedition.position.nodeId = targetNodeId; 
         
         const newBiome = MAP_BIOMES[targetNode.biome];
         expedition.log.unshift(`Moved to ${targetNode.name}. (Biome: ${newBiome.name})`);
@@ -142,9 +115,6 @@ export const ExpeditionManager = {
         updateState({ expedition: expedition });
     },
 
-    /**
-     * Executa a ação "Collect Resources".
-     */
     collectResources: function() {
         const state = getState();
         let { expedition, uiState } = state; 
@@ -156,7 +126,6 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1; 
 
-        // (ATUALIZADO) Pega o bioma pelo ID do Nó
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const lootTable = DROP_TABLES[biomeKey]?.collect;
 
@@ -192,14 +161,60 @@ export const ExpeditionManager = {
             openModal(
                 'MODAL_COLLECT_RESULT', 
                 { type: 'collect_success', message: logMessage, items: itemsFound },
-                true // Auto-fecha
+                true 
             );
         }
     },
 
     /**
-     * Executa a ação "Investigate".
+     * (NOVO HELPER) Executa a lógica central de combate.
+     * Chamado por 'investigate' (emboscada) e 'searchForEnemy'.
      */
+    handleCombatExecution: function(enemyData) {
+        const state = getState();
+        let { expedition, uiState } = state;
+
+        // 1. Executa a Simulação Pura (CombatSystem)
+        const combatResult = CombatSystem.simulateCombat(expedition.kidStats, enemyData);
+
+        // 2. Atualiza o HP do Jogador (Dano persiste)
+        expedition.currentHP = combatResult.playerRemainingHP;
+
+        // 3. Processa Vitória ou Derrota
+        let lootItems = [];
+        
+        if (combatResult.victory) {
+            expedition.log.unshift(`VICTORY against ${enemyData.name}!`);
+            
+            // Rola o Loot do Inimigo (Rewards)
+            if (enemyData.rewards) {
+                for (const [itemId, dropRule] of Object.entries(enemyData.rewards)) {
+                    if (rollDice(1, 100) <= dropRule.chance) {
+                        const qty = rollDice(dropRule.quantity[0], dropRule.quantity[1]);
+                        if (qty > 0) {
+                            // Assume material/componente genérico por enquanto
+                            expedition.foundLoot.materials[itemId] = (expedition.foundLoot.materials[itemId] || 0) + qty;
+                            lootItems.push({ itemId: itemId, quantity: qty });
+                        }
+                    }
+                }
+            }
+        } else {
+            expedition.log.unshift(`DEFEATED by ${enemyData.name}... barely escaped.`);
+            // (Futuro: Penalidade de morte)
+        }
+
+        updateState({ expedition: expedition });
+
+        // 4. Abre o Modal de Resultado de Combate
+        openModal('MODAL_COMBAT_RESULT', {
+            type: combatResult.victory ? 'combat_victory' : 'combat_defeat',
+            combatLog: combatResult.log,
+            enemy: enemyData,
+            items: lootItems
+        });
+    },
+
     investigate: function() {
         const state = getState();
         let { expedition, uiState } = state; 
@@ -215,7 +230,7 @@ export const ExpeditionManager = {
         const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
         
         if (!eventTable) {
-             console.error(`Investigate: Nenhuma tabela 'investigate' encontrada para o bioma ${biomeKey} em spawn_logic.js.`);
+             console.error(`Investigate: Nenhuma tabela encontrada para ${biomeKey}.`);
              return;
         }
 
@@ -239,25 +254,29 @@ export const ExpeditionManager = {
                 updateState({ expedition: expedition });
                 
                 if (!uiState.skipAnimations) {
-                    openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
+                    openModal(
+                        'MODAL_INVESTIGATE_RESULT', 
+                        { type: 'investigate_nothing', message: logMessage, items: [] },
+                        true 
+                    );
                 }
                 break;
             
             case "ambush":
-                logMessage = `Ambush! A ${eventResult.enemyRarity} enemy attacks!`;
-                expedition.log.unshift(logMessage);
-                updateState({ expedition: expedition });
-                alert("COMBATE INICIADO (Placeholder)");
+                const rarity = eventResult.enemyRarity || 'common';
+                const enemyData = ENEMIES_BY_BIOME[biomeKey][rarity];
+                
+                if (enemyData) {
+                    expedition.log.unshift(`AMBUSH! A ${enemyData.name} attacks!`);
+                    updateState({ expedition: expedition });
+                    // (ATUALIZADO) Chama o helper de combate
+                    this.handleCombatExecution(enemyData);
+                }
                 break;
 
             case "loot":
                 const lootTable = DROP_TABLES[biomeKey]?.investigate;
-                if (!lootTable) {
-                     logMessage = "Found a quiet spot... but nothing of value.";
-                     expedition.log.unshift(logMessage);
-                     updateState({ expedition: expedition });
-                     return;
-                }
+                if (!lootTable) return;
                 
                 const lootRoll = rollDice(1, 100) + luck; 
                 let lootResult = lootTable[lootTable.length - 1];
@@ -272,9 +291,8 @@ export const ExpeditionManager = {
                     logMessage = "Found a hidden cache... but it was empty.";
                     expedition.log.unshift(logMessage);
                     updateState({ expedition: expedition });
-                    
                     if (!uiState.skipAnimations) {
-                         openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
+                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
                     }
                 } else {
                     const { item, quantity } = lootResult;
@@ -290,16 +308,13 @@ export const ExpeditionManager = {
                     updateState({ expedition: expedition });
 
                     if (!uiState.skipAnimations) {
-                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: logMessage, items: itemsFound }, true);
+                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: "Loot Found!", items: itemsFound }, true);
                     }
                 }
                 break;
         }
     },
 
-    /**
-     * Executa a ação "Search For Enemy".
-     */
     searchForEnemy: function() {
         const state = getState();
         let { expedition } = state;
@@ -324,12 +339,10 @@ export const ExpeditionManager = {
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
 
-        alert(`COMBATE INICIADO vs ${enemyName} (Placeholder)`);
-    },
+        // (ATUALIZADO) Chama o helper de combate
+        this.handleCombatExecution(enemyTable.common);
+    }, 
 
-    /**
-     * Finaliza o turno (dia) atual.
-     */
     endDay: function() {
         const state = getState();
         let { expedition } = state;
@@ -349,16 +362,12 @@ export const ExpeditionManager = {
         updateState({ expedition: expedition });
     },
 
-    /**
-     * Encerra a expedição manualmente.
-     */
     endExpedition: function() {
         const state = getState();
         let { expedition, playerInventory } = state;
 
         if (!expedition) return; 
 
-        // 1. Salva o Loot
         for (const matId in expedition.foundLoot.materials) {
             const amount = expedition.foundLoot.materials[matId];
             playerInventory.materials[matId] = (playerInventory.materials[matId] || 0) + amount;
@@ -371,7 +380,6 @@ export const ExpeditionManager = {
         
         alert(logMessage); 
 
-        // 4. Reseta o estado da expedição e retorna ao Hub
         updateState({ 
             playerInventory: playerInventory,
             expedition: INITIAL_STATE.expedition 
