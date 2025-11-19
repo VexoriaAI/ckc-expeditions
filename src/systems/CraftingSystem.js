@@ -1,7 +1,8 @@
 /* ====================================================================
 // SYSTEM: CraftingSystem.js
-// UPDATE: Refatora 'embedComponent' para encontrar automaticamente 
-// o primeiro slot vago.
+// UPDATE: (Correção de Bug - Passo 2.1)
+// Garante que checkInventoryInputs e as funções principais sempre
+// retornem um objeto { success, message } válido para evitar crashes.
 // ==================================================================== */
 
 import { getState, updateState } from '../core/GameState.js';
@@ -9,137 +10,234 @@ import { RECIPES_DB } from '../../database/recipes.js';
 import { EQUIPMENT_DB } from '../../database/equipment.js';
 import { COMPONENTS_DB } from '../../database/components.js';
 import { MATERIALS_DB } from '../../database/materials.js';
-import { RARITY_MULTIPLIERS, SYNERGY_MAP, SLOT_UNLOCK_RULES } from '../../database/crafting_rules.js';
+import { 
+    SYNERGY_MAP, 
+    SLOTS_BY_RARITY, 
+    SLOT_UNLOCK_RULES 
+} from '../../database/crafting_rules.js';
 
-// ... (generateInstanceId, checkInventoryInputs, consumeInputs - sem alteração) ...
-const generateInstanceId = () => { /* ... */ };
-const checkInventoryInputs = (playerInventory, recipe) => { /* ... */ };
-const consumeInputs = (playerInventory, recipe) => { /* ... */ };
+/**
+ * Gera um ID único para novas instâncias.
+ */
+const generateInstanceId = () => {
+    return Date.now() + Math.floor(Math.random() * 100000);
+};
 
+/**
+ * Verifica se o inventário tem os itens necessários para a receita.
+ * Retorna SEMPRE um objeto { success: boolean, message: string }.
+ */
+const checkInventoryInputs = (playerInventory, recipe) => {
+    if (!recipe) return { success: false, message: "Recipe not found." };
+
+    const { inputMaterials, inputComponents, inputShopItems } = recipe;
+
+    // 1. Materiais
+    if (inputMaterials) {
+        for (const matId in inputMaterials) {
+            const requiredAmount = inputMaterials[matId];
+            const ownedAmount = playerInventory.materials[matId] || 0;
+            if (ownedAmount < requiredAmount) {
+                const matName = MATERIALS_DB[matId]?.name || matId;
+                return { success: false, message: `Missing Material: ${matName}. Need ${requiredAmount}, have ${ownedAmount}.` };
+            }
+        }
+    }
+
+    // 2. Itens de Loja
+    if (inputShopItems) {
+        for (const itemId in inputShopItems) {
+            const requiredAmount = inputShopItems[itemId];
+            const ownedAmount = playerInventory.shopItems[itemId] || 0;
+            if (ownedAmount < requiredAmount) {
+                return { success: false, message: `Missing Shop Item: ${itemId}. Need ${requiredAmount}, have ${ownedAmount}.` };
+            }
+        }
+    }
+
+    // 3. Componentes (Consumíveis na receita)
+    if (inputComponents) {
+        for (const compId in inputComponents) {
+            const requiredAmount = inputComponents[compId];
+            // Conta quantas instâncias desse componente o jogador tem
+            const ownedInstances = playerInventory.components.filter(c => c.item_id === compId).length;
+            if (ownedInstances < requiredAmount) {
+                const compName = COMPONENTS_DB[compId]?.name || compId;
+                return { success: false, message: `Missing Component: ${compName}. Need ${requiredAmount}, have ${ownedInstances}.` };
+            }
+        }
+    }
+
+    return { success: true, message: "Inputs check passed." };
+};
+
+/**
+ * Consome os itens do inventário baseados na receita.
+ */
+const consumeInputs = (inventory, recipe) => {
+    const { inputMaterials, inputComponents, inputShopItems } = recipe;
+
+    // Consome Materiais
+    if (inputMaterials) {
+        for (const matId in inputMaterials) {
+            inventory.materials[matId] -= inputMaterials[matId];
+        }
+    }
+
+    // Consome Shop Items
+    if (inputShopItems) {
+        for (const itemId in inputShopItems) {
+            inventory.shopItems[itemId] -= inputShopItems[itemId];
+        }
+    }
+
+    // Consome Componentes
+    if (inputComponents) {
+        for (const compId in inputComponents) {
+            let requiredAmount = inputComponents[compId];
+            for (let i = 0; i < requiredAmount; i++) {
+                const index = inventory.components.findIndex(c => c.item_id === compId);
+                if (index !== -1) {
+                    inventory.components.splice(index, 1);
+                }
+            }
+        }
+    }
+};
+
+// --- Sistema Exportado ---
 
 export const CraftingSystem = {
     
     processRefineAction: function(recipeId) {
-        // ... (lógica do processRefineAction - sem alteração) ...
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
-        if (!recipe || recipe.type !== 'REFINE') return { success: false, message: 'Invalid or non-REFINE recipe ID.' };
+        
+        if (!recipe || recipe.type !== 'REFINE') {
+            return { success: false, message: 'Invalid recipe for Refining.' };
+        }
+
         const check = checkInventoryInputs(state.playerInventory, recipe);
         if (!check.success) return check;
+
+        // Clona e altera o inventário
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
         consumeInputs(newInventory, recipe);
+
         const { itemId: outputItemId, amount: outputAmount } = recipe.output;
-        if (MATERIALS_DB.hasOwnProperty(outputItemId) || outputItemId.startsWith('mat_')) {
+        
+        // Adiciona o resultado
+        if (MATERIALS_DB[outputItemId] || outputItemId.startsWith('mat_')) {
              newInventory.materials[outputItemId] = (newInventory.materials[outputItemId] || 0) + outputAmount;
-        } else if (COMPONENTS_DB.hasOwnProperty(outputItemId)) {
+        } else if (COMPONENTS_DB[outputItemId]) {
             for (let i = 0; i < outputAmount; i++) {
                  newInventory.components.push({ instance_id: generateInstanceId(), item_id: outputItemId });
             }
         } else {
-             return { success: false, message: `Refine Output Item ID is invalid: ${outputItemId}` };
+             return { success: false, message: `Unknown output item: ${outputItemId}` };
         }
+
         updateState({ playerInventory: newInventory });
-        return { success: true, message: `Successfully refined ${outputAmount}x ${outputItemId}.` };
+        return { success: true, message: `Successfully refined ${outputAmount}x ${outputItemId}!` };
     },
 
     processCraftAction: function(recipeId) {
-        // ... (lógica do processCraftAction - sem alteração) ...
         const state = getState();
         const recipe = RECIPES_DB[recipeId];
-        if (!recipe || recipe.type !== 'CRAFT') return { success: false, message: 'Invalid or non-CRAFT recipe ID.' };
+        
+        if (!recipe || recipe.type !== 'CRAFT') {
+            return { success: false, message: 'Invalid recipe for Crafting.' };
+        }
+
         const equipmentStaticData = EQUIPMENT_DB[recipe.output.itemId];
-        if (!equipmentStaticData) return { success: false, message: 'Crafting output equipment ID not found in database.' };
+        if (!equipmentStaticData) {
+            return { success: false, message: 'Crafting output equipment not found in database.' };
+        }
+
         const check = checkInventoryInputs(state.playerInventory, recipe);
         if (!check.success) return check;
+
+        // Clona e altera
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
         consumeInputs(newInventory, recipe);
+
+        // Cria o novo equipamento
         const baseRarity = equipmentStaticData.base_rarity || 'COMMON';
         const baseTier = equipmentStaticData.tier || 1;
-        const totalSlots = SLOTS_BY_RARITY[baseRarity];
+        const totalSlots = SLOTS_BY_RARITY[baseRarity] || 2;
+        
         const initialSlots = [];
         for (let i = 0; i < totalSlots; i++) {
-            const requiredTier = SLOT_UNLOCK_RULES[i];
+            const requiredTier = SLOT_UNLOCK_RULES[i] || 99;
             initialSlots.push({
                 component_id: null,
                 isLocked: baseTier < requiredTier, 
             });
         }
+
         const newEquipment = {
             instance_id: generateInstanceId(),
             item_id: equipmentStaticData.id,
             isEquipped: false, 
-            rarity: baseRarity,
-            tier: baseTier,
-            slots: initialSlots,
+            rarity: baseRarity, 
+            tier: baseTier,     
+            slots: initialSlots, 
+            // Copia skills base se houver, senão array vazio
+            skills: equipmentStaticData.skills ? [...equipmentStaticData.skills] : []
         };
+
         newInventory.equipment.push(newEquipment);
         updateState({ playerInventory: newInventory });
-        return { success: true, message: `Successfully crafted new ${baseRarity} ${equipmentStaticData.name}!`, newEquipment: newEquipment };
+        
+        return { 
+            success: true, 
+            message: `Successfully crafted ${equipmentStaticData.name}!` 
+        };
     },
     
-    /**
-     * (ATUALIZADO) Executa o 'EMBED' no PRIMEIRO slot vago.
-     * @param {number} equipmentInstanceId - O ID do equipamento.
-     * @param {number} componentInstanceId - O ID do componente.
-     * @returns {object} { success: boolean, message: string }
-     */
     embedComponent: function(equipmentInstanceId, componentInstanceId) {
         const state = getState();
         const newInventory = JSON.parse(JSON.stringify(state.playerInventory));
-        const equipment = newInventory.equipment.find(e => e.instance_id === equipmentInstanceId);
-        const component = newInventory.components.find(c => c.instance_id === componentInstanceId);
-        const componentIndex = newInventory.components.findIndex(c => c.instance_id === componentInstanceId);
-
-        if (!equipment) return { success: false, message: 'Equipment instance not found in inventory.' };
-        if (!component) return { success: false, message: 'Component instance not found in inventory.' };
         
-        // (LÓGICA ATUALIZADA) Encontra o primeiro slot que está VAZIO (null) E DESTRAVADO (tier)
-        let targetSlot = null;
-        let targetSlotIndex = -1;
+        const equipment = newInventory.equipment.find(e => e.instance_id === equipmentInstanceId);
+        const componentIndex = newInventory.components.findIndex(c => c.instance_id === componentInstanceId);
+        const component = newInventory.components[componentIndex];
 
+        if (!equipment) return { success: false, message: 'Equipment not found.' };
+        if (!component) return { success: false, message: 'Component not found.' };
+        
+        // Encontra slot vago e destravado
+        let targetSlot = null;
         for (let i = 0; i < equipment.slots.length; i++) {
             const slot = equipment.slots[i];
-            const requiredTier = SLOT_UNLOCK_RULES[i];
-            // Está vago? O tier do item é suficiente?
-            if (slot.component_id === null && equipment.tier >= requiredTier) {
+            if (slot.component_id === null && !slot.isLocked) {
                 targetSlot = slot;
-                targetSlotIndex = i;
-                break; // Encontra o primeiro e para
+                break;
             }
         }
         
         if (!targetSlot) {
-            return { success: false, message: 'No available slots (or all slots are locked by Tier).' };
+            return { success: false, message: 'No available/unlocked slots on this item.' };
         }
 
+        // Verifica Sinergia
         const equipmentData = EQUIPMENT_DB[equipment.item_id];
         const componentData = COMPONENTS_DB[component.item_id];
-        const equipmentSynergy = equipmentData.synergy; 
-        const componentType = componentData.type; 
-        const allowedTypes = SYNERGY_MAP[equipmentSynergy];
-
-        if (!allowedTypes) return { success: false, message: `Internal Error: No synergy rule found for ${equipmentSynergy}.` };
-        if (!allowedTypes.includes(componentType)) return { success: false, message: `Synergy Mismatch. ${equipmentSynergy} gear does not accept ${componentType} components.` };
-
-        // Executa o Embed
-        targetSlot.component_id = component.item_id;
         
-        // Remove o componente
-        newInventory.components.splice(componentIndex, 1);
+        if (!equipmentData || !componentData) return { success: false, message: 'Data Error.' };
 
-        // Limpa o estado temporário da UI
-        newInventory.embedTargetEquipmentId = null;
-        newInventory.embedTargetComponentId = null;
+        const allowedTypes = SYNERGY_MAP[equipmentData.synergy];
+        if (!allowedTypes || !allowedTypes.includes(componentData.type)) {
+            return { success: false, message: `Synergy Mismatch: ${equipmentData.synergy} gear rejects ${componentData.type} component.` };
+        }
 
-        updateState({ 
-            playerInventory: newInventory,
-            embedTargetEquipmentId: null, // Limpa o estado da UI
-            embedTargetComponentId: null
-        });
+        // Executa Embed
+        targetSlot.component_id = component.item_id;
+        newInventory.components.splice(componentIndex, 1); // Remove do inventário
 
-        return { 
-            success: true, 
-            message: `Successfully embedded ${componentData.name} into ${equipmentData.name}!` 
-        };
+        // Limpa seleção na UI também (deve ser feito pelo caller, mas garantimos o estado do inv aqui)
+        updateState({ playerInventory: newInventory });
+
+        return { success: true, message: `Successfully embedded ${componentData.name}!` };
     },
 };
