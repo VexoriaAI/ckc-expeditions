@@ -1,8 +1,7 @@
 /* ====================================================================
 // SYSTEM: StatCalculationSystem.js
-// UPDATE: (Etapa 2.1 - Atributos de Combate)
-// - Expande o STATS_SCHEMA com os novos 11 atributos.
-// - Atualiza 'calculatePowerScore' com pesos para os novos stats.
+// UPDATE: (Passo 1.3 - Fix AP)
+// Padroniza 'AP' para 'ap' (minúsculo) para corresponder ao DB.
 // ==================================================================== */
 
 import { EQUIPMENT_DB } from '../../database/equipment.js';
@@ -10,12 +9,12 @@ import { COMPONENTS_DB } from '../../database/components.js';
 
 /**
  * Define o conjunto completo de atributos que um Kid pode ter.
- * (Agora inclui Stats Defensivos, Ofensivos Avançados e Resistências)
  */
 const STATS_SCHEMA = {
     // Base
     maxHP: 0, currentHP: 0, 
-    attack: 0, defense: 0, speed: 0, AP: 0, 
+    attack: 0, defense: 0, speed: 0, 
+    ap: 0, // (CORRIGIDO: minúsculo)
     luck: 0, hpRegen: 0,
 
     // Ofensivo Avançado
@@ -38,7 +37,7 @@ const STATS_SCHEMA = {
 export const calculateFinalStats = (kidData, equippedItems) => {
     // Inicializa com o Schema e os stats base do Kid
     let finalStats = { ...STATS_SCHEMA, ...kidData.baseStats };
-    finalStats.currentHP = finalStats.maxHP; // Reseta HP ao máximo (para display no Hub)
+    finalStats.currentHP = finalStats.maxHP; 
 
     for (const itemInstance of equippedItems) {
         const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
@@ -68,8 +67,7 @@ export const calculateFinalStats = (kidData, equippedItems) => {
 };
 
 /**
- * (ATUALIZADO) Calcula o "Power Score" de um conjunto de stats.
- * Atribui pesos diferentes baseados na utilidade do atributo.
+ * Calcula o "Power Score" de um conjunto de stats.
  */
 export const calculatePowerScore = (stats) => {
     let score = 0;
@@ -79,7 +77,7 @@ export const calculatePowerScore = (stats) => {
     score += (stats.attack || 0) * 5;
     score += (stats.defense || 0) * 3;
     score += (stats.speed || 0) * 2;
-    score += (stats.AP || 0) * 10; // AP é muito valioso
+    score += (stats.ap || 0) * 10; // (CORRIGIDO: usa 'ap')
     score += (stats.hpRegen || 0) * 2;
     score += (stats.luck || 0) * 1;
 
@@ -87,30 +85,29 @@ export const calculatePowerScore = (stats) => {
     score += (stats.critChance || 0) * 4;
     score += (stats.critDamage || 0) * 2;
     score += (stats.attackSpeed || 0) * 3;
-    score += (stats.lifesteal || 0) * 5;   // Lifesteal é muito forte em Idle
-    score += (stats.fireDamage || 0) * 3;  // Dano elemental puro
-    score += (stats.stunChance || 0) * 5;  // Controle é valioso
+    score += (stats.lifesteal || 0) * 5;   
+    score += (stats.fireDamage || 0) * 3;  
+    score += (stats.stunChance || 0) * 5;  
 
     // Defensivo Avançado
     score += (stats.blockChance || 0) * 3;
     score += (stats.blockAmount || 0) * 1;
-    score += (stats.dodgeChance || 0) * 4; // Negar dano é forte
+    score += (stats.dodgeChance || 0) * 4; 
     score += (stats.thorns || 0) * 2;
 
-    // Resistências (Peso menor pois são situacionais)
+    // Resistências
     score += (stats.fireResist || 0) * 1;
     score += (stats.toxinResist || 0) * 1;
     score += (stats.energyResist || 0) * 1;
 
     // Utilidade
-    score += (stats.cooldownReduction || 0) * 4; // Acelera skills
+    score += (stats.cooldownReduction || 0) * 4; 
 
     return Math.floor(score);
 };
 
 /**
  * Calcula o Power Score de UMA Instância de Equipamento.
- * Usado pelo AutoEquip e Sort By.
  */
 export const getEquipmentPowerScore = (itemInstance) => {
     const itemStaticData = EQUIPMENT_DB[itemInstance.item_id];
