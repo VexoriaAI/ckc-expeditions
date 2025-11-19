@@ -95,40 +95,39 @@ function handleModalClick(event) {
     const target = event.target;
     const currentState = getState();
 
-    // Lógica de Fechar (Botão 'X' ou clique no Overlay)
     if (target.closest('#btn-modal-close') || target.id === 'modal-overlay') {
         closeModal();
         return;
     }
-
-    // Lógica de Seleção de Item (Para Equipar ou Embutir)
-    // Pega o clique no botão ou no card pai
-    const selectButton = target.id === 'btn-modal-select-item' ? target : target.closest('.modal-item-card');
     
+    // (NOVO) Ações do Modal de Confirmação de Embed
+    if (target.id === 'btn-confirm-embed') {
+        const { embedTargetEquipmentId, embedTargetComponentId } = currentState;
+        const result = CraftingSystem.embedComponent(embedTargetEquipmentId, embedTargetComponentId);
+        
+        alert(result.message); // Feedback final
+        
+        // Limpa seleção e fecha modal
+        updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
+        closeModal();
+    }
+    else if (target.id === 'btn-cancel-embed') {
+        closeModal();
+    }
+
+    const selectButton = target.id === 'btn-modal-select-item' ? target : target.closest('.modal-item-card');
     if (selectButton) {
         const selectedInstanceId = parseInt(selectButton.dataset.instanceId, 10);
-        
         if (currentState.modalContent === 'MODAL_SELECT_EQUIPMENT') {
-            // Se o modal foi aberto pelo Mannequin (para equipar)
             if (currentState.modalTargetSlot) {
                 EquipmentSystem.equipItem(selectedInstanceId);
-                closeModal(); // Fecha o modal
+                closeModal(); 
             } else {
-            // Se foi aberto pelo Embed (para selecionar)
-                updateState({ 
-                    embedTargetEquipmentId: selectedInstanceId,
-                    isModalOpen: false, 
-                    modalContent: null 
-                });
+                updateState({ embedTargetEquipmentId: selectedInstanceId, isModalOpen: false, modalContent: null });
             }
         } 
         else if (currentState.modalContent === 'MODAL_SELECT_COMPONENT') {
-            // Atualiza o GameState com o componente selecionado (para o Embed)
-            updateState({ 
-                embedTargetComponentId: selectedInstanceId,
-                isModalOpen: false, 
-                modalContent: null 
-            });
+            updateState({ embedTargetComponentId: selectedInstanceId, isModalOpen: false, modalContent: null });
         }
     }
 }
@@ -141,70 +140,30 @@ function handleGlobalClick(event) {
     const target = event.target;
     const currentState = getState();
     
-    // --- 1. Global Header Logic ---
-    if (target.id === 'btn-logout') {
-        window.location.reload(); // (ATUALIZADO) Força o refresh da página
-        return; 
-    }
-    if (target.id === 'btn-store') {
-        updateState({ previousScreen: currentState.currentScreen }); 
-        setCurrentScreen('store-screen');
-        return;
-    }
-    if (target.id === 'btn-ranking') {
-        updateState({ previousScreen: currentState.currentScreen }); 
-        setCurrentScreen('ranking-screen');
-        return;
-    }
+    // --- Global ---
+    if (target.id === 'btn-logout') { window.location.reload(); return; }
+    if (target.id === 'btn-store') { updateState({ previousScreen: currentState.currentScreen }); setCurrentScreen('store-screen'); return; }
+    if (target.id === 'btn-ranking') { updateState({ previousScreen: currentState.currentScreen }); setCurrentScreen('ranking-screen'); return; }
     
-    // --- 2. logged-out-screen Logic ---
+    // --- Screens ---
     if (currentState.currentScreen === 'logged-out-screen') {
-        if (target.id === 'btn-connect-wallet' || target.id === 'btn-play-demo') {
-            loadDemoData(); 
-            setCurrentScreen('hub-selection-screen'); 
-        }
+        if (target.id === 'btn-connect-wallet' || target.id === 'btn-play-demo') { loadDemoData(); setCurrentScreen('hub-selection-screen'); }
     } 
-    
-    // --- 3. hub-selection-screen Logic ---
     else if (currentState.currentScreen === 'hub-selection-screen') {
-        
         if (target.id === 'btn-select-kid') {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
-            if (selectedKidId) {
-                updateState({ currentPlayerKidId: selectedKidId });
-                setCurrentScreen('hub-preparation-screen'); 
-            }
+            if (selectedKidId) { updateState({ currentPlayerKidId: selectedKidId }); setCurrentScreen('hub-preparation-screen'); }
         }
-        else if (target.id === 'btn-page-next') {
-            updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage + 1 } });
-        }
-        else if (target.id === 'btn-page-prev') {
-            updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage - 1 } });
-        }
-        else if (target.id === 'btn-filter-reset') {
-            updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters });
-        }
+        else if (target.id === 'btn-page-next') { updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage + 1 } }); }
+        else if (target.id === 'btn-page-prev') { updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage - 1 } }); }
+        else if (target.id === 'btn-filter-reset') { updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters }); }
     }
-    
-    // --- 4. hub-preparation-screen Logic ---
     else if (currentState.currentScreen === 'hub-preparation-screen') {
+        if (target.id === 'btn-back-to-selection') { setCurrentScreen('hub-selection-screen'); } 
+        else if (target.id === 'btn-start-expedition') { ExpeditionManager.startExpedition(); }
         
-        // A. Page Actions
-        if (target.id === 'btn-back-to-selection') {
-            setCurrentScreen('hub-selection-screen');
-        } 
-        // (CORREÇÃO) Chama o ExpeditionManager
-        else if (target.id === 'btn-start-expedition') {
-            ExpeditionManager.startExpedition();
-        }
-        
-        // B. Equipment & Mannequin Actions
-        else if (target.id === 'btn-auto-equip') {
-            EquipmentSystem.autoEquip();
-        } 
-        else if (target.id === 'btn-remove-all') {
-            EquipmentSystem.unequipAll();
-        }
+        else if (target.id === 'btn-auto-equip') { EquipmentSystem.autoEquip(); } 
+        else if (target.id === 'btn-remove-all') { EquipmentSystem.unequipAll(); }
         else if (target.id === 'btn-open-equip-modal') {
             const slotType = target.dataset.slotType;
             openModal('MODAL_SELECT_EQUIPMENT');
@@ -215,38 +174,18 @@ function handleGlobalClick(event) {
             EquipmentSystem.unequipItem(instanceId);
         }
         
-        // C. Workshop: Tab Switching
         else if (target.closest('#workshop-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
-             if (tabId !== currentState.uiState.activeWorkshopTab) {
-                 updateState({ uiState: { activeWorkshopTab: tabId } });
-             }
+             if (tabId !== currentState.uiState.activeWorkshopTab) { updateState({ uiState: { activeWorkshopTab: tabId } }); }
         }
-        // D. Inventory: Tab Switching
         else if (target.closest('#inventory-tabs .tab-btn')) {
              const tabId = target.dataset.tab;
-             if (tabId !== currentState.uiState.activeInventoryTab) {
-                 updateState({ uiState: { activeInventoryTab: tabId } });
-             }
+             if (tabId !== currentState.uiState.activeInventoryTab) { updateState({ uiState: { activeInventoryTab: tabId } }); }
         }
 
-        // E. Workshop: Actions (REFINE/CRAFT)
-        else if (target.id === 'btn-execute-refine') {
-            const recipeId = target.dataset.recipeId;
-            if (recipeId && !target.disabled) {
-                const result = CraftingSystem.processRefineAction(recipeId);
-                alert(result.message); 
-            }
-        }
-        else if (target.id === 'btn-execute-craft') {
-            const recipeId = target.dataset.recipeId;
-            if (recipeId && !target.disabled) {
-                const result = CraftingSystem.processCraftAction(recipeId); 
-                alert(result.message); 
-            }
-        }
+        else if (target.id === 'btn-execute-refine') { /* ... */ }
+        else if (target.id === 'btn-execute-craft') { /* ... */ }
         
-        // F. Workshop: Ações do EMBED
         else if (target.id === 'btn-select-embed-equip') {
             openModal('MODAL_SELECT_EQUIPMENT');
             updateState({ modalTargetSlot: null }); 
@@ -254,20 +193,14 @@ function handleGlobalClick(event) {
         else if (target.id === 'btn-select-embed-comp' && !target.classList.contains('disabled')) {
             openModal('MODAL_SELECT_COMPONENT');
         }
-        else if (target.id === 'btn-remove-embed-equip') {
-            updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
-        }
-        else if (target.id === 'btn-remove-embed-comp') {
-            updateState({ embedTargetComponentId: null });
-        }
+        else if (target.id === 'btn-remove-embed-equip') { updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null }); }
+        else if (target.id === 'btn-remove-embed-comp') { updateState({ embedTargetComponentId: null }); }
+        
+        // (ATUALIZADO) Botão Executar Embed -> Abre Modal
         else if (target.id === 'btn-execute-embed' && !target.disabled) {
-            const { embedTargetEquipmentId, embedTargetComponentId } = currentState;
-            const result = CraftingSystem.embedComponent(embedTargetEquipmentId, embedTargetComponentId);
-            alert(result.message); 
-            updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
+            openModal('MODAL_CONFIRM_EMBED');
         }
 
-        // G. Inventory: Ações (Equip/Unequip/Filter)
         else if (target.id === 'btn-inv-equip') {
             const instanceId = parseInt(target.dataset.instanceId, 10);
             EquipmentSystem.equipItem(instanceId);
@@ -282,54 +215,26 @@ function handleGlobalClick(event) {
         }
         else if (target.id === 'btn-inv-use-item') {
             const modalAction = target.dataset.modalAction;
-            if (modalAction) {
-                openModal(modalAction);
-            }
+            if (modalAction) openModal(modalAction);
         }
     }
-
-    // --- 5. (ATUALIZADO) game-screen Logic ---
     else if (currentState.currentScreen === 'game-screen') {
-        if (target.id === 'btn-end-expedition') {
-            ExpeditionManager.endExpedition(); // (LÓGICA REAL)
-        }
-        // (Ações da Expedição)
-        else if (target.id === 'btn-action-collect') {
-            ExpeditionManager.collectResources(); // (LÓGICA REAL)
-        }
-        else if (target.id === 'btn-action-investigate') {
-            ExpeditionManager.investigate(); // (LÓGICA REAL)
-        }
-         else if (target.id === 'btn-action-search') {
-            ExpeditionManager.searchForEnemy(); // (LÓGICA REAL)
-        }
-         else if (target.id === 'btn-action-end-day') {
-            ExpeditionManager.endDay(); // (LÓGICA REAL)
-        }
-        // (NOVO) Lógica de Movimento
+        if (target.id === 'btn-end-expedition') { ExpeditionManager.endExpedition(); }
+        else if (target.id === 'btn-action-collect') { ExpeditionManager.collectResources(); }
+        else if (target.id === 'btn-action-investigate') { ExpeditionManager.investigate(); }
+        else if (target.id === 'btn-action-search') { ExpeditionManager.searchForEnemy(); }
+        else if (target.id === 'btn-action-end-day') { ExpeditionManager.endDay(); }
         else if (target.id === 'btn-move-node') {
             const targetNodeId = target.dataset.nodeId;
             ExpeditionManager.moveToNode(targetNodeId);
         }
     }
-    
-    // --- 6. store-screen Logic ---
     else if (currentState.currentScreen === 'store-screen') {
-        if (target.id === 'btn-back-to-hub') {
-            setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
-        }
-        else if (target.id === 'btn-buy-item') {
-            const itemId = target.dataset.itemId;
-            const result = Web3Manager.buyItem(itemId, 1);
-            alert(result.message); 
-        }
+        if (target.id === 'btn-back-to-hub') { setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); }
+        else if (target.id === 'btn-buy-item') { /* ... */ }
     }
-    
-    // --- 7. ranking-screen Logic ---
     else if (currentState.currentScreen === 'ranking-screen') {
-        if (target.id === 'btn-back-to-hub') {
-            setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); 
-        }
+        if (target.id === 'btn-back-to-hub') { setCurrentScreen(currentState.previousScreen || 'hub-selection-screen'); }
     }
 }
 
