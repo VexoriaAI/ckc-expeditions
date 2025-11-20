@@ -1,12 +1,11 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// UPDATE: (CORREÇÃO DE ID)
-// Atualiza 'comp_dmg_1' para 'comp_atk_1' no inventário.
-// Atualiza 'refine_magma_to_dmg1' para 'refine_magma_to_atk1'.
+// UPDATE: Adiciona 6 novos personagens e os novos itens ao inventário.
 // ==================================================================== */
 
 // 1. DADOS MOCK: Lista de CyberKidz NFTs
 export const MOCK_KIDZ_NFTS = [
+    // --- Originais ---
     {
         id: '#333',
         name: 'Cypher',
@@ -46,6 +45,56 @@ export const MOCK_KIDZ_NFTS = [
         level: 9,
         spritePath: 'assets/characters/radioactives_4.png',
         baseStats: { maxHP: 150, attack: 7, defense: 12, speed: 2, ap: 2, toxinResist: 20, hpRegen: 3 }
+    },
+
+    // --- (NOVOS) 6 Personagens Adicionais ---
+    {
+        id: '#404',
+        name: 'Glitch',
+        tribe: 'NOCTURNALS',
+        level: 5,
+        spritePath: 'assets/characters/nocturnals_1.png', // Placeholder visual
+        baseStats: { maxHP: 105, attack: 9, defense: 6, speed: 6, ap: 2, dodgeChance: 6, critChance: 10, critDamage: 55 }
+    },
+    {
+        id: '#99',
+        name: 'Hazmat',
+        tribe: 'RADIOACTIVES',
+        level: 6,
+        spritePath: 'assets/characters/radioactives_4.png', // Placeholder visual
+        baseStats: { maxHP: 140, attack: 6, defense: 10, speed: 3, ap: 2, toxinResist: 25, hpRegen: 4 }
+    },
+    {
+        id: '#777',
+        name: 'Jackpot',
+        tribe: 'UNDERGROUNDERS',
+        level: 8,
+        spritePath: 'assets/characters/volcanics_2.png', // Placeholder visual (Undergrounder usa visual similar a Volcanic por enqto)
+        baseStats: { maxHP: 130, attack: 8, defense: 15, speed: 2, ap: 2, blockChance: 10, blockAmount: 5, energyResist: 10 }
+    },
+    {
+        id: '#101',
+        name: 'Magma Boy',
+        tribe: 'VOLCANICS',
+        level: 4,
+        spritePath: 'assets/characters/volcanics_2.png',
+        baseStats: { maxHP: 120, attack: 12, defense: 8, speed: 3, ap: 2, fireResist: 15, thorns: 5 }
+    },
+    {
+        id: '#55',
+        name: 'Scalez',
+        tribe: 'REPTILIANS',
+        level: 7,
+        spritePath: 'assets/characters/reptilians_1.png',
+        baseStats: { maxHP: 135, attack: 12, defense: 8, speed: 5, ap: 2, hpRegen: 3, lifesteal: 2 }
+    },
+    {
+        id: '#202',
+        name: 'Techie',
+        tribe: 'NOCTURNALS',
+        level: 3,
+        spritePath: 'assets/characters/nocturnals_4.png',
+        baseStats: { maxHP: 95, attack: 9, defense: 4, speed: 6, ap: 2, dodgeChance: 4, critChance: 6, critDamage: 40 }
     }
 ];
 
@@ -64,53 +113,37 @@ export const MOCK_INVENTORY = {
         'mat_magma': 10,
     },
     equipment: [
-        {
-            instance_id: 101, 
-            item_id: 'eq_rust_helmet', 
-            rarity: 'COMMON',
-            tier: 1,
-            slots: [
-                { component_id: 'comp_def_1', isLocked: false }, 
-                { component_id: null, isLocked: true },
-            ]
+        { instance_id: 101, item_id: 'eq_rust_helmet', rarity: 'COMMON', tier: 1, slots: [{ component_id: 'comp_def_1', isLocked: false }, { component_id: null, isLocked: true }] },
+        { instance_id: 102, item_id: 'eq_rust_weapon', rarity: 'COMMON', tier: 1, slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: true }] },
+        { instance_id: 103, item_id: 'eq_noct_helmet', rarity: 'RARE', tier: 3, slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: false }, { component_id: null, isLocked: true }] },
+        { instance_id: 104, item_id: 'eq_noct_weapon', rarity: 'MYTHIC', tier: 8, slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: false }, { component_id: null, isLocked: false }, { component_id: null, isLocked: false }] },
+        
+        // --- (NOVOS) ITENS ADICIONADOS ---
+        { 
+            instance_id: 2001, 
+            item_id: 'eq_volc_sword', // Obsidian Blade
+            rarity: 'UNCOMMON', 
+            tier: 2, 
+            slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: false }] 
         },
-        {
-            instance_id: 102, 
-            item_id: 'eq_rust_weapon', 
-            rarity: 'COMMON',
-            tier: 1,
-            slots: [
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: true },
-            ]
+        { 
+            instance_id: 2002, 
+            item_id: 'eq_noct_implant', // Shadow Chip
+            rarity: 'RARE', 
+            tier: 2, 
+            slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: true }] 
         },
-        {
-            instance_id: 103, 
-            item_id: 'eq_noct_helmet', 
-            rarity: 'RARE',
-            tier: 3,
-            slots: [ 
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: true },
-            ]
-        },
-        {
-            instance_id: 104, 
-            item_id: 'eq_noct_weapon', 
-            rarity: 'MYTHIC',
-            tier: 8,
-            slots: [ 
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: false }, 
-                { component_id: null, isLocked: false }, 
-            ]
+        { 
+            instance_id: 2003, 
+            item_id: 'eq_rad_accessory', // Isotope Pendant
+            rarity: 'RARE', 
+            tier: 2, 
+            slots: [{ component_id: null, isLocked: false }, { component_id: null, isLocked: true }] 
         },
     ],
     components: [
         { instance_id: 201, item_id: 'comp_def_1' }, 
-        { instance_id: 202, item_id: 'comp_atk_1' }, // (CORREÇÃO) Atualizado para comp_atk_1
+        { instance_id: 202, item_id: 'comp_atk_1' },
         { instance_id: 203, item_id: 'comp_def_1' } 
     ],
     shopItems: {
@@ -123,14 +156,13 @@ export const MOCK_INVENTORY = {
 // 3. DADOS MOCK: Saldo de Token Tezerium
 export const MOCK_TEZERIUM_BALANCE = 1000;
 
-// 4. DADOS MOCK: Receitas Conhecidas (Blueprints)
+// 4. DADOS MOCK: Receitas Conhecidas
 export const MOCK_KNOWN_BLUEPRINTS = [
     'refine_scrap_to_def1',
-    'refine_magma_to_atk1', // (CORREÇÃO) Atualizado para o novo ID da receita
+    'refine_magma_to_atk1',
     'refine_water_to_spd1',
     'refine_plants_to_hp1',
     'refine_fluid_to_crit1',
-
     'craft_rust_helmet',
     'craft_rust_armor',
     'craft_rust_weapon',
@@ -138,6 +170,5 @@ export const MOCK_KNOWN_BLUEPRINTS = [
     'craft_rust_gloves',
     'craft_rust_implant',
     'craft_rust_accessory',
-    
     'upgrade_def1_to_def2',
 ];
