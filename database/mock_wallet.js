@@ -1,15 +1,11 @@
 /* ====================================================================
 // DATABASE: MOCK_WALLET
-// UPDATE: (Etapa 1.4 - Atributos de Combate)
-// Adiciona os 'baseStats' secundários (Block, Dodge, etc.) aos Kidz,
-// diferenciando as tribos.
+// UPDATE: (CORREÇÃO DE ID)
+// Atualiza 'comp_dmg_1' para 'comp_atk_1' no inventário.
+// Atualiza 'refine_magma_to_dmg1' para 'refine_magma_to_atk1'.
 // ==================================================================== */
 
-// --- Estruturas de Dados Essenciais ---
-/** @typedef {object} KidNFT ... */
-/** @typedef {object} InventoryItem ... */
-
-// 1. DADOS MOCK: Lista de CyberKidz NFTs (Balanceados com Novos Stats)
+// 1. DADOS MOCK: Lista de CyberKidz NFTs
 export const MOCK_KIDZ_NFTS = [
     {
         id: '#333',
@@ -17,11 +13,7 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'NOCTURNALS',
         level: 1,
         spritePath: 'assets/characters/nocturnals_1.png',
-        // Nocturnals: Ágeis e Letais (Dodge + Crit)
-        baseStats: { 
-            maxHP: 100, attack: 8, defense: 5, speed: 5, ap: 2,
-            dodgeChance: 5, critChance: 5, critDamage: 50 
-        }
+        baseStats: { maxHP: 100, attack: 8, defense: 5, speed: 5, ap: 2, dodgeChance: 5, critChance: 5, critDamage: 50 }
     },
     {
         id: '#104',
@@ -29,11 +21,7 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'VOLCANICS',
         level: 3,
         spritePath: 'assets/characters/volcanics_2.png',
-        // Volcanics: Resistentes ao calor e perigosos ao toque (FireResist + Thorns)
-        baseStats: { 
-            maxHP: 115, attack: 11, defense: 9, speed: 3, ap: 2,
-            fireResist: 10, thorns: 3 
-        }
+        baseStats: { maxHP: 115, attack: 11, defense: 9, speed: 3, ap: 2, fireResist: 10, thorns: 3 }
     },
     {
         id: '#73',
@@ -41,11 +29,7 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'NOCTURNALS',
         level: 7,
         spritePath: 'assets/characters/nocturnals_4.png',
-        // Nível mais alto = Stats base melhores
-        baseStats: { 
-            maxHP: 110, attack: 10, defense: 7, speed: 7, ap: 3,
-            dodgeChance: 7, critChance: 8, critDamage: 60
-        }
+        baseStats: { maxHP: 110, attack: 10, defense: 7, speed: 7, ap: 3, dodgeChance: 7, critChance: 8, critDamage: 60 }
     },
     {
         id: '#303',
@@ -53,11 +37,7 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'REPTILIANS',
         level: 4,
         spritePath: 'assets/characters/reptilians_1.png',
-        // Reptilians: Sobreviventes (Regen + Lifesteal leve)
-        baseStats: { 
-            maxHP: 125, attack: 10, defense: 7, speed: 4, ap: 2,
-            hpRegen: 2, lifesteal: 1
-        }
+        baseStats: { maxHP: 125, attack: 10, defense: 7, speed: 4, ap: 2, hpRegen: 2, lifesteal: 1 }
     },
     {
         id: '#88',
@@ -65,11 +45,7 @@ export const MOCK_KIDZ_NFTS = [
         tribe: 'RADIOACTIVES',
         level: 9,
         spritePath: 'assets/characters/radioactives_4.png',
-        // Radioactives: Imunes a toxinas e muito HP (ToxinResist + HP Alto)
-        baseStats: { 
-            maxHP: 150, attack: 7, defense: 12, speed: 2, ap: 2,
-            toxinResist: 20, hpRegen: 3
-        }
+        baseStats: { maxHP: 150, attack: 7, defense: 12, speed: 2, ap: 2, toxinResist: 20, hpRegen: 3 }
     }
 ];
 
@@ -134,7 +110,7 @@ export const MOCK_INVENTORY = {
     ],
     components: [
         { instance_id: 201, item_id: 'comp_def_1' }, 
-        { instance_id: 202, item_id: 'comp_atk_1' }, // Atualizado para comp_atk_1
+        { instance_id: 202, item_id: 'comp_atk_1' }, // (CORREÇÃO) Atualizado para comp_atk_1
         { instance_id: 203, item_id: 'comp_def_1' } 
     ],
     shopItems: {
@@ -147,18 +123,14 @@ export const MOCK_INVENTORY = {
 // 3. DADOS MOCK: Saldo de Token Tezerium
 export const MOCK_TEZERIUM_BALANCE = 1000;
 
-// ====================================================================
 // 4. DADOS MOCK: Receitas Conhecidas (Blueprints)
-// ====================================================================
 export const MOCK_KNOWN_BLUEPRINTS = [
-    // --- Receitas de Componentes T1 (Iniciais) ---
     'refine_scrap_to_def1',
-    'refine_magma_to_dmg1',
+    'refine_magma_to_atk1', // (CORREÇÃO) Atualizado para o novo ID da receita
     'refine_water_to_spd1',
     'refine_plants_to_hp1',
     'refine_fluid_to_crit1',
 
-    // --- Receitas de Equipamento T1 (Iniciais) ---
     'craft_rust_helmet',
     'craft_rust_armor',
     'craft_rust_weapon',
@@ -167,6 +139,5 @@ export const MOCK_KNOWN_BLUEPRINTS = [
     'craft_rust_implant',
     'craft_rust_accessory',
     
-    // --- Receitas T2 (Raras - Simula um drop encontrado) ---
     'upgrade_def1_to_def2',
 ];
