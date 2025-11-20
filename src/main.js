@@ -224,6 +224,11 @@ function handleGlobalClick(event) {
         else if (target.id === 'btn-action-investigate') { ExpeditionManager.investigate(); }
         else if (target.id === 'btn-action-search') { ExpeditionManager.searchForEnemy(); }
         else if (target.id === 'btn-action-end-day') { ExpeditionManager.endDay(); }
+        // (NOVO) Toggle da Sanfona de Stats
+        else if (target.id === 'btn-toggle-stats' || target.closest('#btn-toggle-stats')) {
+            const currentOpen = currentState.uiState.isStatsAccordionOpen || false;
+            updateState({ uiState: { isStatsAccordionOpen: !currentOpen } });
+        }
         else if (target.id === 'btn-move-node') {
             const targetNodeId = target.dataset.nodeId;
             ExpeditionManager.moveToNode(targetNodeId);
