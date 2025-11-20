@@ -215,6 +215,10 @@ function handleGlobalClick(event) {
             const targetNodeId = target.dataset.nodeId;
             ExpeditionManager.moveToNode(targetNodeId);
         }
+        // (NOVO) Abrir Mapa Mundi
+        else if (target.id === 'btn-open-world-map') {
+            openModal('MODAL_WORLD_MAP');
+        }
         else if (target.id === 'btn-toggle-stats' || target.closest('#btn-toggle-stats')) {
             const currentOpen = currentState.uiState.isStatsAccordionOpen || false;
             updateState({ uiState: { isStatsAccordionOpen: !currentOpen } });
