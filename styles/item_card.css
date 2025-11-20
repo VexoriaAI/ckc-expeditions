@@ -17,7 +17,7 @@
     cursor: pointer;
     position: relative;
     height: 100%; /* Garante que cards na mesma linha tenham mesma altura */
-    min-height: 200px; /* Altura mínima para consistência */
+    min-height: fit-content; /* Altura mínima para consistência */
 }
 .item-card:hover {
     transform: translateY(-2px);
