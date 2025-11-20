@@ -1,8 +1,9 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: (Fix Final Stats)
-// - Exibe a lista completa de atributos no acordeão.
-// - Adiciona fallback de segurança para imagem do mapa.
+// UPDATE: (Polimento Visual)
+// - Stats Completos no Acordeão.
+// - Background do Mapa Dinâmico (por ID).
+// - Nós numerados (1, 2, 3...).
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
@@ -41,18 +42,29 @@ const renderMapNodes = (state) => {
     const { expedition } = state;
     if (!expedition || !expedition.position || !expedition.position.nodeId) return '';
     const currentNodeId = expedition.position.nodeId; 
-    const currentNode = MAP_NODES.find(n => n.id === currentNodeId);
-    const reachableNodes = currentNode ? currentNode.connections : [];
-    const NODE_ICONS = { 'START':'🏠', 'RESOURCE':'⛏️', 'COMBAT':'⚔️', 'EVENT':'❔', 'TRANSIT':'🚪' };
+    const currentMap = expedition.currentMap;
 
-    return MAP_NODES.map(node => {
-        const biome = MAP_BIOMES[node.biome];
+    // Se não tiver mapa carregado, não renderiza nós
+    if (!currentMap || !currentMap.nodes) return '';
+
+    const currentNode = currentMap.nodes.find(n => n.id === currentNodeId);
+    const reachableNodes = currentNode ? currentNode.connections : [];
+
+    return currentMap.nodes.map((node, index) => {
         let statusClass = 'locked'; 
-        let icon = NODE_ICONS[node.type] || '●';
-        if (node.id === currentNodeId) { statusClass = 'current'; icon = '📍'; } 
-        else if (reachableNodes.includes(node.id)) { statusClass = 'reachable'; }
+        let label = index + 1; // (CORREÇÃO) Numeração 1 a 15
+
+        if (node.id === currentNodeId) { 
+            statusClass = 'current'; 
+            label = '📍'; // Ícone especial para posição atual
+        } else if (reachableNodes.includes(node.id)) { 
+            statusClass = 'reachable'; 
+        }
         
-        return `<div class="map-node ${statusClass}" id="btn-move-node" data-node-id="${node.id}" style="top: ${node.y}%; left: ${node.x}%;" title="${node.name} (${node.type})"><div class="node-icon">${icon}</div></div>`;
+        // Ícone especial para saída
+        if (node.type === 'TRANSIT') label = '🚪';
+
+        return `<div class="map-node ${statusClass} node-type-${node.type.toLowerCase()}" id="btn-move-node" data-node-id="${node.id}" style="top: ${node.y}%; left: ${node.x}%;" title="${node.name} (${node.type})"><div class="node-icon">${label}</div></div>`;
     }).join('');
 };
 
@@ -63,13 +75,20 @@ export const renderGameScreen = (state) => {
     const kidStaticData = getKidDataById(currentPlayerKidId);
     if (!kidStaticData) return `<div class="screen game-screen"><h2>Error: Kid Data not found.</h2></div>`;
 
-    const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot } = expedition;
+    const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot, currentMap } = expedition;
     
-    // Mapa
-    const targetNodeId = position.nodeId || SPAWN_NODE_ID;
-    const currentNode = MAP_NODES.find(n => n.id === targetNodeId) || MAP_NODES[0];
-    const currentBiome = MAP_BIOMES[currentNode.biome];
+    // Mapa e Bioma
+    if (!currentMap) return `<div class="screen game-screen"><h2>Map Error.</h2></div>`;
     
+    const currentNode = currentMap.nodes.find(n => n.id === position.nodeId);
+    const locationName = currentNode ? currentNode.name : "Unknown";
+    const biomeName = currentMap.name;
+    
+    // (CORREÇÃO) Background Dinâmico
+    // Tenta carregar a imagem do bioma atual (ex: BURNING_RIDGE.png)
+    // Se falhar (no navegador), o alt text aparece, mas idealmente teremos o arquivo.
+    const mapBgImage = `assets/maps/${currentMap.id}.png`; 
+
     const totalPowerScore = calculatePowerScore(kidStats);
     const hpPercent = (currentHP / maxHP) * 100;
     let hpColorClass = 'hp-fill-green'; 
@@ -80,6 +99,7 @@ export const renderGameScreen = (state) => {
     const accordionArrow = isStatsOpen ? '▼' : '▶';
     const accordionContentStyle = isStatsOpen ? 'display: block;' : 'display: none;';
 
+    // --- Coluna 1: Status ---
     const column1_Status = `
         <div class="game-column panel" id="game-col-status">
             <div class="kid-info-box">
@@ -103,15 +123,18 @@ export const renderGameScreen = (state) => {
                         <li>Attack: <span>${kidStats.attack}</span></li>
                         <li>Defense: <span>${kidStats.defense}</span></li>
                         <li>Speed: <span>${kidStats.speed}</span></li>
-                        <li>Crit Chance: <span>${kidStats.critChance}%</span></li>
+                        <li>Crit %: <span>${kidStats.critChance}%</span></li>
                         <li>Crit Dmg: <span>+${kidStats.critDamage}%</span></li>
-                        <li>Atk Speed: <span>+${kidStats.attackSpeed}%</span></li>
+                        <li>Atk Spd: <span>+${kidStats.attackSpeed}%</span></li>
                         <li>Block: <span>${kidStats.blockChance}%</span></li>
+                        <li>Block Amt: <span>${kidStats.blockAmount}</span></li>
                         <li>Dodge: <span>${kidStats.dodgeChance}%</span></li>
-                        <li>Lifesteal: <span>${kidStats.lifesteal}%</span></li>
                         <li>Thorns: <span>${kidStats.thorns}</span></li>
+                        <li>Lifesteal: <span>${kidStats.lifesteal}%</span></li>
                         <li>Fire Res: <span>${kidStats.fireResist}%</span></li>
                         <li>Toxin Res: <span>${kidStats.toxinResist}%</span></li>
+                        <li>Energy Res: <span>${kidStats.energyResist}%</span></li>
+                        <li>CDR: <span>${kidStats.cooldownReduction}%</span></li>
                     </ul>
                 </div>
             </div>
@@ -119,10 +142,11 @@ export const renderGameScreen = (state) => {
         </div>
     `;
 
+    // --- Coluna 2: Mapa (Quadrado) ---
     const column2_Map = `
         <div class="game-column" id="game-col-map">
             <div class="map-container panel">
-                <img src="assets/maps/wasteland_map_full.png" alt="Wasteland Map" class="map-background-image">
+                <img src="${mapBgImage}" onerror="this.src='assets/maps/wasteland_map_full.png'" alt="${biomeName}" class="map-background-image">
                 <div class="map-nodes-overlay">${renderMapNodes(state)}</div>
                 <button id="btn-open-world-map" class="action-btn btn-xs btn-secondary" style="position: absolute; top: 10px; right: 10px; width: auto; z-index: 20;">World Map 🌍</button>
             </div>
@@ -151,7 +175,7 @@ export const renderGameScreen = (state) => {
 
     return `
         <div class="screen game-screen">
-            <div class="page-title-bar"><h1>Expedition In Progress: ${currentNode.name} (${currentBiome.name})</h1></div>
+            <div class="page-title-bar"><h1>${biomeName}: ${locationName}</h1></div>
             <div class="game-container">${column1_Status}${column2_Map}${column3_Log}</div>
         </div>
     `;
