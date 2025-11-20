@@ -1,26 +1,22 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: (CORREÇÃO DE CRASH)
-// - Remove importação de STATIC_MAP_DATA (que não existe mais).
-// - Adiciona importação de MAP_NODES.
-// - Atualiza lógica de renderização para usar Node ID.
+// UPDATE: (CORREÇÃO FINAL)
+// - Remove completamente referências a STATIC_MAP_DATA.
+// - Usa apenas MAP_NODES e nodeId para determinar localização.
+// - Mantém Acordeão de Stats e Lista de Consumíveis.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
-// (CORREÇÃO) Importa a nova estrutura de Nós
+// (CORREÇÃO) Remove STATIC_MAP_DATA da importação
 import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../../database/maps.js';
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
 import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; 
 
-// Helper local
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-/**
- * Helper para renderizar a lista de Loot Encontrado
- */
 const renderLootList = (loot) => {
     const materials = Object.keys(loot.materials);
     if (materials.length === 0) {
@@ -40,9 +36,6 @@ const renderLootList = (loot) => {
     }).join('');
 };
 
-/**
- * Helper para renderizar a lista de Consumíveis (Shop Items)
- */
 const renderConsumablesList = (state) => {
     const shopItems = state.playerInventory.shopItems; 
     const keys = Object.keys(shopItems);
@@ -73,14 +66,11 @@ const renderConsumablesList = (state) => {
     }).join('');
 };
 
-/**
- * (NOVO) Helper para renderizar os Nós do Mapa
- */
 const renderMapNodes = (state) => {
     const { expedition } = state;
     
-    // Proteção contra undefined
-    if (!expedition || !expedition.position) return '';
+    // Proteção contra dados incompletos
+    if (!expedition || !expedition.position || !expedition.position.nodeId) return '';
 
     const currentNodeId = expedition.position.nodeId; 
     const currentNode = MAP_NODES.find(n => n.id === currentNodeId);
@@ -111,23 +101,31 @@ const renderMapNodes = (state) => {
 };
 
 
-/**
- * Renderiza a tela principal da Expedição (Game Screen).
- */
 export const renderGameScreen = (state) => {
     const { expedition, currentPlayerKidId, uiState } = state;
-    const kidStaticData = getKidDataById(currentPlayerKidId);
+    
+    // Verificação de segurança
+    if (!expedition || !expedition.position || !expedition.position.nodeId) {
+         return `<div class="screen game-screen"><h2>Loading Expedition Data...</h2></div>`;
+    }
 
-    if (!expedition || !kidStaticData) {
-        return `<div class="screen game-screen"><h2>Error: Expedition data not found.</h2></div>`;
+    const kidStaticData = getKidDataById(currentPlayerKidId);
+    if (!kidStaticData) {
+        return `<div class="screen game-screen"><h2>Error: Kid Data not found.</h2></div>`;
     }
 
     const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot } = expedition;
     
-    // (CORREÇÃO DE LÓGICA) Usa MAP_NODES para encontrar o bioma atual
-    // Se position.nodeId for null (início), usa o SPAWN_NODE_ID ou o primeiro nó
-    const targetNodeId = position.nodeId || SPAWN_NODE_ID;
-    const currentNode = MAP_NODES.find(n => n.id === targetNodeId) || MAP_NODES[0];
+    // (CORREÇÃO) Encontra o nó atual e o bioma usando APENAS nodeId
+    const targetNodeId = position.nodeId;
+    const currentNode = MAP_NODES.find(n => n.id === targetNodeId);
+    
+    // Fallback de segurança se o nó não for encontrado (ex: dados antigos no cache)
+    if (!currentNode) {
+         console.error(`RenderGameScreen: Node ID '${targetNodeId}' not found.`);
+         return `<div class="screen game-screen"><h2>Map Error: Invalid Location</h2></div>`;
+    }
+
     const currentBiome = MAP_BIOMES[currentNode.biome];
     
     const totalPowerScore = calculatePowerScore(kidStats);
