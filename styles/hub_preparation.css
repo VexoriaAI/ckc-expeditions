@@ -190,7 +190,7 @@
     padding: 15px;
     display: block; /* Remove flex column do item-card base */
     height: auto; /* Altura se ajusta ao conteúdo */
-    min-height: auto;
+    min-height: fit-content;
 }
 .recipe-card h4 {
     margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px;
