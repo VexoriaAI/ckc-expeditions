@@ -1,13 +1,14 @@
 /* ====================================================================
 // UI: ModalManager.js
-// UPDATE: Adiciona o case 'MODAL_CONFIRM_EMBED'.
+// UPDATE: (Passo 3.3) Adiciona o case 'MODAL_WORLD_MAP'.
 // ==================================================================== */
 
 import { renderEquipmentListModal, renderComponentListModal } from './Renderers/renderModalContent.js';
 import { renderLootResultModal } from './Renderers/renderModalResult.js';
 import { renderCombatModal } from './Renderers/renderCombatModal.js';
-// (NOVO) Importa o renderer de confirmação
 import { renderEmbedConfirmationModal } from './Renderers/renderEmbedConfirmation.js';
+// (NOVO) Importa o renderer do mapa mundi
+import { renderWorldMap } from './Renderers/renderWorldMap.js';
 
 let modalRoot;
 
@@ -49,9 +50,15 @@ export const ModalManager = {
                 modalClass = 'modal-large'; 
                 break;
 
-            // --- (NOVO) Confirmação ---
+            // --- Ações ---
             case 'MODAL_CONFIRM_EMBED':
                 contentHTML = renderEmbedConfirmationModal(state);
+                break;
+
+            // --- (NOVO) Mapa Mundi ---
+            case 'MODAL_WORLD_MAP':
+                contentHTML = renderWorldMap(state);
+                modalClass = 'modal-large'; // Mapa precisa de espaço
                 break;
 
             // --- Placeholders ---
