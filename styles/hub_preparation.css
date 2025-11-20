@@ -1,8 +1,8 @@
 /* ====================================================================
 // STYLES: hub_preparation.css
-// UPDATE: (Passo 3.2 - UX de Stats)
-// - Transforma a lista de stats em um Grid de 2 colunas (.stats-grid).
-// - Ajusta o espaçamento para acomodar os novos atributos de combate.
+// UPDATE: (Fase 3.1 - Passo 1.1)
+// - Layout do Recipe Card (Craft) ajustado para evitar cortes.
+// - Responsividade melhorada para o Workshop e Inventário.
 // ==================================================================== */
 
 .preparation-container { 
@@ -50,21 +50,11 @@
     font-weight: bold; 
     margin-bottom: 5px; 
 }
-.kid-details p { 
-    font-size: 0.9em; 
-    margin-bottom: 3px; 
-}
-.kid-details span { 
-    color: var(--color-text-light); 
-    font-weight: bold; 
-}
+.kid-details p { font-size: 0.9em; margin-bottom: 3px; }
+.kid-details span { color: var(--color-text-light); font-weight: bold; }
 
 /* Mannequin */
-.mannequin-controls { 
-    display: flex; 
-    gap: 10px; 
-    margin-bottom: 10px; 
-}
+.mannequin-controls { display: flex; gap: 10px; margin-bottom: 10px; }
 .equipment-mannequin { 
     display: grid; 
     grid-template-columns: 1fr 1fr 1fr; 
@@ -90,9 +80,7 @@
     cursor: pointer; 
     background-color: var(--color-bg-dark); 
 }
-.mannequin-slot:hover { 
-    border-color: var(--color-accent-blue); 
-}
+.mannequin-slot:hover { border-color: var(--color-accent-blue); }
 .mannequin-slot .slot-name { 
     font-size: 0.7em; 
     color: var(--color-text-dim); 
@@ -103,51 +91,17 @@
     text-align: center; 
 }
 .unequip-btn {
-    position: absolute; 
-    top: 2px; 
-    right: 5px;
-    background-color: var(--color-accent-red); 
-    color: white;
-    border: 1px solid white; 
-    border-radius: 50%;
-    width: 20px; 
-    height: 20px; 
-    font-size: 14px;
-    line-height: 18px; 
-    font-weight: bold;
-    cursor: pointer; 
-    z-index: 2; 
-    padding: 0;
+    position: absolute; top: 2px; right: 5px;
+    background-color: var(--color-accent-red); color: white;
+    border: 1px solid white; border-radius: 50%;
+    width: 20px; height: 20px; font-size: 14px; line-height: 18px; font-weight: bold;
+    cursor: pointer; z-index: 2; padding: 0;
 }
-.unequip-btn:hover { 
-    background-color: #ff607d; 
-}
-
-/* Correção de Clique */
-.mannequin-slot img,
-.mannequin-slot .slot-name {
-    pointer-events: none;
-}
-
-.mannequin-slot img { 
-    display: block; 
-    image-rendering: pixelated; 
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges; 
-}
-.mannequin-slot.empty-slot img { 
-    width: 64px; 
-    height: 64px; 
-    object-fit: contain; 
-    opacity: 0.4; 
-}
-.mannequin-slot.equipped-slot img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: contain; 
-}
-
-/* Áreas do Grid */
+.unequip-btn:hover { background-color: #ff607d; }
+.mannequin-slot img, .mannequin-slot .slot-name { pointer-events: none; }
+.mannequin-slot img { display: block; image-rendering: pixelated; }
+.mannequin-slot.empty-slot img { width: 64px; height: 64px; object-fit: contain; opacity: 0.4; }
+.mannequin-slot.equipped-slot img { width: 100%; height: 100%; object-fit: contain; }
 [data-slot-type="helmet"] { grid-area: helmet; } 
 [data-slot-type="weapon"] { grid-area: weapon; } 
 [data-slot-type="accessory"]{ grid-area: accessory; } 
@@ -156,306 +110,151 @@
 [data-slot-type="implant"] { grid-area: implant; } 
 [data-slot-type="boots"] { grid-area: boots; }
 
-/* Stats Summary (ATUALIZADO) */
-.stats-summary-card {
-    /* Garante que o painel expanda conforme necessário */
-    height: auto;
-}
+/* Stats Summary */
+.stats-summary-card { height: auto; }
 .power-score-badge { 
-    font-weight: bold; 
-    font-size: 1.2em; 
-    color: var(--color-accent-red); 
-    margin-top: 10px; 
-    margin-bottom: 10px;
-    display: block;
+    font-weight: bold; font-size: 1.2em; color: var(--color-accent-red); 
+    margin-top: 10px; margin-bottom: 10px; display: block;
 }
 .power-score-badge span { 
-    color: white; 
-    border: 1px solid var(--color-accent-red); 
-    padding: 2px 5px; 
-    border-radius: 3px; 
+    color: white; border: 1px solid var(--color-accent-red); padding: 2px 5px; border-radius: 3px; 
 }
-
-/* (NOVO) Grid de Stats em 2 Colunas */
 .stats-grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Duas colunas */
-    gap: 5px 15px; /* Espaçamento entre linhas e colunas */
+    list-style: none; padding: 0; margin: 0;
+    display: grid; grid-template-columns: 1fr 1fr; 
+    gap: 5px 15px; 
 }
 .stats-grid li {
-    font-size: 0.85em; /* Fonte levemente menor para caber */
-    color: var(--color-text-dim);
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #333;
-    padding-bottom: 2px;
+    font-size: 0.85em; color: var(--color-text-dim);
+    display: flex; justify-content: space-between;
+    border-bottom: 1px solid #333; padding-bottom: 2px;
 }
-.stats-grid li span {
-    color: var(--color-text-light);
-    font-weight: bold;
-}
+.stats-grid li span { color: var(--color-text-light); font-weight: bold; }
 
+/* Inventory & Workshop Panels */
+.inventory-panel { margin-bottom: 20px; }
+.workshop-panel { min-height: 400px; }
 
-/* Inventory & Workshop */
-.inventory-panel { 
-    margin-bottom: 20px; 
-}
-.workshop-panel { 
-    min-height: 400px; 
-}
-
-/* ================== Estilos do Inventário ================== */
-
-/* Filtros (Ícones) */
+/* Inventory Filters */
 .inventory-filters {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    margin-bottom: 15px;
-    background-color: rgba(0,0,0,0.2);
-    padding: 5px;
-    border-radius: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px; background-color: rgba(0,0,0,0.2);
+    padding: 5px; border-radius: 5px; flex-wrap: wrap; gap: 10px;
 }
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.filter-group label {
-    font-size: 0.9em;
-    color: var(--color-text-dim);
-}
+.filter-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-group label { font-size: 0.9em; color: var(--color-text-dim); }
 .filter-group select {
-    background-color: var(--color-bg-dark);
-    border: 1px solid var(--color-text-dim);
-    color: var(--color-text-light);
-    border-radius: 4px;
-    padding: 5px;
+    background-color: var(--color-bg-dark); border: 1px solid var(--color-text-dim);
+    color: var(--color-text-light); border-radius: 4px; padding: 5px;
 }
 .filter-group .action-btn {
-    width: 40px; 
-    height: 40px;
-    padding: 5px;
-    border: 1px solid #444;
-    background-color: var(--color-bg-dark);
+    width: 40px; height: 40px; padding: 5px;
+    border: 1px solid #444; background-color: var(--color-bg-dark);
 }
 .filter-group .action-btn img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    opacity: 0.6;
-    filter: brightness(0) invert(1); 
+    width: 24px; height: 24px; object-fit: contain; opacity: 0.6; filter: brightness(0) invert(1);
 }
-.filter-group .action-btn:hover {
-    border-color: var(--color-accent-blue);
-    background-color: var(--color-panel-dark);
-}
-.filter-group .action-btn.active {
-    background-color: var(--color-accent-blue);
-    border-color: var(--color-accent-blue);
-}
-.filter-group .action-btn.active img {
-    opacity: 1;
-    filter: brightness(0); 
-}
+.filter-group .action-btn.active { background-color: var(--color-accent-blue); border-color: var(--color-accent-blue); }
+.filter-group .action-btn.active img { opacity: 1; filter: brightness(0); }
 
-/* Grid de Itens (3 Colunas) */
+/* Grid de Itens do Inventário (3 Colunas) */
 .item-grid-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 colunas */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsivo */
     gap: 15px;
     max-height: 60vh;
     overflow-y: auto;
     padding: 5px;
 }
-/* Lista Simples (Materials, Components) */
+/* Lista Simples */
 .inventory-list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 5px;
+    display: flex; flex-direction: column; gap: 5px;
+    max-height: 60vh; overflow-y: auto; padding: 5px;
 }
 .inventory-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 4px;
-    border: 1px solid #333;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px; background: rgba(0,0,0,0.2);
+    border-radius: 4px; border: 1px solid #333;
 }
-.inventory-list-item .item-list-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.inventory-list-item .item-list-info img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-}
-.inventory-list-item .item-list-info span {
-    color: var(--color-text-light);
-    font-weight: bold;
-}
-.inventory-list-item .item-list-quantity {
-    color: var(--color-text-dim);
-    font-size: 1.1em;
-}
+.inventory-list-item .item-list-info { display: flex; align-items: center; gap: 10px; }
+.inventory-list-item .item-list-info img { width: 32px; height: 32px; object-fit: contain; }
 
-
-/* Cards de Receita (Refine/Craft) */
+/* ================== RECIPE CARD (Refine/Craft) ================== */
 .refine-list, .craft-list { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 15px; 
-    max-height: 400px; 
-    overflow-y: auto; 
-    padding-right: 10px; 
-}
-.recipe-card { 
-    border: 1px solid #444; 
-    border-radius: 5px; 
-    padding: 15px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    background-color: var(--color-bg-dark); 
-}
-.recipe-io { 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-}
-.input-section, .output-section { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    font-size: 0.85em; 
-}
-.arrow-separator { 
-    font-size: 1.5em; 
-    color: var(--color-accent-blue); 
-    font-weight: bold; 
-}
-.recipe-input-item { 
-    display: flex; 
-    align-items: center; 
-    gap: 4px; 
-    padding: 3px 6px; 
-    border-radius: 3px; 
-}
-.recipe-input-item img { 
-    width: 20px; 
-    height: 20px; 
-    object-fit: contain; 
-}
-.recipe-input-item.missing { 
-    color: var(--color-accent-red); 
-    font-weight: bold; 
-    border: 1px dashed var(--color-accent-red); 
-}
-.recipe-input-item.available { 
-    color: var(--color-accent-green); 
-    border: 1px solid var(--color-accent-green); 
-}
-.recipe-card .action-btn { 
-    margin-top: 10px; 
-    width: auto; 
-    min-width: 120px; 
-    align-self: flex-end; 
+    display: flex; flex-direction: column; gap: 15px; 
+    max-height: 60vh; overflow-y: auto; padding-right: 10px; 
 }
 
-/* UI da Aba EMBED */
-.embed-ui { 
-    display: flex; 
-    justify-content: space-around; 
-    align-items: flex-start; 
-    gap: 15px; 
-    margin: 20px 0; 
+/* O Card em si (sobrescreve parte do .item-card para layout horizontal) */
+.recipe-card.item-card {
+    padding: 15px;
+    display: block; /* Remove flex column do item-card base */
+    height: auto; /* Altura se ajusta ao conteúdo */
+    min-height: auto;
 }
+.recipe-card h4 {
+    margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px;
+}
+
+/* Wrapper do Conteúdo (Inputs -> Output/Btn) */
+.recipe-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 40px auto; /* Inputs | Seta | Output+Btn */
+    align-items: center;
+    gap: 15px;
+}
+
+/* Área de Inputs */
+.recipe-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.recipe-input-item {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 8px; border-radius: 4px;
+    font-size: 0.85em;
+    background: var(--color-bg-dark);
+    white-space: nowrap;
+}
+.recipe-input-item img { width: 20px; height: 20px; object-fit: contain; }
+.recipe-input-item.missing { color: var(--color-accent-red); border: 1px dashed var(--color-accent-red); }
+.recipe-input-item.available { color: var(--color-accent-green); border: 1px solid var(--color-accent-green); }
+
+.arrow-separator { font-size: 1.5em; color: var(--color-accent-blue); font-weight: bold; text-align: center; }
+
+/* Botão de Ação */
+.recipe-card .action-btn {
+    width: auto; min-width: 120px;
+    padding: 8px 15px;
+    margin: 0; /* Remove margin-top auto */
+}
+
+/* Embed UI */
+.embed-ui { display: flex; justify-content: space-around; align-items: stretch; gap: 15px; margin: 20px 0; }
 .embed-slot-placeholder {
-    width: 45%; 
-    min-height: 150px; 
-    border: 2px dashed var(--color-accent-blue); 
-    display: flex; 
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center; 
-    text-align: center;
-    cursor: pointer; 
-    background-color: rgba(0,0,0,0.2);
-    border-radius: 5px; 
+    width: 45%; min-height: 150px; border: 2px dashed var(--color-accent-blue);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; cursor: pointer; background-color: rgba(0,0,0,0.2); border-radius: 5px;
 }
-.embed-slot-placeholder:hover { 
-    background-color: var(--color-bg-dark); 
-}
-.embed-slot-placeholder.disabled { 
-    cursor: not-allowed; 
-    opacity: 0.5; 
-    background-color: var(--color-bg-dark); 
-    border-color: #444;
-}
-.embed-slot-placeholder span, .embed-slot-placeholder p { 
-    pointer-events: none; 
-}
-.embed-slot-placeholder .embed-plus { 
-    font-size: 1.5em; 
-    color: var(--color-text-dim); 
-}
-.embed-slot-placeholder .embed-title { 
-    font-size: 1.2em; 
-    color: var(--color-text-light); 
-}
-.embed-slot-placeholder .embed-desc { 
-    font-size: 0.9em; 
-    color: var(--color-text-dim); 
-}
-/* Item Card (Styles agora em item_card.css, apenas ajustes de posição aqui) */
-.embed-item-card { 
-    width: 45%; 
-    position: relative; 
-    /* Reutiliza estilos globais */
-}
-.embed-item-card .action-btn { 
-    position: absolute; 
-    top: 5px; 
-    right: 5px; 
-    width: auto; 
-}
-
-.embed-preview { 
-    border-style: dashed; 
-    padding: 15px; 
-    background-color: rgba(0,0,0,0.2); 
-}
-.stats-comparison { 
-    display: flex; 
-    justify-content: space-around; 
-}
-.stats-col.stats-after { 
-    color: var(--color-accent-green); 
-    font-weight: bold; 
-}
+.embed-slot-placeholder span, .embed-slot-placeholder p { pointer-events: none; }
+.embed-ui .item-card { width: 45%; position: relative; min-height: 150px; }
+.embed-ui .item-card .unequip-btn { position: absolute; top: 5px; right: 5px; }
+.embed-preview { border-style: dashed; padding: 15px; background-color: rgba(0,0,0,0.2); }
 
 /* Responsividade */
-@media (max-width: 1200px) { 
-    .preparation-container { grid-template-columns: 1fr; } 
-}
-@media (max-width: 992px) {
-    .item-grid-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
+@media (max-width: 1200px) { .preparation-container { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { 
-    .recipe-io { flex-direction: column; text-align: center; } 
-    .arrow-separator { transform: rotate(90deg); margin: 10px 0; } 
-    .item-grid-container {
+    .item-grid-container { grid-template-columns: repeat(2, 1fr); }
+    
+    /* Stack Recipe Card no mobile */
+    .recipe-content-wrapper {
         grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
     }
+    .recipe-inputs { justify-content: center; }
+    .arrow-separator { transform: rotate(90deg); }
+    .recipe-card .action-btn { width: 100%; }
 }
