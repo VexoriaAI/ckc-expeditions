@@ -69,12 +69,24 @@ function handleModalClick(event) {
         return;
     }
     
+    // (CORREÇÃO) Ações do Modal de Confirmação de Embed
     if (target.id === 'btn-confirm-embed') {
         const { embedTargetEquipmentId, embedTargetComponentId } = currentState;
         const result = CraftingSystem.embedComponent(embedTargetEquipmentId, embedTargetComponentId);
+        
         alert(result.message); 
-        updateState({ embedTargetEquipmentId: null, embedTargetComponentId: null });
-        closeModal();
+        
+        // (ORDEM IMPORTANTE)
+        // 1. Fecha o modal (limpa o estado de modal)
+        closeModal(); 
+
+        // 2. Limpa a seleção do Embed (para resetar a UI do workshop)
+        // Nota: closeModal já limpa algumas coisas, mas garantimos aqui
+        updateState({ 
+            isModalOpen: false, // Força fechamento
+            embedTargetEquipmentId: null, 
+            embedTargetComponentId: null 
+        });
     }
     else if (target.id === 'btn-cancel-embed') {
         closeModal();
