@@ -93,7 +93,7 @@ export const MOCK_KIDZ_NFTS = [
         name: 'Techie',
         tribe: 'NOCTURNALS',
         level: 3,
-        spritePath: 'assets/characters/nocturnals_1.png',
+        spritePath: 'assets/characters/nocturnals_3.png',
         baseStats: { maxHP: 95, attack: 9, defense: 4, speed: 6, ap: 2, dodgeChance: 4, critChance: 6, critDamage: 40 }
     }
 ];
