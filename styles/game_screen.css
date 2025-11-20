@@ -1,57 +1,56 @@
 /* ====================================================================
 // STYLES: game_screen.css
-// UPDATE: (Fase 4.0 - Passo 3.1)
-// - Adiciona estilos visuais para os diferentes Tipos de Nós (Resource, Combat, Transit).
-// - Refina o posicionamento absoluto para o mapa dinâmico.
+// UPDATE: (Fix Layout Fase 4.0)
+// - Garante layout de 3 colunas fixas.
+// - Corrige altura do mapa e log.
 // ==================================================================== */
 
 .game-container {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 1fr; 
+    /* Define proporções fixas: Status (20%), Mapa (55%), Log (25%) */
+    grid-template-columns: 1fr 2.5fr 1fr; 
     gap: 20px;
-    height: 75vh; /* Altura fixa para evitar scroll na página inteira */
+    height: 75vh; /* Altura fixa da tela de jogo */
+    max-width: 1800px;
+    margin: 0 auto;
 }
 
 .game-column {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    overflow: hidden; /* Impede que colunas quebrem o layout */
+    height: 100%; /* Ocupa toda a altura do container */
+    overflow: hidden; /* Impede overflow lateral */
 }
 
 #game-col-status.panel,
-#game-col-map .panel,
 #game-col-log.panel {
     padding: 15px;
-    height: 100%; /* Preenche a altura da coluna */
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto; /* Permite scroll interno se necessário */
 }
 
 /* ================== Coluna 1: Status ================== */
-#game-col-status { overflow-y: auto; }
-
 #game-col-status h3 {
     color: var(--color-text-light);
     border-bottom: 1px solid var(--color-accent-blue);
     padding-bottom: 5px;
-    flex-shrink: 0;
+    margin-top: 0;
 }
 
-/* Info Box */
+/* Kid Info */
 .kid-info-box {
-    padding: 10px; gap: 10px; background-color: var(--color-bg-dark); flex-shrink: 0;
+    padding: 10px; gap: 10px; background-color: var(--color-bg-dark);
+    border-radius: 5px; flex-shrink: 0;
 }
-.kid-info-box .kid-image { width: 64px; height: 64px; }
-.kid-info-box h4 { font-size: 1em; margin: 0; }
+.kid-info-box .kid-image { width: 64px; height: 64px; border: 1px solid var(--color-accent-blue); }
+.kid-info-box h4 { font-size: 1em; margin: 0; color: var(--color-text-light); }
 
-/* Stats Badge */
+/* Stats Badges */
 .kid-card-stats.game-screen-stats { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
-.game-screen-stats .stat-badge {
-    background: var(--color-bg-dark); border: 1px solid #444; padding: 2px 6px; font-size: 0.8em;
-}
+.stat-badge { background: var(--color-bg-dark); border: 1px solid #444; padding: 2px 6px; font-size: 0.8em; border-radius: 3px; }
+.stat-badge span { color: #fff; font-weight: bold; }
 
-/* Barras */
+/* Barras HP */
 .status-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; flex-shrink: 0; }
 .stat-bar { display: grid; grid-template-columns: 30px 1fr 60px; align-items: center; gap: 5px; font-size: 0.85em; }
 .bar-track { height: 12px; background: #111; border: 1px solid #444; border-radius: 3px; overflow: hidden; }
@@ -60,149 +59,139 @@
 .hp-fill-orange { background: #ff9800; }
 .hp-fill-red { background: var(--color-accent-red); }
 
-/* Lista de Atributos (Scrollável se necessário) */
-.expedition-stats-accordion { flex-grow: 1; overflow-y: auto; min-height: 100px; }
+/* Stats Accordion (Sanfona) */
+.expedition-stats-accordion { 
+    margin-top: 15px; 
+    background: rgba(0,0,0,0.2); 
+    padding: 10px; 
+    border-radius: 5px; 
+    flex-grow: 1; /* Ocupa espaço disponível */
+    overflow-y: auto;
+}
+.accordion-header { 
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer; 
+    padding-bottom: 5px; border-bottom: 1px solid #444; 
+}
+.accordion-header h4 { margin: 0; font-size: 1em; color: var(--color-text-dim); }
+
 .stats-list-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; list-style: none; padding: 0; margin: 0;
+    list-style: none; padding: 0; margin-top: 10px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px;
 }
 .stats-list-grid li {
     font-size: 0.8em; color: var(--color-text-dim); display: flex; justify-content: space-between; border-bottom: 1px solid #333;
 }
+.stats-list-grid li span { color: var(--color-text-light); font-weight: bold; }
 
 /* Consumíveis */
-.consumables-display { margin-top: auto; flex-shrink: 0; max-height: 30%; overflow-y: auto; }
+.consumables-display { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; flex-shrink: 0; max-height: 200px; overflow-y: auto; }
+.consumables-display h4 { margin: 0 0 10px 0; font-size: 1em; color: var(--color-text-dim); }
+.consumables-display-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.consumable-item { display: flex; align-items: center; gap: 10px; background: var(--color-bg-dark); padding: 5px; border-radius: 4px; }
+.consumable-item img { width: 32px; height: 32px; border: 1px solid #444; }
+.consumable-details { flex-grow: 1; }
+.consumable-details span { font-size: 0.9em; font-weight: bold; display: block; }
+.consumable-details p { font-size: 0.7em; margin: 0; color: #aaa; }
 
 
-/* ================== Coluna 2: Mapa (O Palco) ================== */
-#game-col-map { position: relative; }
+/* ================== Coluna 2: Mapa ================== */
+#game-col-map {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
 .map-container {
     position: relative;
-    width: 100%;
-    flex-grow: 1; /* Ocupa todo o espaço disponível na coluna */
+    flex-grow: 1; /* O mapa ocupa o máximo de espaço */
     background: #000;
+    border: 2px solid var(--color-accent-blue);
     border-radius: 5px;
-    overflow: hidden; /* Corta o que sair do mapa */
-    border: 2px solid #444;
+    overflow: hidden;
     box-shadow: inset 0 0 20px #000;
 }
 
 .map-background-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Cobre o container sem distorcer */
-    opacity: 0.6; /* Escurece um pouco para destacar os nós */
+    object-fit: cover;
+    opacity: 0.7;
 }
 
-/* Overlay de Nós */
 .map-nodes-overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 5;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
 }
 
-/* --- Estilo dos Nós (Nodes) --- */
+/* Nós do Mapa */
 .map-node {
     position: absolute;
     width: 40px; height: 40px;
-    background-color: #222;
-    border: 2px solid #666;
-    border-radius: 50%;
-    transform: translate(-50%, -50%); /* Centraliza no ponto X,Y */
-    cursor: pointer;
+    background: #222; border: 2px solid #666; border-radius: 50%;
+    transform: translate(-50%, -50%);
     display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 5px #000;
-    z-index: 10;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 0 10px #000;
+    z-index: 20;
 }
 .node-icon { font-size: 1.2em; pointer-events: none; }
 
-/* Estados de Acessibilidade */
-.map-node.locked {
-    opacity: 0.4;
-    filter: grayscale(100%);
-    cursor: not-allowed;
-    border-color: #333;
-}
-.map-node.reachable {
-    border-color: var(--color-accent-green); /* Verde = Pode ir */
-    box-shadow: 0 0 10px rgba(0, 255, 106, 0.4);
-    animation: pulse 2s infinite;
-}
-.map-node.reachable:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-    background-color: #333;
-    z-index: 20;
-}
-.map-node.current {
-    border-color: var(--color-accent-blue); /* Azul = Você está aqui */
-    background-color: var(--color-accent-blue);
-    color: #000;
-    box-shadow: 0 0 20px var(--color-accent-blue);
-    z-index: 15;
-}
+.map-node.current { border-color: var(--color-accent-blue); background: var(--color-accent-blue); box-shadow: 0 0 20px var(--color-accent-blue); z-index: 30; transform: translate(-50%, -50%) scale(1.2); }
+.map-node.reachable { border-color: var(--color-accent-green); background: rgba(0, 255, 106, 0.2); animation: pulse 2s infinite; }
+.map-node.reachable:hover { background: var(--color-accent-green); transform: translate(-50%, -50%) scale(1.1); }
+.map-node.locked { opacity: 0.3; filter: grayscale(100%); cursor: default; }
 
-/* --- Tipos de Nós (Cores Específicas) --- */
-.map-node.node-type-start { border-color: #fff; color: #fff; } /* Branco */
-.map-node.node-type-resource { color: #00ff6a; } /* Verde */
-.map-node.node-type-combat { color: #ff3a5c; } /* Vermelho */
-.map-node.node-type-event { color: #ffff00; } /* Amarelo */
-
-/* Nó de Trânsito (Saída) - Destaque Especial */
-.map-node.node-type-transit {
-    width: 50px; height: 50px; /* Maior */
-    border-radius: 5px; /* Quadrado */
-    border-color: #d35400; /* Laranja Escuro */
-    background: rgba(211, 84, 0, 0.2);
-    color: #e67e22;
-}
-.map-node.node-type-transit.reachable {
-    box-shadow: 0 0 15px #e67e22;
-}
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,255,106,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,106,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,106,0); } }
 
 
-/* Painel de Ações (Abaixo do Mapa) */
+/* Painel de Ações (Fixo embaixo do mapa) */
 .action-points-bar {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    margin-top: 10px; flex-shrink: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-top: 15px; flex-shrink: 0;
+    background: var(--color-panel-dark); padding: 10px; border-radius: 5px; border: 1px solid #444;
 }
+.ap-fill { background: var(--color-accent-blue); }
+.mp-fill { background: var(--color-accent-red); }
+
 .action-bar {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
     margin-top: 10px; flex-shrink: 0;
 }
+.action-bar .btn-secondary { grid-column: 1 / -1; }
 
 
 /* ================== Coluna 3: Log ================== */
-#game-col-log { overflow: hidden; }
-
-.loot-display {
+#game-col-log .loot-display {
+    background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px;
     flex-shrink: 0; max-height: 30%; overflow-y: auto;
-    background: rgba(0,0,0,0.2); padding: 10px; margin-bottom: 10px;
 }
+.loot-display h4 { margin: 0 0 5px 0; font-size: 1em; color: var(--color-text-dim); }
+.loot-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: var(--color-text-dim); margin-bottom: 5px; }
+.loot-item img { width: 24px; height: 24px; border: 1px solid #444; border-radius: 3px; }
+.loot-quantity { margin-left: auto; color: #fff; }
+
 .log-window {
-    flex-grow: 1; overflow-y: auto;
-    background: rgba(0,0,0,0.2); padding: 10px;
+    margin-top: 15px;
+    background: rgba(0,0,0,0.2); border: 1px solid #333; border-radius: 5px;
+    padding: 10px;
     font-family: 'Courier New', monospace; font-size: 0.85em;
-    border: 1px solid #333;
+    flex-grow: 1; /* Ocupa o resto da coluna */
+    overflow-y: auto;
 }
-.log-window p { margin: 3px 0; border-bottom: 1px solid #222; padding-bottom: 2px; color: #aaa; }
+.log-window p { margin: 4px 0; border-bottom: 1px solid #222; padding-bottom: 2px; color: #aaa; }
 .log-window p:first-child { color: #fff; font-weight: bold; }
 
-.skip-animations-toggle { margin: 10px 0; flex-shrink: 0; }
+.skip-animations-toggle { margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+.skip-animations-toggle label { font-size: 0.9em; color: #aaa; cursor: pointer; }
 
-/* Animações */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0, 255, 106, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 255, 106, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 255, 106, 0); }
-}
+#btn-end-expedition { width: 100%; margin-top: auto; }
+
 
 /* Responsividade */
 @media (max-width: 1200px) {
-    .game-container {
-        grid-template-columns: 1fr; /* Empilha */
-        height: auto; /* Altura automática no mobile */
+    .game-container { 
+        grid-template-columns: 1fr; /* Empilha tudo */
+        height: auto; 
     }
-    .map-container { height: 400px; } /* Altura fixa para mapa no mobile */
+    .map-container { height: 400px; }
+    .log-window { height: 200px; }
 }
