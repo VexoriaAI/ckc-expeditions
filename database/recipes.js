@@ -1,7 +1,7 @@
 /* ====================================================================
 // DATABASE: RECIPES
-// UPDATE: Adiciona as receitas de "Craft" para o Rustic Set completo.
-// Language: English
+// UPDATE: (CORREÇÃO DE ID)
+// Atualiza 'comp_dmg_1' para 'comp_atk_1' para alinhar com components.js.
 // ==================================================================== */
 
 export const RECIPES_DB = {
@@ -15,13 +15,14 @@ export const RECIPES_DB = {
         inputComponents: {}, inputShopItems: {},
         output: { itemId: 'comp_def_1', amount: 1 } 
     },
-    'refine_magma_to_dmg1': {
-        recipeId: 'refine_magma_to_dmg1',
+    'refine_magma_to_atk1': { // (ID da receita atualizado para consistência)
+        recipeId: 'refine_magma_to_atk1',
         name: 'Refine Magma to Attack Core', 
         type: 'REFINE',
         inputMaterials: { 'mat_magma': 9 },
         inputComponents: {}, inputShopItems: {},
-        output: { itemId: 'comp_dmg_1', amount: 1 } 
+        // (CORREÇÃO) ID do item atualizado para comp_atk_1
+        output: { itemId: 'comp_atk_1', amount: 1 } 
     },
     'refine_water_to_spd1': {
         recipeId: 'refine_water_to_spd1',
@@ -48,13 +49,11 @@ export const RECIPES_DB = {
         output: { itemId: 'comp_crit_1', amount: 1 } 
     },
     
-    // =================================================
     // --- TIER 1 CRAFT RECIPES (Rustic Set) ---
-    // =================================================
     'craft_rust_helmet': {
         recipeId: 'craft_rust_helmet',
         name: 'Craft Rustic Helmet',
-        type: 'CRAFT', // Define o tipo para o filtro
+        type: 'CRAFT',
         inputMaterials: { 'mat_scrap': 15, 'mat_polymer': 5 },
         inputComponents: {}, inputShopItems: {},
         output: { itemId: 'eq_rust_helmet', amount: 1 } 
@@ -112,10 +111,10 @@ export const RECIPES_DB = {
     'upgrade_def1_to_def2': {
         recipeId: 'upgrade_def1_to_def2',
         name: 'Upgrade Defense Plate T1 to T2',
-        type: 'UPGRADE', // (Tipo futuro, não aparecerá em 'CRAFT')
+        type: 'UPGRADE',
         inputMaterials: { 'mat_metal': 20 },
         inputComponents: { 'comp_def_1': 3 }, 
-        inputShopItems: { 'boost_token': 1 },
+        inputShopItems: { 'slot_unlock_token': 1 }, // (Exemplo ajustado)
         output: { itemId: 'comp_def_2', amount: 1 } 
     }
 };
