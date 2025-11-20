@@ -1,8 +1,9 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (Passo 2.1 - Fix AP Regression)
-// - Corrige a leitura de 'finalStats.ap' (minúsculo).
-// - Garante inicialização correta de maxAP e maxMP.
+// UPDATE: (VERSÃO DEFINITIVA V3.5)
+// - Inclui lógica de Nós (moveToNode).
+// - Inclui lógica de Combate (handleCombatExecution, searchForEnemy).
+// - Inclui correções de AP minúsculo e Reset de Estado (endExpedition).
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js';
@@ -25,6 +26,9 @@ const getSpawnNodeId = (kidTribe) => {
     return SPAWN_NODE_ID; 
 };
 
+/**
+ * Retorna a chave do Bioma para o Nó atual.
+ */
 const getCurrentBiomeKey = (nodeId) => {
     const node = MAP_NODES.find(n => n.id === nodeId);
     return node ? node.biome : 'WASTELAND'; 
@@ -41,13 +45,18 @@ const calculateMPCost = (fromNodeId, toNodeId) => {
 
 export const ExpeditionManager = {
 
+    /**
+     * Inicia uma nova expedição.
+     */
     startExpedition: function() {
         const state = getState();
         const kidId = state.currentPlayerKidId;
+        
         if (!kidId) {
             console.error("ExpeditionManager: Tentativa de iniciar expedição sem Kid selecionado.");
             return;
         }
+
         const kidStaticData = getKidDataById(kidId);
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
@@ -60,11 +69,10 @@ export const ExpeditionManager = {
             currentHP: finalStats.maxHP,
             maxHP: finalStats.maxHP,
             
-            // (CORREÇÃO CRÍTICA) Usa 'ap' minúsculo para ler do StatSystem
+            // Garante que AP e MP sejam lidos corretamente (minúsculo)
             currentAP: finalStats.ap || 0, 
             maxAP: finalStats.ap || 0,
             
-            // MP usa Speed
             currentMP: finalStats.speed || 0, 
             maxMP: finalStats.speed || 0,
             
@@ -85,6 +93,9 @@ export const ExpeditionManager = {
         setCurrentScreen('game-screen');
     },
 
+    /**
+     * Move o jogador para um novo nó adjacente.
+     */
     moveToNode: function(targetNodeId) {
         const state = getState();
         let { expedition } = state; 
@@ -94,12 +105,14 @@ export const ExpeditionManager = {
 
         if (!targetNode) return;
 
+        // Verifica conexão
         if (!currentNode || !currentNode.connections.includes(targetNodeId)) {
             expedition.log.unshift(`Cannot move there directly.`);
             updateState({ expedition: expedition });
             return;
         }
 
+        // Verifica custo de MP
         const cost = calculateMPCost(currentNode.id, targetNodeId);
         if (expedition.currentMP < cost) {
             expedition.log.unshift(`Not enough MP to move. (Costs ${cost} MP)`);
@@ -107,6 +120,7 @@ export const ExpeditionManager = {
             return;
         }
 
+        // Executa movimento
         expedition.currentMP -= cost;
         expedition.position.nodeId = targetNodeId; 
         
@@ -116,6 +130,9 @@ export const ExpeditionManager = {
         updateState({ expedition: expedition });
     },
 
+    /**
+     * Executa a ação "Collect Resources".
+     */
     collectResources: function() {
         const state = getState();
         let { expedition, uiState } = state; 
@@ -167,6 +184,9 @@ export const ExpeditionManager = {
         }
     },
 
+    /**
+     * Helper para executar a simulação de combate.
+     */
     handleCombatExecution: function(enemyData) {
         const state = getState();
         let { expedition } = state;
@@ -204,6 +224,9 @@ export const ExpeditionManager = {
         });
     },
 
+    /**
+     * Executa a ação "Investigate".
+     */
     investigate: function() {
         const state = getState();
         let { expedition, uiState } = state; 
@@ -218,7 +241,7 @@ export const ExpeditionManager = {
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
         
-        if (!eventTable) { return; }
+        if (!eventTable) return;
 
         const luck = expedition.kidStats.luck || 0;
         const eventRoll = rollDice(1, 100) + luck; 
@@ -234,6 +257,7 @@ export const ExpeditionManager = {
                 updateState({ expedition: expedition });
                 if (!uiState.skipAnimations) openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
                 break;
+            
             case "ambush":
                 const rarity = eventResult.enemyRarity || 'common';
                 const enemyData = ENEMIES_BY_BIOME[biomeKey][rarity];
@@ -243,9 +267,11 @@ export const ExpeditionManager = {
                     this.handleCombatExecution(enemyData);
                 }
                 break;
+
             case "loot":
                 const lootTable = DROP_TABLES[biomeKey]?.investigate;
                 if (!lootTable) return;
+                
                 const lootRoll = rollDice(1, 100) + luck; 
                 let lootResult = lootTable[lootTable.length - 1];
                 for (const loot of lootTable) { if (lootRoll <= loot.chance) { lootResult = loot; break; } }
@@ -254,11 +280,14 @@ export const ExpeditionManager = {
                     logMessage = "Found a hidden cache... but it was empty.";
                     expedition.log.unshift(logMessage);
                     updateState({ expedition: expedition });
-                    if (!uiState.skipAnimations) openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
+                    if (!uiState.skipAnimations) {
+                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
+                    }
                 } else {
                     const { item, quantity } = lootResult;
                     const amountFound = rollDice(quantity[0], quantity[1]);
                     let itemsFound = [];
+                    
                     if (amountFound > 0) {
                         expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                         logMessage = `Success! Found ${amountFound}x ${item} (${lootResult.type})!`;
@@ -266,34 +295,48 @@ export const ExpeditionManager = {
                         itemsFound.push({ itemId: item, quantity: amountFound });
                     }
                     updateState({ expedition: expedition });
-                    if (!uiState.skipAnimations) openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: "Loot Found!", items: itemsFound }, true);
+
+                    if (!uiState.skipAnimations) {
+                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: "Loot Found!", items: itemsFound }, true);
+                    }
                 }
                 break;
         }
     },
 
+    /**
+     * Executa a ação "Search For Enemy".
+     */
     searchForEnemy: function() {
         const state = getState();
         let { expedition } = state;
+
         if (expedition.currentAP < 2) { 
             expedition.log.unshift(`Not enough AP to search for enemies.`);
             updateState({ expedition: expedition });
             return;
         }
         expedition.currentAP -= 2; 
+
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const enemyTable = ENEMIES_BY_BIOME[biomeKey];
+        
         if (!enemyTable || !enemyTable.common) {
             expedition.log.unshift(`The area seems quiet... for now.`);
             updateState({ expedition: expedition });
             return;
         }
+        
         const enemyData = enemyTable.common; 
-        expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
+        expedition.log.unshift(`You found a ${enemyData.name}! Combat initiated.`);
         updateState({ expedition: expedition });
+
         this.handleCombatExecution(enemyData);
     },
 
+    /**
+     * Finaliza o turno (dia) atual.
+     */
     endDay: function() {
         const state = getState();
         let { expedition } = state;
@@ -307,24 +350,30 @@ export const ExpeditionManager = {
 
         expedition.currentDay += 1;
         
-        // (CORREÇÃO) Reseta AP/MP para o valor máximo
+        // (CORREÇÃO) Restaura AP e MP para o máximo
         expedition.currentAP = expedition.maxAP;
         expedition.currentMP = expedition.maxMP;
         
         expedition.log.unshift(`Day ${expedition.currentDay}: AP and MP have been restored.`);
+        
         updateState({ expedition: expedition });
     },
 
+    /**
+     * Encerra a expedição manualmente.
+     */
     endExpedition: function() {
         const state = getState();
         let { expedition, playerInventory } = state;
 
         if (!expedition) return; 
 
+        // 1. Salva Materiais
         for (const matId in expedition.foundLoot.materials) {
             const amount = expedition.foundLoot.materials[matId];
             playerInventory.materials[matId] = (playerInventory.materials[matId] || 0) + amount;
         }
+        // 2. Salva Equipamentos e Componentes
         playerInventory.equipment = playerInventory.equipment.concat(expedition.foundLoot.equipment);
         playerInventory.components = playerInventory.components.concat(expedition.foundLoot.components);
 
@@ -333,9 +382,13 @@ export const ExpeditionManager = {
         
         alert(logMessage); 
 
+        // Reseta o estado da expedição usando Deep Copy do INITIAL_STATE
+        // para evitar referências cruzadas
+        const freshExpeditionState = JSON.parse(JSON.stringify(INITIAL_STATE.expedition));
+
         updateState({ 
             playerInventory: playerInventory,
-            expedition: INITIAL_STATE.expedition 
+            expedition: freshExpeditionState
         });
         setCurrentScreen('hub-preparation-screen');
     }
