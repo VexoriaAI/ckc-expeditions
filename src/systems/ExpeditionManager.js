@@ -1,21 +1,19 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (CORREÇÃO FINAL DE REGRESSÃO)
-// - Usa MAP_NODES e SPAWN_NODE_ID (em vez de STATIC_MAP_DATA).
-// - Inclui a vírgula de sintaxe.
-// - Inclui toda a lógica de Nós e Combate.
+// UPDATE: (Passo 2.1 - Fix AP Regression)
+// - Corrige a leitura de 'finalStats.ap' (minúsculo).
+// - Garante inicialização correta de maxAP e maxMP.
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
-// (CORRIGIDO) Importa MAP_NODES e SPAWN_NODE_ID
 import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../database/maps.js';
 import { DROP_TABLES } from '../../database/drops.js'; 
 import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
 import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; 
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
-import { CombatSystem } from './CombatSystem.js';
+import { CombatSystem } from './CombatSystem.js'; 
 
 // --- Helpers ---
 
@@ -23,16 +21,10 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-/**
- * (ATUALIZADO) Retorna o ID do nó de spawn.
- */
 const getSpawnNodeId = (kidTribe) => {
     return SPAWN_NODE_ID; 
 };
 
-/**
- * (ATUALIZADO) Retorna a chave do Bioma para o Nó atual.
- */
 const getCurrentBiomeKey = (nodeId) => {
     const node = MAP_NODES.find(n => n.id === nodeId);
     return node ? node.biome : 'WASTELAND'; 
@@ -67,14 +59,18 @@ export const ExpeditionManager = {
             kidStats: finalStats, 
             currentHP: finalStats.maxHP,
             maxHP: finalStats.maxHP,
-            currentAP: finalStats.AP, 
-            maxAP: finalStats.AP,
-            currentMP: finalStats.speed, 
-            maxMP: finalStats.speed,
+            
+            // (CORREÇÃO CRÍTICA) Usa 'ap' minúsculo para ler do StatSystem
+            currentAP: finalStats.ap || 0, 
+            maxAP: finalStats.ap || 0,
+            
+            // MP usa Speed
+            currentMP: finalStats.speed || 0, 
+            maxMP: finalStats.speed || 0,
+            
             currentDay: 1, 
             maxDays: 10,
             
-            // (ATUALIZADO) Usa nodeId
             position: { nodeId: startNodeId }, 
             
             log: [`Day 1: Expedition started at ${MAP_BIOMES[startBiomeKey].name}.`],
@@ -96,10 +92,7 @@ export const ExpeditionManager = {
         const currentNode = MAP_NODES.find(n => n.id === expedition.position.nodeId);
         const targetNode = MAP_NODES.find(n => n.id === targetNodeId);
 
-        if (!targetNode) {
-            console.error(`MoveToNode: Nó alvo "${targetNodeId}" não encontrado.`);
-            return;
-        }
+        if (!targetNode) return;
 
         if (!currentNode || !currentNode.connections.includes(targetNodeId)) {
             expedition.log.unshift(`Cannot move there directly.`);
@@ -134,7 +127,6 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1; 
 
-        // (ATUALIZADO) Usa getCurrentBiomeKey com nodeId
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const lootTable = DROP_TABLES[biomeKey]?.collect;
 
@@ -223,7 +215,6 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1;
 
-        // (ATUALIZADO) Usa getCurrentBiomeKey com nodeId
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
         
@@ -284,29 +275,23 @@ export const ExpeditionManager = {
     searchForEnemy: function() {
         const state = getState();
         let { expedition } = state;
-
         if (expedition.currentAP < 2) { 
             expedition.log.unshift(`Not enough AP to search for enemies.`);
             updateState({ expedition: expedition });
             return;
         }
         expedition.currentAP -= 2; 
-
-        // (ATUALIZADO) Usa getCurrentBiomeKey com nodeId
         const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
         const enemyTable = ENEMIES_BY_BIOME[biomeKey];
-        
         if (!enemyTable || !enemyTable.common) {
             expedition.log.unshift(`The area seems quiet... for now.`);
             updateState({ expedition: expedition });
             return;
         }
-        
-        const enemyName = enemyTable.common.name;
+        const enemyData = enemyTable.common; 
         expedition.log.unshift(`You found a ${enemyName}! Combat initiated.`);
         updateState({ expedition: expedition });
-
-        this.handleCombatExecution(enemyTable.common);
+        this.handleCombatExecution(enemyData);
     },
 
     endDay: function() {
@@ -321,10 +306,12 @@ export const ExpeditionManager = {
         }
 
         expedition.currentDay += 1;
+        
+        // (CORREÇÃO) Reseta AP/MP para o valor máximo
         expedition.currentAP = expedition.maxAP;
         expedition.currentMP = expedition.maxMP;
-        expedition.log.unshift(`Day ${expedition.currentDay}: AP and MP have been restored.`);
         
+        expedition.log.unshift(`Day ${expedition.currentDay}: AP and MP have been restored.`);
         updateState({ expedition: expedition });
     },
 
