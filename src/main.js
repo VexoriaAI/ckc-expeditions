@@ -17,7 +17,7 @@ import { MATERIALS_DB } from '../database/materials.js';
 import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
 
 function initializeApp() {
-    console.log('--- Phase 2: Initializing CyberKidz - Wasteland Expeditions ---');
+    console.log('--- Phase 2.1: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
 
     UIManager.init();
