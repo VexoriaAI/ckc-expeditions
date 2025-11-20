@@ -1,12 +1,12 @@
 /* ====================================================================
 // STYLES: game_screen.css
-// UPDATE: (Refatoração de Mapa - Node-Based)
-// Adiciona os estilos para os Nós do Mapa (posição, cor, hover).
+// UPDATE: (Passo 2.2 - Acordeão)
+// Adiciona estilos para o componente sanfona de Stats.
 // ==================================================================== */
 
 .game-container {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 1fr; /* Layout de 3 colunas */
+    grid-template-columns: 1fr 1.5fr 1fr; 
     gap: 20px;
 }
 
@@ -21,7 +21,6 @@
     padding: 15px;
 }
 
-
 /* ================== Coluna 1: Status ================== */
 #game-col-status h3 {
     color: var(--color-text-light);
@@ -29,329 +28,111 @@
     padding-bottom: 5px;
 }
 
-/* Info Box do Kid */
 #game-col-status .kid-info-box {
     padding: 10px;
     gap: 10px;
     background-color: var(--color-bg-dark); 
 }
-#game-col-status .kid-info-box .kid-image {
-    width: 80px;
-    height: 80px;
-}
-#game-col-status .kid-info-box h4 {
-    font-size: 1.1em;
-    color: var(--color-text-light);
-}
+#game-col-status .kid-info-box .kid-image { width: 80px; height: 80px; }
+#game-col-status .kid-info-box h4 { font-size: 1.1em; color: var(--color-text-light); }
 
-/* Badges de Level/Power */
-.kid-card-stats.game-screen-stats {
-    display: flex;
-    gap: 10px;
-    margin-top: 5px;
-}
+.kid-card-stats.game-screen-stats { display: flex; gap: 10px; margin-top: 5px; }
 .game-screen-stats .stat-badge {
-    background-color: var(--color-bg-dark);
-    border: 1px solid #444;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    font-weight: bold;
+    background-color: var(--color-bg-dark); border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold;
 }
-.game-screen-stats .stat-badge.level-badge {
-    color: var(--color-accent-green);
-    border-color: var(--color-accent-green);
-}
-.game-screen-stats .stat-badge.power-badge {
-    color: var(--color-accent-red);
-    border-color: var(--color-accent-red);
-}
-.game-screen-stats .stat-badge span {
-    color: var(--color-text-light);
-}
+.game-screen-stats .stat-badge.level-badge { color: var(--color-accent-green); border-color: var(--color-accent-green); }
+.game-screen-stats .stat-badge.power-badge { color: var(--color-accent-red); border-color: var(--color-accent-red); }
+.game-screen-stats .stat-badge span { color: var(--color-text-light); }
 
-
-/* Barras de Status (HP) */
-.status-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+/* Barras de Status */
+.status-bars { display: flex; flex-direction: column; gap: 10px; }
 .stat-bar {
-    display: grid;
-    grid-template-columns: 30px 1fr 50px;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.9em;
+    display: grid; grid-template-columns: 30px 1fr 50px; align-items: center; gap: 5px; font-size: 0.9em;
 }
 .stat-label { font-weight: bold; color: var(--color-accent-blue); }
 .stat-value { font-weight: bold; color: var(--color-text-light); }
-.bar-track {
-    height: 15px;
-    background-color: var(--color-bg-dark);
-    border: 1px solid #444;
-    border-radius: 5px;
-    overflow: hidden;
-}
-.bar-fill {
-    height: 100%;
-    transition: width 0.3s ease;
-}
+.bar-track { height: 15px; background-color: var(--color-bg-dark); border: 1px solid #444; border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; transition: width 0.3s ease; }
 .hp-fill-green { background-color: var(--color-accent-green); }
 .hp-fill-orange { background-color: #f39c12; } 
 .hp-fill-red { background-color: var(--color-accent-red); } 
 .ap-fill { background-color: var(--color-accent-blue); }
 .mp-fill { background-color: var(--color-accent-red); }
 
-/* Lista de Atributos */
-.expedition-stats-list {
+/* (NOVO) Acordeão de Stats */
+.expedition-stats-accordion {
     background: rgba(0,0,0,0.2);
     padding: 10px;
+    /* Remove altura fixa para permitir expansão */
 }
-.expedition-stats-list h4 { font-size: 1em; }
-.expedition-stats-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 colunas */
-    gap: 5px 10px;
-}
-.expedition-stats-list li {
-    font-size: 0.85em;
-    color: var(--color-text-dim);
+.accordion-header {
     display: flex;
     justify-content: space-between;
-}
-.expedition-stats-list li span {
-    color: var(--color-text-light);
-    font-weight: bold;
-}
-
-
-/* Lista de Consumíveis */
-.consumables-display {
-    background: rgba(0,0,0,0.2);
-    padding: 10px;
-    flex-grow: 1; /* Ocupa o espaço restante */
-}
-.consumables-display h4 { font-size: 1em; }
-.consumables-display-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-.consumable-item {
-    display: flex;
     align-items: center;
-    gap: 10px;
-}
-.consumable-item img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    flex-shrink: 0;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background: var(--color-bg-dark);
-}
-.consumable-details {
-    flex-grow: 1;
-}
-.consumable-details span {
-    font-size: 0.9em;
-    color: var(--color-text-light);
-    font-weight: bold;
-}
-.consumable-details p {
-    font-size: 0.8em;
-    color: var(--color-text-dim);
-    margin: 0;
-    line-height: 1.2;
-}
-.consumable-item .action-btn {
-    width: auto; /* Botão "USE" */
-    flex-shrink: 0;
-}
-
-
-/* ================== Coluna 2: Mapa e Ações ================== */
-.map-container {
-    position: relative;
-    overflow: hidden;
-    padding: 0; 
-}
-.map-background-image {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-/* (NOVO) Overlay que contém os nós */
-.map-nodes-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-/* (NOVO) Estilo Base do Nó */
-.map-node {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    background-color: var(--color-bg-dark);
-    border: 2px solid var(--color-text-dim);
-    border-radius: 50%;
-    transform: translate(-50%, -50%); /* Centraliza o nó no X,Y */
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.7);
+    padding-bottom: 5px;
+    border-bottom: 1px solid #444;
 }
-.node-icon {
-    font-size: 14px;
-    font-weight: bold;
-    color: var(--color-text-light);
-    pointer-events: none; /* Garante que o clique vá para o .map-node */
+.accordion-header h4 { margin: 0; font-size: 1em; }
+.accordion-arrow { color: var(--color-accent-blue); font-size: 0.8em; }
+
+.accordion-content {
+    margin-top: 10px;
+    /* display: none; é controlado via JS inline por enquanto */
 }
 
-/* (NOVO) Estados dos Nós */
-.map-node.map-node-locked {
-    filter: grayscale(100%);
-    opacity: 0.5;
-    cursor: not-allowed;
+.stats-list-grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px;
 }
-.map-node.map-node-reachable {
-    border-color: var(--color-accent-green);
-    background-color: var(--color-accent-green);
+.stats-list-grid li {
+    font-size: 0.85em; color: var(--color-text-dim);
+    display: flex; justify-content: space-between;
 }
-.map-node.map-node-reachable:hover {
-    transform: translate(-50%, -50%) scale(1.5); /* Efeito de Hover */
-    box-shadow: 0 0 15px var(--color-accent-green);
-}
-.map-node.map-node-current {
-    border-color: var(--color-accent-blue);
-    background-color: var(--color-accent-blue);
-    transform: translate(-50%, -50%) scale(1.7);
-    box-shadow: 0 0 20px var(--color-accent-blue);
-    z-index: 10;
-}
+.stats-list-grid li span { color: var(--color-text-light); font-weight: bold; }
 
 
-/* Painel de AP/MP */
-.action-points-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-.action-points-bar .stat-bar {
-    grid-template-columns: 40px 1fr 50px; 
-    gap: 10px;
-    font-size: 1.1em;
-}
+/* Consumíveis */
+.consumables-display { background: rgba(0,0,0,0.2); padding: 10px; flex-grow: 1; }
+.consumables-display h4 { font-size: 1em; }
+.consumables-display-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; }
+.consumable-item { display: flex; align-items: center; gap: 10px; }
+.consumable-item img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; border: 1px solid #444; border-radius: 4px; background: var(--color-bg-dark); }
+.consumable-details { flex-grow: 1; }
+.consumable-details span { font-size: 0.9em; color: var(--color-text-light); font-weight: bold; }
+.consumable-details p { font-size: 0.8em; color: var(--color-text-dim); margin: 0; line-height: 1.2; }
+.consumable-item .action-btn { width: auto; flex-shrink: 0; }
 
-.action-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-.action-bar .btn-secondary {
-    grid-column: 1 / -1; /* Botão "End Day" */
-}
+/* Mapa e Ações (Mantido) */
+.map-container { position: relative; overflow: hidden; padding: 0; }
+.map-background-image { width: 100%; height: auto; display: block; }
+.map-nodes-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.map-node { position: absolute; width: 32px; height: 32px; background-color: var(--color-bg-dark); border: 2px solid var(--color-text-dim); border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(0,0,0,0.7); }
+.node-icon { font-size: 14px; font-weight: bold; color: var(--color-text-light); pointer-events: none; }
+.map-node.map-node-locked { filter: grayscale(100%); opacity: 0.5; cursor: not-allowed; }
+.map-node.map-node-reachable { border-color: var(--color-accent-green); background-color: var(--color-accent-green); }
+.map-node.map-node-reachable:hover { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 15px var(--color-accent-green); }
+.map-node.map-node-current { border-color: var(--color-accent-blue); background-color: var(--color-accent-blue); transform: translate(-50%, -50%) scale(1.7); box-shadow: 0 0 20px var(--color-accent-blue); z-index: 10; }
 
-/* ================== Coluna 3: Log ================== */
-#game-col-log .loot-display {
-    background: rgba(0,0,0,0.2);
-    padding: 10px;
-}
-#game-col-log .loot-display h4 { font-size: 1em; }
-.loot-display-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-.loot-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9em;
-    color: var(--color-text-dim);
-}
-.loot-item img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
-.loot-item .loot-quantity {
-    margin-left: auto; 
-    color: var(--color-text-light);
-}
+.action-points-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.action-points-bar .stat-bar { grid-template-columns: 40px 1fr 50px; gap: 10px; font-size: 1.1em; }
+.action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-bar .btn-secondary { grid-column: 1 / -1; }
 
 /* Log */
-.log-window {
-    background: rgba(0,0,0,0.2);
-    border-radius: 5px;
-    padding: 10px;
-    overflow-y: auto;
-    flex-grow: 1; 
-    min-height: 30vh; 
-}
-.log-window p {
-    font-size: 0.85em;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #444;
-    padding-bottom: 5px;
-    color: var(--color-text-dim);
-}
-.log-window p:first-child {
-    color: var(--color-text-light);
-    font-weight: bold;
-}
-#game-col-log .action-btn {
-    width: 100%; /* Botão "End Expedition" */
-}
-/* Checkbox de Pular */
-.skip-animations-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 5px 0;
-}
-.skip-animations-toggle label {
-    color: var(--color-text-dim);
-    font-size: 0.9em;
-    cursor: pointer;
-}
-.skip-animations-toggle input {
-    cursor: pointer;
-}
-
+#game-col-log .loot-display { background: rgba(0,0,0,0.2); padding: 10px; }
+#game-col-log .loot-display h4 { font-size: 1em; }
+.loot-display-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; max-height: 150px; overflow-y: auto; }
+.loot-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: var(--color-text-dim); }
+.loot-item img { width: 20px; height: 20px; object-fit: contain; }
+.loot-item .loot-quantity { margin-left: auto; color: var(--color-text-light); }
+.log-window { background: rgba(0,0,0,0.2); border-radius: 5px; padding: 10px; overflow-y: auto; flex-grow: 1; min-height: 30vh; }
+.log-window p { font-size: 0.85em; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 5px; color: var(--color-text-dim); }
+.log-window p:first-child { color: var(--color-text-light); font-weight: bold; }
+#game-col-log .action-btn { width: 100%; }
+.skip-animations-toggle { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.skip-animations-toggle label { color: var(--color-text-dim); font-size: 0.9em; cursor: pointer; }
 
 /* Responsividade */
-@media (max-width: 1200px) {
-    .game-container {
-        grid-template-columns: 1fr; /* Empilha as colunas */
-    }
-    #game-col-log .log-window {
-        height: 200px; 
-        min-height: 200px;
-    }
-}
-@media (max-width: 768px) {
-    .action-points-bar {
-        grid-template-columns: 1fr; /* Empilha AP e MP */
-        gap: 10px;
-    }
-}
+@media (max-width: 1200px) { .game-container { grid-template-columns: 1fr; } #game-col-log .log-window { height: 200px; min-height: 200px; } }
+@media (max-width: 768px) { .action-points-bar { grid-template-columns: 1fr; gap: 10px; } }
