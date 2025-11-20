@@ -1,9 +1,8 @@
 /* ====================================================================
 // CORE: main.js
-// UPDATE: (Fase 3.2 - Fix Filtros Hub Selection)
-// - Corrige a captura de valor dos inputs e selects.
-// - Corrige o erro de 'undefined' no filtro de tribo.
-// - Garante atualização correta do estado hubSelectionFilters.
+// UPDATE: (Fase 3.2 - Fix Filtros Final)
+// - Corrige a lógica de atualização de estado dos filtros.
+// - Garante cópia segura de objetos (Spread Operator).
 // ==================================================================== */
 
 import { getState, setCurrentScreen, updateState, loadDemoData, resetState, INITIAL_STATE, openModal, closeModal } from './core/GameState.js';
@@ -17,7 +16,7 @@ import { MATERIALS_DB } from '../database/materials.js';
 import { RANKING_FORGEMASTERS, RANKING_EXPLORERS, RANKING_SENTINELS } from '../database/rankings.js';
 
 function initializeApp() {
-    console.log('--- Phase 2.1: Initializing CyberKidz - Wasteland Expeditions ---');
+    console.log('--- Phase 2.2: Initializing CyberKidz - Wasteland Expeditions ---');
     console.log('ES6 Modular Architecture Active.');
 
     UIManager.init();
@@ -49,13 +48,10 @@ function startRankingTicker() {
         `AI Sentinels | Top #1 ${RANKING_SENTINELS[0].playerName}`
     ];
     let currentItemIndex = 0;
-
     setInterval(() => {
         const tickerElement = document.getElementById('ranking-ticker');
         if (!tickerElement) return; 
-
         tickerElement.classList.remove('fade-in');
-        
         setTimeout(() => {
             currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
             tickerElement.innerHTML = `<span>${tickerItems[currentItemIndex]}</span>`;
@@ -105,12 +101,10 @@ function handleGlobalClick(event) {
     const target = event.target;
     const currentState = getState();
     
-    // --- Global ---
     if (target.id === 'btn-logout') { window.location.reload(); return; }
     if (target.id === 'btn-store') { updateState({ previousScreen: currentState.currentScreen }); setCurrentScreen('store-screen'); return; }
     if (target.id === 'btn-ranking') { updateState({ previousScreen: currentState.currentScreen }); setCurrentScreen('ranking-screen'); return; }
     
-    // --- Screens ---
     if (currentState.currentScreen === 'logged-out-screen') {
         if (target.id === 'btn-connect-wallet' || target.id === 'btn-play-demo') { loadDemoData(); setCurrentScreen('hub-selection-screen'); }
     } 
@@ -119,13 +113,23 @@ function handleGlobalClick(event) {
             const selectedKidId = target.closest('.kid-card').dataset.kidId; 
             if (selectedKidId) { updateState({ currentPlayerKidId: selectedKidId }); setCurrentScreen('hub-preparation-screen'); }
         }
-        else if (target.id === 'btn-page-next') { updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage + 1 } }); }
-        else if (target.id === 'btn-page-prev') { updateState({ hubSelectionFilters: { currentPage: currentState.hubSelectionFilters.currentPage - 1 } }); }
-        else if (target.id === 'btn-filter-reset') { updateState({ hubSelectionFilters: INITIAL_STATE.hubSelectionFilters }); }
+        else if (target.id === 'btn-page-next') { 
+            const currentFilters = currentState.hubSelectionFilters || INITIAL_STATE.hubSelectionFilters;
+            updateState({ hubSelectionFilters: { ...currentFilters, currentPage: currentFilters.currentPage + 1 } }); 
+        }
+        else if (target.id === 'btn-page-prev') { 
+            const currentFilters = currentState.hubSelectionFilters || INITIAL_STATE.hubSelectionFilters;
+            updateState({ hubSelectionFilters: { ...currentFilters, currentPage: currentFilters.currentPage - 1 } }); 
+        }
+        else if (target.id === 'btn-filter-reset') { 
+            // (CORREÇÃO) Reset seguro usando spread
+            updateState({ hubSelectionFilters: { ...INITIAL_STATE.hubSelectionFilters } }); 
+        }
     }
     else if (currentState.currentScreen === 'hub-preparation-screen') {
         if (target.id === 'btn-back-to-selection') { setCurrentScreen('hub-selection-screen'); } 
         else if (target.id === 'btn-start-expedition') { ExpeditionManager.startExpedition(); }
+        
         else if (target.id === 'btn-auto-equip') { EquipmentSystem.autoEquip(); } 
         else if (target.id === 'btn-remove-all') { EquipmentSystem.unequipAll(); }
         
@@ -256,7 +260,8 @@ function handleGlobalChange(event) {
     }
     else if (target.id === 'filter-tribe') {
         const selectedValue = target.value;
-        const tribesArray = selectedValue === 'all' ? [] : [selectedValue]; // 'all' deve ser array vazio ou ['all'] dependendo da lógica do render
+        // Garante que passamos um array para o state (ou 'all' dentro de um array para manter consistência)
+        const tribesArray = selectedValue === 'all' ? ['all'] : [selectedValue];
         
         updateState({ 
             hubSelectionFilters: { ...currentFilters, selectedTribes: tribesArray, currentPage: 1 } 
