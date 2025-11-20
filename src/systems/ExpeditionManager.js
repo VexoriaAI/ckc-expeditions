@@ -1,14 +1,18 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (VERSÃO DEFINITIVA V3.5)
-// - Inclui lógica de Nós (moveToNode).
-// - Inclui lógica de Combate (handleCombatExecution, searchForEnemy).
-// - Inclui correções de AP minúsculo e Reset de Estado (endExpedition).
+// UPDATE: (Fase 4.0 - Passo 2.2)
+// - Integração com MapGenerator.
+// - Gera o mapa dinamicamente em startExpedition.
+// - Salva 'currentMap' no estado.
+// - Ações agora leem de 'state.expedition.currentMap' e 'node.subtype'.
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
-import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../database/maps.js';
+// (ATUALIZADO) Importa definições globais e o Gerador
+import { WORLD_BIOMES } from '../../database/maps/world_map.js';
+import { MapGenerator } from './MapGenerator.js';
+
 import { DROP_TABLES } from '../../database/drops.js'; 
 import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
 import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; 
@@ -22,23 +26,18 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-const getSpawnNodeId = (kidTribe) => {
-    return SPAWN_NODE_ID; 
-};
-
-/**
- * Retorna a chave do Bioma para o Nó atual.
- */
-const getCurrentBiomeKey = (nodeId) => {
-    const node = MAP_NODES.find(n => n.id === nodeId);
-    return node ? node.biome : 'WASTELAND'; 
-};
-
 const rollDice = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-const calculateMPCost = (fromNodeId, toNodeId) => {
+// (ATUALIZADO) Helper para pegar o nó atual do mapa salvo no estado
+const getCurrentNode = (expedition) => {
+    if (!expedition || !expedition.currentMap || !expedition.position) return null;
+    return expedition.currentMap.nodes.find(n => n.id === expedition.position.nodeId);
+};
+
+// (ATUALIZADO) Helper para calcular custo (por enquanto fixo em 1)
+const calculateMPCost = (nodeA, nodeB) => {
     return 1; 
 };
 
@@ -46,7 +45,7 @@ const calculateMPCost = (fromNodeId, toNodeId) => {
 export const ExpeditionManager = {
 
     /**
-     * Inicia uma nova expedição.
+     * Inicia uma nova expedição (Gera o Mapa Dinâmico).
      */
     startExpedition: function() {
         const state = getState();
@@ -61,27 +60,39 @@ export const ExpeditionManager = {
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
         
-        const startNodeId = getSpawnNodeId(kidStaticData.tribe);
-        const startBiomeKey = getCurrentBiomeKey(startNodeId);
+        // 1. Define o Bioma Inicial baseado na Tribo (Lógica de MVP)
+        let startBiomeId = 'WASTELAND'; // Padrão
+        if (kidStaticData.tribe === 'VOLCANICS') startBiomeId = 'BURNING_RIDGE';
+        // (Futuro: Adicionar mapeamento para outras tribos)
+
+        // 2. Gera o Mapa Procedural
+        const mapInstance = MapGenerator.generateBiomeMap(startBiomeId);
+        
+        // 3. Define o Spawn Point Aleatório
+        const startNodeId = MapGenerator.getRandomSpawnNode(mapInstance);
+        
+        // Encontra o nó inicial para o log
+        const startNode = mapInstance.nodes.find(n => n.id === startNodeId);
+        const biomeName = WORLD_BIOMES[startBiomeId]?.name || startBiomeId;
 
         const expeditionData = {
             kidStats: finalStats, 
             currentHP: finalStats.maxHP,
             maxHP: finalStats.maxHP,
-            
-            // Garante que AP e MP sejam lidos corretamente (minúsculo)
             currentAP: finalStats.ap || 0, 
             maxAP: finalStats.ap || 0,
-            
             currentMP: finalStats.speed || 0, 
             maxMP: finalStats.speed || 0,
             
             currentDay: 1, 
             maxDays: 10,
             
+            // (NOVO) Salva o mapa gerado no estado
+            currentMap: mapInstance,
+            
             position: { nodeId: startNodeId }, 
             
-            log: [`Day 1: Expedition started at ${MAP_BIOMES[startBiomeKey].name}.`],
+            log: [`Day 1: Dropped into ${biomeName} at ${startNode.name}.`],
             foundLoot: { 
                 materials: {},
                 components: [],
@@ -94,18 +105,24 @@ export const ExpeditionManager = {
     },
 
     /**
-     * Move o jogador para um novo nó adjacente.
+     * Move o jogador para um novo nó (Lê do currentMap).
      */
     moveToNode: function(targetNodeId) {
         const state = getState();
         let { expedition } = state; 
+        
+        // Validação de segurança
+        if (!expedition.currentMap) return;
 
-        const currentNode = MAP_NODES.find(n => n.id === expedition.position.nodeId);
-        const targetNode = MAP_NODES.find(n => n.id === targetNodeId);
+        const currentNode = getCurrentNode(expedition);
+        const targetNode = expedition.currentMap.nodes.find(n => n.id === targetNodeId);
 
-        if (!targetNode) return;
+        if (!targetNode) {
+            console.error(`MoveToNode: Nó alvo "${targetNodeId}" não encontrado no mapa atual.`);
+            return;
+        }
 
-        // Verifica conexão
+        // Verifica conexão (Lê do mapa dinâmico)
         if (!currentNode || !currentNode.connections.includes(targetNodeId)) {
             expedition.log.unshift(`Cannot move there directly.`);
             updateState({ expedition: expedition });
@@ -113,7 +130,7 @@ export const ExpeditionManager = {
         }
 
         // Verifica custo de MP
-        const cost = calculateMPCost(currentNode.id, targetNodeId);
+        const cost = calculateMPCost(currentNode, targetNode);
         if (expedition.currentMP < cost) {
             expedition.log.unshift(`Not enough MP to move. (Costs ${cost} MP)`);
             updateState({ expedition: expedition });
@@ -124,14 +141,13 @@ export const ExpeditionManager = {
         expedition.currentMP -= cost;
         expedition.position.nodeId = targetNodeId; 
         
-        const newBiome = MAP_BIOMES[targetNode.biome];
-        expedition.log.unshift(`Moved to ${targetNode.name}. (Biome: ${newBiome.name})`);
-
+        expedition.log.unshift(`Moved to ${targetNode.name}.`);
         updateState({ expedition: expedition });
     },
 
     /**
      * Executa a ação "Collect Resources".
+     * Agora usa 'node.subtype' para buscar a tabela de drops.
      */
     collectResources: function() {
         const state = getState();
@@ -144,11 +160,15 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1; 
 
-        const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
-        const lootTable = DROP_TABLES[biomeKey]?.collect;
+        // 1. Identifica o Tipo de Nó (Subtype)
+        const currentNode = getCurrentNode(expedition);
+        const nodeType = currentNode.subtype; // Ex: 'OBSIDIAN_FIELD'
+        
+        // 2. Busca a tabela de loot específica do tipo de nó
+        const lootTable = DROP_TABLES[nodeType]?.collect;
 
         if (!lootTable || lootTable.length === 0) {
-            expedition.log.unshift(`Cannot collect here.`);
+            expedition.log.unshift(`Nothing to collect at ${currentNode.name}.`);
             updateState({ expedition: expedition });
             return;
         }
@@ -184,9 +204,6 @@ export const ExpeditionManager = {
         }
     },
 
-    /**
-     * Helper para executar a simulação de combate.
-     */
     handleCombatExecution: function(enemyData) {
         const state = getState();
         let { expedition } = state;
@@ -226,6 +243,7 @@ export const ExpeditionManager = {
 
     /**
      * Executa a ação "Investigate".
+     * Agora usa 'node.subtype' para drops e 'biome' para spawn logic.
      */
     investigate: function() {
         const state = getState();
@@ -238,10 +256,16 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1;
 
-        const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
-        const eventTable = SPAWN_LOGIC[biomeKey]?.investigate;
+        const currentNode = getCurrentNode(expedition);
+        // Nota: SPAWN_LOGIC ainda usa chaves de Bioma (ex: 'BURNING_RIDGE'), não Subtipo
+        const biomeId = expedition.currentMap.id; 
+        const eventTable = SPAWN_LOGIC[biomeId]?.investigate;
         
-        if (!eventTable) return;
+        if (!eventTable) {
+             console.warn(`Investigate: Sem tabela de spawn para ${biomeId}. Usando fallback.`);
+             // (Fallback silencioso ou erro)
+             return;
+        }
 
         const luck = expedition.kidStats.luck || 0;
         const eventRoll = rollDice(1, 100) + luck; 
@@ -252,7 +276,7 @@ export const ExpeditionManager = {
 
         switch (eventResult.type) {
             case "nothing":
-                logMessage = "Investigated the area... but found nothing.";
+                logMessage = `Investigated ${currentNode.name}... found nothing.`;
                 expedition.log.unshift(logMessage);
                 updateState({ expedition: expedition });
                 if (!uiState.skipAnimations) openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_nothing', message: logMessage, items: [] }, true);
@@ -260,16 +284,17 @@ export const ExpeditionManager = {
             
             case "ambush":
                 const rarity = eventResult.enemyRarity || 'common';
-                const enemyData = ENEMIES_BY_BIOME[biomeKey][rarity];
+                const enemyData = ENEMIES_BY_BIOME[biomeId][rarity]; // Usa Bioma para inimigos
                 if (enemyData) {
-                    expedition.log.unshift(`AMBUSH! A ${enemyData.name} attacks!`);
+                    expedition.log.unshift(`AMBUSH! A ${enemyData.name} attacks at ${currentNode.name}!`);
                     updateState({ expedition: expedition });
                     this.handleCombatExecution(enemyData);
                 }
                 break;
 
             case "loot":
-                const lootTable = DROP_TABLES[biomeKey]?.investigate;
+                // Usa Subtipo do Nó para loot específico (Obsidian Field, Magma Pool, etc.)
+                const lootTable = DROP_TABLES[currentNode.subtype]?.investigate;
                 if (!lootTable) return;
                 
                 const lootRoll = rollDice(1, 100) + luck; 
@@ -287,7 +312,6 @@ export const ExpeditionManager = {
                     const { item, quantity } = lootResult;
                     const amountFound = rollDice(quantity[0], quantity[1]);
                     let itemsFound = [];
-                    
                     if (amountFound > 0) {
                         expedition.foundLoot.materials[item] = (expedition.foundLoot.materials[item] || 0) + amountFound;
                         logMessage = `Success! Found ${amountFound}x ${item} (${lootResult.type})!`;
@@ -295,100 +319,70 @@ export const ExpeditionManager = {
                         itemsFound.push({ itemId: item, quantity: amountFound });
                     }
                     updateState({ expedition: expedition });
-
-                    if (!uiState.skipAnimations) {
-                        openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: "Loot Found!", items: itemsFound }, true);
-                    }
+                    if (!uiState.skipAnimations) openModal('MODAL_INVESTIGATE_RESULT', { type: 'investigate_success', message: "Loot Found!", items: itemsFound }, true);
                 }
                 break;
         }
     },
 
-    /**
-     * Executa a ação "Search For Enemy".
-     */
     searchForEnemy: function() {
         const state = getState();
         let { expedition } = state;
 
         if (expedition.currentAP < 2) { 
-            expedition.log.unshift(`Not enough AP to search for enemies.`);
+            expedition.log.unshift(`Not enough AP to search.`);
             updateState({ expedition: expedition });
             return;
         }
         expedition.currentAP -= 2; 
 
-        const biomeKey = getCurrentBiomeKey(expedition.position.nodeId);
-        const enemyTable = ENEMIES_BY_BIOME[biomeKey];
+        const biomeId = expedition.currentMap.id;
+        const enemyTable = ENEMIES_BY_BIOME[biomeId];
         
-        if (!enemyTable || !enemyTable.common) {
-            expedition.log.unshift(`The area seems quiet... for now.`);
-            updateState({ expedition: expedition });
-            return;
-        }
+        if (!enemyTable || !enemyTable.common) return;
         
         const enemyData = enemyTable.common; 
-        expedition.log.unshift(`You found a ${enemyData.name}! Combat initiated.`);
+        expedition.log.unshift(`Hunting in ${biomeId}... found a ${enemyData.name}!`);
         updateState({ expedition: expedition });
 
         this.handleCombatExecution(enemyData);
     },
 
-    /**
-     * Finaliza o turno (dia) atual.
-     */
     endDay: function() {
         const state = getState();
         let { expedition } = state;
 
         if (expedition.currentDay >= expedition.maxDays) {
-            expedition.log.unshift("This was the final day. The expedition is ending.");
-            updateState({ expedition: expedition }); 
             this.endExpedition(); 
             return;
         }
 
         expedition.currentDay += 1;
-        
-        // (CORREÇÃO) Restaura AP e MP para o máximo
         expedition.currentAP = expedition.maxAP;
         expedition.currentMP = expedition.maxMP;
-        
         expedition.log.unshift(`Day ${expedition.currentDay}: AP and MP have been restored.`);
         
         updateState({ expedition: expedition });
     },
 
-    /**
-     * Encerra a expedição manualmente.
-     */
     endExpedition: function() {
         const state = getState();
         let { expedition, playerInventory } = state;
 
         if (!expedition) return; 
 
-        // 1. Salva Materiais
         for (const matId in expedition.foundLoot.materials) {
             const amount = expedition.foundLoot.materials[matId];
             playerInventory.materials[matId] = (playerInventory.materials[matId] || 0) + amount;
         }
-        // 2. Salva Equipamentos e Componentes
         playerInventory.equipment = playerInventory.equipment.concat(expedition.foundLoot.equipment);
         playerInventory.components = playerInventory.components.concat(expedition.foundLoot.components);
 
-        const lootCount = Object.keys(expedition.foundLoot.materials).length;
-        const logMessage = lootCount > 0 ? "Expedition ended. Loot secured in main inventory." : "Expedition ended. No loot found.";
-        
-        alert(logMessage); 
-
-        // Reseta o estado da expedição usando Deep Copy do INITIAL_STATE
-        // para evitar referências cruzadas
-        const freshExpeditionState = JSON.parse(JSON.stringify(INITIAL_STATE.expedition));
+        alert("Expedition Ended. Loot Secured."); 
 
         updateState({ 
             playerInventory: playerInventory,
-            expedition: freshExpeditionState
+            expedition: JSON.parse(JSON.stringify(INITIAL_STATE.expedition)) 
         });
         setCurrentScreen('hub-preparation-screen');
     }
