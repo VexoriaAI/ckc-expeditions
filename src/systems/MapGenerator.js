@@ -1,11 +1,12 @@
 /* ====================================================================
 // SYSTEM: MapGenerator.js
-// Responsável por instanciar mapas de biomas, gerenciar spawns
-// e preparar os dados da região para a expedição.
+// UPDATE: (Correção de Importação)
+// Garante que o caminho para o template burning_ridge.js esteja correto.
 // ==================================================================== */
 
-import { BURNING_RIDGE_TEMPLATE } from '../database/maps/burning_ridge.js';
-// (Futuro: Importar outros templates aqui: ANCIENT_METROPOLIS, etc.)
+// (CORREÇÃO) Caminho relativo ajustado: sobe 2 níveis (../..) para raiz de src, 
+// depois entra em database/maps/
+import { BURNING_RIDGE_TEMPLATE } from '../../database/maps/burning_ridge.js';
 
 const TEMPLATES = {
     'BURNING_RIDGE': BURNING_RIDGE_TEMPLATE,
@@ -29,21 +30,13 @@ export const MapGenerator = {
         }
 
         // 2. Deep Copy (Cópia Profunda)
-        // Importante: Clona o objeto para não modificar o banco de dados original
-        // durante a execução do jogo (ex: se alterarmos status de um nó).
         const mapInstance = JSON.parse(JSON.stringify(template));
-
-        // 3. (Futuro) Randomização de Eventos
-        // Aqui poderíamos iterar sobre mapInstance.nodes e alterar
-        // aleatoriamente o 'difficulty' ou adicionar modificadores de loot.
-        // Ex: mapInstance.nodes.forEach(node => { if(Math.random() > 0.8) node.isRich = true; });
 
         return mapInstance;
     },
 
     /**
      * Define o ponto de spawn aleatório para a expedição.
-     * Regra: Não pode ser um ponto de trânsito (TRANSIT) ou saída.
      * @param {object} mapInstance - O mapa gerado.
      * @returns {string} O ID do nó escolhido.
      */
@@ -57,7 +50,7 @@ export const MapGenerator = {
         );
 
         if (validNodes.length === 0) {
-            // Fallback de segurança: retorna o primeiro nó qualquer
+            // Fallback de segurança
             return mapInstance.nodes[0].id;
         }
 
@@ -68,7 +61,6 @@ export const MapGenerator = {
 
     /**
      * Gera um mapa placeholder para biomas que ainda não têm arquivo próprio.
-     * Útil para testes (Wasteland, Swamp, etc.) não quebrarem o jogo.
      */
     generateGenericMap: function(biomeId) {
         return {
