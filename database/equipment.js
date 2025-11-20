@@ -1,8 +1,7 @@
 /* ====================================================================
 // DATABASE: EQUIPMENT
-// UPDATE: (Etapa 4.2 - Skills)
-// Adiciona a propriedade 'skills' (array de IDs) aos itens,
-// conectando-os ao skills.js.
+// UPDATE: Adiciona 3 novos itens específicos (Volcanic Sword, 
+// Nocturnal Implant, Radioactive Accessory).
 // ==================================================================== */
 
 export const EQUIPMENT_SLOTS = ["helmet", "armor", "weapon", "boots", "gloves", "implant", "accessory"];
@@ -19,7 +18,7 @@ export const EQUIPMENT_DB = {
         base_stats: { hp: 10, defense: 2, blockChance: 1 }, 
         tier: 1,
         base_rarity: "COMMON",
-        skills: [], // Sem skills especiais
+        skills: [],
         iconPath: 'assets/items/equipment/eq_rust_helmet.png' 
     },
     "eq_rust_armor": {
@@ -27,7 +26,7 @@ export const EQUIPMENT_DB = {
         name: "Rustic Armor",
         description: "A simple armor piece, offering minimal body protection.",
         slot: "armor", 
-        synergy: "defense",
+        synergy: "defense", 
         base_stats: { hp: 20, defense: 3, thorns: 3 },
         tier: 1,
         base_rarity: "COMMON",
@@ -43,7 +42,7 @@ export const EQUIPMENT_DB = {
         base_stats: { attack: 7, stunChance: 1 },
         tier: 1,
         base_rarity: "COMMON",
-        skills: ['skill_heavy_smash'], // (NOVO) Skill Básica
+        skills: ['skill_heavy_smash'], 
         iconPath: 'assets/items/equipment/eq_rust_weapon.png'
     },
     "eq_rust_boots": {
@@ -117,7 +116,7 @@ export const EQUIPMENT_DB = {
         base_stats: { attack: 8, critDamage: 10, attackSpeed: 2, lifesteal: 1 },
         tier: 1,
         base_rarity: "COMMON",
-        skills: ['skill_quick_stab', 'skill_shadow_strike'], // (NOVO) Skills de Assassino
+        skills: ['skill_quick_stab', 'skill_shadow_strike'], 
         iconPath: 'assets/items/equipment/eq_noct_weapon.png'
     },
 
@@ -143,7 +142,7 @@ export const EQUIPMENT_DB = {
         base_stats: { hp: 15, defense: 5, thorns: 5 },
         tier: 1,
         base_rarity: "COMMON",
-        skills: ['passive_flame_aura'], // (NOVO) Passiva de Dano
+        skills: ['passive_flame_aura'], 
         iconPath: 'assets/items/equipment/eq_volc_armor.png'
     },
     "eq_volc_weapon": {
@@ -155,7 +154,7 @@ export const EQUIPMENT_DB = {
         base_stats: { attack: 9, speed: -1, fireDamage: 3 },
         tier: 1,
         base_rarity: "COMMON",
-        skills: ['skill_heavy_smash', 'skill_magma_slash'], // (NOVO) Skills de Fogo
+        skills: ['skill_heavy_smash', 'skill_magma_slash'], 
         iconPath: 'assets/items/equipment/eq_volc_weapon.png'
     },
 
@@ -169,7 +168,7 @@ export const EQUIPMENT_DB = {
         base_stats: { hp: 10, hpRegen: 1, toxinResist: 10 },
         tier: 1,
         base_rarity: "COMMON",
-        skills: ['passive_rad_regen'], // (NOVO) Passiva de Cura
+        skills: ['passive_rad_regen'], 
         iconPath: 'assets/items/equipment/eq_rad_mask.png'
     },
     "eq_rad_plating": {
@@ -219,7 +218,53 @@ export const EQUIPMENT_DB = {
         base_stats: { attack: 12, critChance: 5, lifesteal: 3, stunChance: 2 },
         tier: 3,
         base_rarity: "RARE",
-        skills: ['skill_shock_blade'], // (NOVO) Skill de Choque
+        skills: ['skill_shock_blade'], 
         iconPath: 'assets/items/equipment/eq_tech_gauntlet.png'
+    },
+
+    // =================================================
+    // --- (NOVOS) ITENS SOLICITADOS ---
+    // =================================================
+    
+    // 1. Volcanic Sword (T2 Uncommon)
+    "eq_volc_sword": {
+        id: "eq_volc_sword",
+        name: "Obsidian Blade",
+        description: "A sharp blade carved from volcanic glass. Extremely hot.",
+        slot: "weapon",
+        synergy: "damage",
+        base_stats: { attack: 14, fireDamage: 5, critChance: 3 },
+        tier: 2,
+        base_rarity: "UNCOMMON",
+        skills: ['skill_magma_slash'],
+        iconPath: 'assets/items/equipment/eq_volc_sword.png' // Placeholder
+    },
+
+    // 2. Nocturnal Implant (T2 Rare)
+    "eq_noct_implant": {
+        id: "eq_noct_implant",
+        name: "Shadow Chip",
+        description: "An illegal mod that boosts reflexes and stealth capabilities.",
+        slot: "implant",
+        synergy: "universal",
+        base_stats: { speed: 4, dodgeChance: 5, critDamage: 10 },
+        tier: 2,
+        base_rarity: "RARE",
+        skills: [],
+        iconPath: 'assets/items/equipment/eq_noct_implant.png' // Placeholder
+    },
+
+    // 3. Radioactive Accessory (T2 Rare)
+    "eq_rad_accessory": {
+        id: "eq_rad_accessory",
+        name: "Isotope Pendant",
+        description: "A glowing green amulet. It hurts to touch, but it heals deep wounds.",
+        slot: "accessory",
+        synergy: "defense",
+        base_stats: { hpRegen: 3, toxinResist: 15, hp: 20 },
+        tier: 2,
+        base_rarity: "RARE",
+        skills: ['passive_rad_regen'],
+        iconPath: 'assets/items/equipment/eq_rad_accessory.png' // Placeholder
     }
 };
