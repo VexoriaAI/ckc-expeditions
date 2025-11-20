@@ -1,108 +1,143 @@
 /* ====================================================================
-// DATABASE: DROPS (V2.0)
-// UPDATE: Chaves de Bioma (ex: 'BURNING_RIDGE') alinhadas com maps.js.
-// UPDATE: Tabela de loot 'WASTELAND' rebalanceada.
+// DATABASE: DROPS (V3.0 - Node Types)
+// UPDATE: Tabela de loot reestruturada por TIPO DE NÓ (Subtype).
+// Isso permite que locais específicos do mapa tenham drops temáticos.
 // ==================================================================== */
-
-/* ESTRUTURA:
-//
-// "collect": Ação de coleta de baixo risco.
-//   - item: O ID do material (ex: "mat_scrap").
-//   - quantity: [min, max] - A quantidade garantida.
-//
-// "investigate": Ação de investigação de alto risco (Tabela de Saque Ponderada).
-//   - chance: O teto da rolagem (de 1 a 100). O script verifica da menor para a maior.
-//   - type: O resultado. "nothing", "common", "uncommon", "rare".
-//   - item: (Opcional) O item ganho.
-//   - quantity: (Opcional) [min, max] - A quantidade ganha.
-//
-*/
 
 export const DROP_TABLES = {
 
-    // --- BIOMA 1: (Antigo: volcanics) ---
-    'BURNING_RIDGE': {
-        "collect": [
-            { item: "mat_metal", quantity: [1, 5] } // Recurso base (Common)
-        ],
-        "investigate": [
-            { chance: 30, type: "nothing" }, // 30% de chance de nada
-            { chance: 70, type: "common", item: "mat_metal", quantity: [7, 12] }, // 40% de chance
-            { chance: 85, type: "uncommon", item: "mat_magma", quantity: [1, 3] }, // 15% de chance
-            { chance: 95, type: "uncommon", item: "mat_volcanic_pumice_stone", quantity: [1, 2] }, // 10% de chance
-            { chance: 100, type: "rare", item: "mat_obsidian_tears", quantity: [1, 1] } // 5% de chance
-        ]
-    },
+    // =================================================
+    // --- BIOMA: BURNING RIDGE (Detalhamento Tático) ---
+    // =================================================
 
-    // --- BIOMA 2: (Antigo: undergrounders) ---
-    'ABANDONED_MINES': {
-        "collect": [
-            { item: "mat_water", quantity: [1, 5] } // Recurso base (Common)
-        ],
-        "investigate": [
-            { chance: 25, type: "nothing" }, // 25%
-            { chance: 70, type: "common", item: "mat_water", quantity: [8, 12] }, // 45%
-            { chance: 80, type: "uncommon", item: "mat_energized_crystals", quantity: [1, 3] }, // 10%
-            { chance: 90, type: "uncommon", item: "mat_special_clay", quantity: [1, 3] }, // 10%
-            { chance: 95, type: "uncommon", item: "mat_thermal_water", quantity: [1, 2] }, // 5%
-            { chance: 100, type: "rare", item: "mat_glass", quantity: [1, 1] } // 5%
-        ]
-    },
+    // 1. Campos de Obsidiana (Foco: Crafting de Vidro/Pedra)
+    'OBSIDIAN_FIELD': {
+        "collect": [
+            { item: "mat_volcanic_pumice_stone", quantity: [1, 3] } 
+        ],
+        "investigate": [
+            { chance: 20, type: "nothing" },
+            { chance: 60, type: "common", item: "mat_volcanic_pumice_stone", quantity: [2, 5] },
+            { chance: 90, type: "uncommon", item: "mat_obsidian_tears", quantity: [1, 2] },
+            { chance: 100, type: "rare", item: "mat_obsidian_core", quantity: [1, 1] } // T2 Material
+        ]
+    },
 
-    // --- BIOMA 3: (Antigo: nocturnals) ---
-    'ANCIENT_RUINS': {
-        "collect": [
-            { item: "mat_scrap", quantity: [1, 5] } // Recurso base (Common)
-        ],
-        "investigate": [
-            { chance: 20, type: "nothing" }, // 20%
-            { chance: 60, type: "common", item: "mat_scrap", quantity: [5, 10] }, // 40%
-            { chance: 75, type: "common", item: "mat_polymer", quantity: [3, 7] }, // 15% (Era mat_metal)
-            { chance: 85, type: "uncommon", item: "mat_nanochips", quantity: [1, 3] }, // 10%
-            { chance: 95, type: "uncommon", item: "mat_cybernetic_implants", quantity: [1, 2] }, // 10%
-            { chance: 100, type: "rare", item: "mat_quantum_energy_core", quantity: [1, 1] } // 5%
-        ]
-    },
-    
-    // --- BIOMA 4: (Antigo: radioactives) ---
-    'LAKE_RANCID': {
-        "collect": [
-            { item: "mat_strange_fluid", quantity: [1, 5] } // Recurso base (Common)
-        ],
-        "investigate": [
-            { chance: 10, type: "nothing" }, // 10%
-            { chance: 60, type: "common", item: "mat_strange_fluid", quantity: [5, 10] }, // 50%
-            { chance: 75, type: "uncommon", item: "mat_parasitic_fungus", quantity: [1, 3] }, // 15%
-            { chance: 90, type: "uncommon", item: "mat_venom_glands", quantity: [1, 2] }, // 15%
-            { chance: 100, type: "rare", item: "mat_luminescent_algae", quantity: [1, 1] } // 10%
-        ]
-    },
+    // 2. Lagos de Magma (Foco: Energia/Calor)
+    'MAGMA_POOL': {
+        "collect": [
+            { item: "mat_magma", quantity: [1, 2] } 
+        ],
+        "investigate": [
+            { chance: 30, type: "nothing" },
+            { chance: 70, type: "common", item: "mat_magma", quantity: [2, 4] },
+            { chance: 95, type: "uncommon", item: "mat_metal", quantity: [1, 3] }, // Metal derretido
+            { chance: 100, type: "rare", item: "mat_obsidian_core", quantity: [1, 1] }
+        ]
+    },
 
-    // --- BIOMA 5: (Antigo: reptilians) ---
-    'COVENANT_SWAMP': {
-        "collect": [
-            { item: "mat_food", quantity: [1, 5] } // Recurso base (Common)
-        ],
-        "investigate": [
-            { chance: 10, type: "nothing" }, // 10%
-            { chance: 60, type: "common", item: "mat_food", quantity: [5, 12] }, // 50%
-            { chance: 75, type: "uncommon", item: "mat_animal_skin", quantity: [1, 3] }, // 15%
-            { chance: 90, type: "uncommon", item: "mat_healing_plants", quantity: [1, 2] }, // 15%
-            { chance: 100, type: "rare", item: "mat_reptilian_blood", quantity: [1, 1] } // 10%
-        ]
-    },
+    // 3. Aberturas Vulcânicas (Alto Risco, Mistura de drops)
+    'VOLCANIC_VENT': {
+        "collect": [
+            { item: "mat_metal", quantity: [1, 3] }
+        ],
+        "investigate": [
+            { chance: 25, type: "nothing" },
+            { chance: 60, type: "common", item: "mat_metal", quantity: [3, 6] },
+            { chance: 85, type: "uncommon", item: "mat_magma", quantity: [2, 4] },
+            { chance: 100, type: "rare", item: "volcanics_core", quantity: [1, 1] } // Boss drop raro
+        ]
+    },
 
-    // --- BIOMA 6: (Antigo: wasteland) ---
-    'WASTELAND': {
-        "collect": [
-            { item: "mat_scrap", quantity: [1, 3] } // Padrão
-        ],
-        "investigate": [
-            // (CORRIGIDO) Tabela rebalanceada para 1-100%
-            { chance: 50, type: "nothing" }, // 50%
-            { chance: 80, type: "common", item: "mat_scrap", quantity: [2, 6] }, // 30%
-            { chance: 95, type: "uncommon", item: "mat_water", quantity: [1, 3] }, // 15%
-            { chance: 100, type: "rare", item: "mat_food", quantity: [1, 2] } // 5%
-        ]
-    }
+    // 4. Pico do Vulcão (End-game do bioma)
+    'VOLCANIC_PEAK': {
+        "collect": [
+            { item: "mat_obsidian_tears", quantity: [1, 1] } // Coleta difícil
+        ],
+        "investigate": [
+            { chance: 10, type: "nothing" },
+            { chance: 50, type: "common", item: "mat_obsidian_tears", quantity: [2, 4] },
+            { chance: 90, type: "uncommon", item: "mat_obsidian_core", quantity: [1, 2] },
+            { chance: 100, type: "rare", item: "volcanics_core", quantity: [1, 1] }
+        ]
+    },
+
+    // 5. Ruínas Antigas (Lore + Materiais Tecnológicos)
+    'RUINS': {
+        "collect": [
+            { item: "mat_scrap", quantity: [2, 5] }
+        ],
+        "investigate": [
+            { chance: 40, type: "nothing" },
+            { chance: 80, type: "common", item: "mat_scrap", quantity: [5, 10] },
+            { chance: 95, type: "uncommon", item: "mat_nanochips", quantity: [1, 2] }, // Drop cruzado (Nocturnal)
+            { chance: 100, type: "rare", item: "slot_unlock_token", quantity: [1, 1] } // Item muito raro
+        ]
+    },
+
+    // 6. Pontos de Trânsito/Fronteira (Drops básicos de sobrevivência)
+    'BORDER_CROSSING': {
+        "collect": [
+            { item: "mat_scrap", quantity: [1, 2] }
+        ],
+        "investigate": [
+            { chance: 50, type: "nothing" },
+            { chance: 90, type: "common", item: "mat_scrap", quantity: [2, 4] },
+            { chance: 100, type: "uncommon", item: "mat_food", quantity: [1, 1] }
+        ]
+    },
+
+
+    // =================================================
+    // --- BIOMAS GENÉRICOS (Fallback para mapas não refatorados) ---
+    // =================================================
+    
+    'ABANDONED_MINES': {
+        "collect": [ { item: "mat_water", quantity: [1, 5] } ],
+        "investigate": [
+            { chance: 25, type: "nothing" },
+            { chance: 70, type: "common", item: "mat_water", quantity: [8, 12] },
+            { chance: 95, type: "uncommon", item: "mat_energized_crystals", quantity: [1, 3] },
+            { chance: 100, type: "rare", item: "mat_crystal_lattice", quantity: [1, 1] }
+        ]
+    },
+
+    'ANCIENT_RUINS': { // ANCIENT_METROPOLIS usa este ID
+        "collect": [ { item: "mat_scrap", quantity: [1, 5] } ],
+        "investigate": [
+            { chance: 20, type: "nothing" },
+            { chance: 60, type: "common", item: "mat_scrap", quantity: [5, 10] },
+            { chance: 95, type: "uncommon", item: "mat_polymer", quantity: [3, 7] },
+            { chance: 100, type: "rare", item: "mat_quantum_energy_core", quantity: [1, 1] }
+        ]
+    },
+    
+    'LAKE_RANCID': {
+        "collect": [ { item: "mat_strange_fluid", quantity: [1, 5] } ],
+        "investigate": [
+            { chance: 10, type: "nothing" },
+            { chance: 60, type: "common", item: "mat_strange_fluid", quantity: [5, 10] },
+            { chance: 90, type: "uncommon", item: "mat_venom_glands", quantity: [1, 2] },
+            { chance: 100, type: "rare", item: "mat_stable_isotope", quantity: [1, 1] }
+        ]
+    },
+
+    'COVENANT_SWAMP': {
+        "collect": [ { item: "mat_food", quantity: [1, 5] } ],
+        "investigate": [
+            { chance: 10, type: "nothing" },
+            { chance: 60, type: "common", item: "mat_food", quantity: [5, 12] },
+            { chance: 90, type: "uncommon", item: "mat_healing_plants", quantity: [1, 2] },
+            { chance: 100, type: "rare", item: "mat_hardened_scales", quantity: [1, 1] }
+        ]
+    },
+
+    'WASTELAND': {
+        "collect": [ { item: "mat_scrap", quantity: [1, 3] } ],
+        "investigate": [
+            { chance: 50, type: "nothing" },
+            { chance: 95, type: "common", item: "mat_scrap", quantity: [2, 6] },
+            { chance: 100, type: "rare", item: "mat_food", quantity: [1, 2] }
+        ]
+    }
 };
