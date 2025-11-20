@@ -1,6 +1,8 @@
 /* ====================================================================
-// (NOVO) RENDERER: renderWorkshopEmbed.js
-// Renderiza a aba 'Embed' (Embutir Componentes) do Workshop.
+// RENDERER: renderWorkshopEmbed.js
+// UPDATE: (Fase 3.1 - Fix Crash Embed)
+// Adiciona verificação de segurança para evitar crash quando o
+// componente é consumido/removido do estado.
 // ==================================================================== */
 
 import { COMPONENTS_DB } from '../../../database/components.js';
@@ -30,12 +32,9 @@ const renderItemSlotsHTML = (itemInstance) => {
     });
     return slotsHTML;
 };
-// --- Fim do Helper ---
 
 /**
- * Renderiza a UI para a aba "Embed" (componente).
- * @param {object} state - O GameState completo.
- * @returns {string} HTML para a aba Embed.
+ * Renderiza a UI para a aba "Embed".
  */
 export const renderEmbedTab = (state) => {
     const { 
@@ -48,42 +47,45 @@ export const renderEmbedTab = (state) => {
     let componentSlotHTML = '';
     let previewHTML = '';
     
-    const executeButtonDisabled = !(embedTargetEquipmentId && embedTargetComponentId);
-
     // --- 1. Renderiza o Slot de Equipamento ---
     if (embedTargetEquipmentId) {
         const item = playerInventory.equipment.find(e => e.instance_id === embedTargetEquipmentId);
-        const itemData = EQUIPMENT_DB[item.item_id];
-        const itemStats = itemData.base_stats;
-        
-        const statsHTML = Object.keys(itemStats).map(statKey => `
-            <div class="card-stat-row">
-                <span>${statKey.toUpperCase()}</span>
-                <span class="card-stat-val">+${itemStats[statKey]}</span>
-            </div>
-        `).join('');
+        // Proteção se item for removido
+        if (!item) {
+             equipmentSlotHTML = `<div class="embed-slot-placeholder panel"><p>Item not found</p></div>`;
+        } else {
+            const itemData = EQUIPMENT_DB[item.item_id];
+            const itemStats = itemData.base_stats;
+            
+            const statsHTML = Object.keys(itemStats).map(statKey => `
+                <div class="card-stat-row">
+                    <span>${statKey.toUpperCase()}</span>
+                    <span class="card-stat-val">+${itemStats[statKey]}</span>
+                </div>
+            `).join('');
 
-        const slotsHTML = renderItemSlotsHTML(item);
-        const rarityClass = `rarity-${item.rarity.toLowerCase()}`;
-        
-        equipmentSlotHTML = `
-            <div class="item-card ${rarityClass}">
-                <button id="btn-remove-embed-equip" class="unequip-btn">&times;</button>
-                <div class="card-header">
-                    <div class="card-icon-frame"><img src="${itemData.iconPath}" alt="${itemData.name}"></div>
-                    <div class="card-header-text">
-                        <h4>${itemData.name}</h4>
-                        <span class="card-level">Tier ${item.tier} (${item.rarity})</span>
+            const slotsHTML = renderItemSlotsHTML(item);
+            const rarityClass = `rarity-${item.rarity.toLowerCase()}`;
+            
+            equipmentSlotHTML = `
+                <div class="item-card ${rarityClass}">
+                    <button id="btn-remove-embed-equip" class="unequip-btn">&times;</button>
+                    <div class="card-header">
+                        <div class="card-icon-frame"><img src="${itemData.iconPath}" alt="${itemData.name}"></div>
+                        <div class="card-header-text">
+                            <h4>${itemData.name}</h4>
+                            <span class="card-level">Tier ${item.tier} (${item.rarity})</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        ${statsHTML}
+                    </div>
+                    <div class="card-footer">
+                        ${slotsHTML}
                     </div>
                 </div>
-                <div class="card-body">
-                    ${statsHTML}
-                </div>
-                <div class="card-footer">
-                    ${slotsHTML}
-                </div>
-            </div>
-        `;
+            `;
+        }
     } else {
         equipmentSlotHTML = `
             <div id="btn-select-embed-equip" class="embed-slot-placeholder panel">
@@ -97,9 +99,14 @@ export const renderEmbedTab = (state) => {
     // --- 2. Renderiza o Slot de Componente ---
     const isComponentSlotDisabled = !embedTargetEquipmentId;
     
+    // (CORREÇÃO) Verifica se o ID existe E se o item ainda está no inventário
+    let componentItem = null;
     if (embedTargetComponentId) {
-        const item = playerInventory.components.find(c => c.instance_id === embedTargetComponentId);
-        const itemData = COMPONENTS_DB[item.item_id];
+        componentItem = playerInventory.components.find(c => c.instance_id === embedTargetComponentId);
+    }
+
+    if (embedTargetComponentId && componentItem) {
+        const itemData = COMPONENTS_DB[componentItem.item_id];
         
         const statsHTML = Object.keys(itemData.stats).map(statKey => `
             <div class="card-stat-row">
@@ -133,7 +140,10 @@ export const renderEmbedTab = (state) => {
         `;
     }
     
-    // --- 3. Renderiza o Preview (se ambos estiverem selecionados) ---
+    // --- 3. Botão de Execução ---
+    // Só habilita se ambos os slots estiverem preenchidos E o item existir
+    const executeButtonDisabled = !(embedTargetEquipmentId && componentItem);
+
     if (!executeButtonDisabled) {
         previewHTML = `
             <div class="embed-preview panel">
@@ -143,7 +153,6 @@ export const renderEmbedTab = (state) => {
         `;
     }
     
-    // --- 4. Montagem Final ---
     return `
         <div class="embed-ui">
             ${equipmentSlotHTML}
