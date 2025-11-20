@@ -1,20 +1,26 @@
 /* ====================================================================
 // RENDERER: renderGameScreen.js
-// UPDATE: (Passo 2.2 - Final Stats Accordion)
-// - Implementa o componente de sanfona para a lista de atributos.
-// - Renomeia 'Final Attributes' para 'Final Stats'.
+// UPDATE: (CORREÇÃO DE CRASH)
+// - Remove importação de STATIC_MAP_DATA (que não existe mais).
+// - Adiciona importação de MAP_NODES.
+// - Atualiza lógica de renderização para usar Node ID.
 // ==================================================================== */
 
 import { MOCK_KIDZ_NFTS } from '../../../database/mock_wallet.js'; 
-import { STATIC_MAP_DATA, MAP_BIOMES } from '../../../database/maps.js';
+// (CORREÇÃO) Importa a nova estrutura de Nós
+import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../../database/maps.js';
 import { calculatePowerScore } from '../../systems/StatCalculationSystem.js';
 import { MATERIALS_DB } from '../../../database/materials.js';
 import { SHOP_ITEMS_DB } from '../../../database/crafting_rules.js'; 
 
+// Helper local
 const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
+/**
+ * Helper para renderizar a lista de Loot Encontrado
+ */
 const renderLootList = (loot) => {
     const materials = Object.keys(loot.materials);
     if (materials.length === 0) {
@@ -34,6 +40,9 @@ const renderLootList = (loot) => {
     }).join('');
 };
 
+/**
+ * Helper para renderizar a lista de Consumíveis (Shop Items)
+ */
 const renderConsumablesList = (state) => {
     const shopItems = state.playerInventory.shopItems; 
     const keys = Object.keys(shopItems);
@@ -64,6 +73,47 @@ const renderConsumablesList = (state) => {
     }).join('');
 };
 
+/**
+ * (NOVO) Helper para renderizar os Nós do Mapa
+ */
+const renderMapNodes = (state) => {
+    const { expedition } = state;
+    
+    // Proteção contra undefined
+    if (!expedition || !expedition.position) return '';
+
+    const currentNodeId = expedition.position.nodeId; 
+    const currentNode = MAP_NODES.find(n => n.id === currentNodeId);
+    const reachableNodes = currentNode ? currentNode.connections : [];
+
+    return MAP_NODES.map(node => {
+        const biome = MAP_BIOMES[node.biome];
+        let statusClass = 'map-node-locked'; 
+        
+        if (node.id === currentNodeId) {
+            statusClass = 'map-node-current'; 
+        } else if (reachableNodes.includes(node.id)) {
+            statusClass = 'map-node-reachable'; 
+        }
+
+        return `
+            <div 
+                class="map-node ${statusClass}" 
+                id="btn-move-node"
+                data-node-id="${node.id}"
+                style="top: ${node.y}%; left: ${node.x}%;"
+                title="${node.name} (${biome.name})"
+            >
+                <div class="node-icon">${biome.name.charAt(0)}</div>
+            </div>
+        `;
+    }).join('');
+};
+
+
+/**
+ * Renderiza a tela principal da Expedição (Game Screen).
+ */
 export const renderGameScreen = (state) => {
     const { expedition, currentPlayerKidId, uiState } = state;
     const kidStaticData = getKidDataById(currentPlayerKidId);
@@ -74,16 +124,12 @@ export const renderGameScreen = (state) => {
 
     const { kidStats, currentHP, maxHP, currentAP, maxAP, currentMP, maxMP, currentDay, maxDays, log, position, foundLoot } = expedition;
     
-    // Verificação de segurança para posição (evita crash se resetado incorretamente)
-    if (!position || !position.nodeId) {
-         return `<div class="screen game-screen"><h2>Loading map...</h2></div>`;
-    }
-
-    const currentTile = STATIC_MAP_DATA.find(t => t.q === position.q && t.r === position.r);
-    // Fallback seguro para bioma
-    const currentNode = MAP_NODES.find(n => n.id === position.nodeId);
-    const currentBiome = currentNode ? MAP_BIOMES[currentNode.biome] : MAP_BIOMES['WASTELAND'];
-
+    // (CORREÇÃO DE LÓGICA) Usa MAP_NODES para encontrar o bioma atual
+    // Se position.nodeId for null (início), usa o SPAWN_NODE_ID ou o primeiro nó
+    const targetNodeId = position.nodeId || SPAWN_NODE_ID;
+    const currentNode = MAP_NODES.find(n => n.id === targetNodeId) || MAP_NODES[0];
+    const currentBiome = MAP_BIOMES[currentNode.biome];
+    
     const totalPowerScore = calculatePowerScore(kidStats);
     
     const hpPercent = (currentHP / maxHP) * 100;
@@ -91,7 +137,6 @@ export const renderGameScreen = (state) => {
     if (hpPercent < 40) hpColorClass = 'hp-fill-orange'; 
     if (hpPercent < 20) hpColorClass = 'hp-fill-red';    
 
-    // Estado do Acordeão (Lê do uiState ou padrão fechado)
     const isStatsOpen = uiState.isStatsAccordionOpen || false;
     const accordionArrow = isStatsOpen ? '▼' : '▶';
     const accordionContentStyle = isStatsOpen ? 'display: block;' : 'display: none;';
@@ -137,7 +182,6 @@ export const renderGameScreen = (state) => {
                         <li>Crit Dmg: <span>+${kidStats.critDamage}%</span></li>
                         <li>HP Regen: <span>${kidStats.hpRegen}</span></li>
                         <li>Luck: <span>${kidStats.luck}</span></li>
-                        
                         <li>Block: <span>${kidStats.blockChance}%</span></li>
                         <li>Dodge: <span>${kidStats.dodgeChance}%</span></li>
                         <li>Lifesteal: <span>${kidStats.lifesteal}%</span></li>
@@ -220,7 +264,7 @@ export const renderGameScreen = (state) => {
     return `
         <div class="screen game-screen">
             <div class="page-title-bar">
-                <h1>Expedition In Progress: ${currentBiome.name}</h1>
+                <h1>Expedition In Progress: ${currentNode.name} (${currentBiome.name})</h1>
             </div>
             <div class="game-container">
                 ${column1_Status}
@@ -229,35 +273,4 @@ export const renderGameScreen = (state) => {
             </div>
         </div>
     `;
-};
-
-// (Re-inclusão da função auxiliar para nós, que estava implícita)
-import { MAP_NODES } from '../../../database/maps.js';
-const renderMapNodes = (state) => {
-    const { expedition } = state;
-    const currentNodeId = expedition.position.nodeId; 
-    const currentNode = MAP_NODES.find(n => n.id === currentNodeId);
-    const reachableNodes = currentNode ? currentNode.connections : [];
-
-    return MAP_NODES.map(node => {
-        const biome = MAP_BIOMES[node.biome];
-        let statusClass = 'map-node-locked'; 
-        if (node.id === currentNodeId) {
-            statusClass = 'map-node-current'; 
-        } else if (reachableNodes.includes(node.id)) {
-            statusClass = 'map-node-reachable'; 
-        }
-
-        return `
-            <div 
-                class="map-node ${statusClass}" 
-                id="btn-move-node"
-                data-node-id="${node.id}"
-                style="top: ${node.y}%; left: ${node.x}%;"
-                title="${node.name} (${biome.name})"
-            >
-                <div class="node-icon">${biome.name.charAt(0)}</div>
-            </div>
-        `;
-    }).join('');
 };
