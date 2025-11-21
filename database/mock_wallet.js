@@ -18,7 +18,7 @@ export const MOCK_KIDZ_NFTS = [
         id: '#104',
         name: 'Matildo',
         tribe: 'VOLCANICS',
-        level: 3,
+        level: 7,
         spritePath: 'assets/characters/volcanics_2.png',
         baseStats: { maxHP: 115, attack: 11, defense: 9, speed: 3, ap: 2, fireResist: 10, thorns: 3 }
     },
@@ -84,7 +84,7 @@ export const MOCK_KIDZ_NFTS = [
         id: '#55',
         name: 'Scalez',
         tribe: 'REPTILIANS',
-        level: 7,
+        level: 3,
         spritePath: 'assets/characters/reptilians_4.png',
         baseStats: { maxHP: 135, attack: 12, defense: 8, speed: 5, ap: 2, hpRegen: 3, lifesteal: 2 }
     },
