@@ -38,10 +38,8 @@
 .map-container {
     position: relative;
     width: 100%;
-    /* (CORREÇÃO) Força quadrado perfeito */
-    aspect-ratio: 1 / 1; 
-    max-height: 60vh; /* Limita altura em telas grandes */
-    margin: 0 auto; /* Centraliza */
+    max-width: 80vh; /* Impede que o mapa fique maior que a altura da tela */
+    aspect-ratio: 1 / 1; /* Força quadrado perfeito */
     
     background: #000;
     border: 2px solid var(--color-accent-blue);
@@ -53,12 +51,14 @@
 .map-background-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; 
+    object-fit: cover; /* Cobre o quadrado, cortando excessos se necessário */
+    object-position: center; /* Centraliza a imagem */
 }
 
 .map-nodes-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
 }
+
 
 /* Nós do Mapa (Numéricos) */
 .map-node {
