@@ -1,14 +1,15 @@
 /* ====================================================================
 // UI: ModalManager.js
-// UPDATE: (Passo 3.3) Adiciona o case 'MODAL_WORLD_MAP'.
+// UPDATE: (Passo 4.2) Adiciona suporte para 'MODAL_TRAVEL_CONFIRM'.
 // ==================================================================== */
 
 import { renderEquipmentListModal, renderComponentListModal } from './Renderers/renderModalContent.js';
 import { renderLootResultModal } from './Renderers/renderModalResult.js';
 import { renderCombatModal } from './Renderers/renderCombatModal.js';
 import { renderEmbedConfirmationModal } from './Renderers/renderEmbedConfirmation.js';
-// (NOVO) Importa o renderer do mapa mundi
 import { renderWorldMap } from './Renderers/renderWorldMap.js';
+// (NOVO) Importa o renderer de viagem
+import { renderTravelModal } from './Renderers/renderTravelModal.js';
 
 let modalRoot;
 
@@ -54,22 +55,21 @@ export const ModalManager = {
             case 'MODAL_CONFIRM_EMBED':
                 contentHTML = renderEmbedConfirmationModal(state);
                 break;
-
-            // --- (NOVO) Mapa Mundi ---
             case 'MODAL_WORLD_MAP':
                 contentHTML = renderWorldMap(state);
-                modalClass = 'modal-large'; // Mapa precisa de espaço
+                modalClass = 'modal-large'; 
+                break;
+            
+            // (NOVO) Modal de Viagem
+            case 'MODAL_TRAVEL_CONFIRM':
+                contentHTML = renderTravelModal(state.modalData);
                 break;
 
             // --- Placeholders ---
             case 'MODAL_SELECT_EQUIPMENT_FOR_RARITY':
-                contentHTML = `<h2>Select Equipment to Upgrade Rarity</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
-                break;
             case 'MODAL_SELECT_EQUIPMENT_FOR_SLOT':
-                contentHTML = `<h2>Select Equipment to Unlock Slot</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
-                break;
             case 'MODAL_SELECT_EQUIPMENT_FOR_EXTRACT':
-                contentHTML = `<h2>Select Equipment to Extract Component</h2><p>(Placeholder) ${renderEquipmentListModal(state)}</p>`;
+                contentHTML = `<h2>Placeholder</h2><p>Content coming soon.</p>`;
                 break;
                 
             default:
