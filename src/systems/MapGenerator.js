@@ -1,16 +1,17 @@
 /* ====================================================================
 // SYSTEM: MapGenerator.js
-// UPDATE: (Correção de Importação)
-// Garante que o caminho para o template burning_ridge.js esteja correto.
+// UPDATE: (Fase 4.0 - Lake Rancid)
+// Adiciona o template 'LAKE_RANCID_TEMPLATE' à lista de geração.
 // ==================================================================== */
 
-// (CORREÇÃO) Caminho relativo ajustado: sobe 2 níveis (../..) para raiz de src, 
-// depois entra em database/maps/
 import { BURNING_RIDGE_TEMPLATE } from '../../database/maps/burning_ridge.js';
+// (NOVO) Importa o template do Lake Rancid
+import { LAKE_RANCID_TEMPLATE } from '../../database/maps/lake_rancid.js';
 
 const TEMPLATES = {
     'BURNING_RIDGE': BURNING_RIDGE_TEMPLATE,
-    // 'ANCIENT_METROPOLIS': ...
+    'LAKE_RANCID': LAKE_RANCID_TEMPLATE,
+    // Futuros biomas serão adicionados aqui...
 };
 
 export const MapGenerator = {
@@ -30,6 +31,7 @@ export const MapGenerator = {
         }
 
         // 2. Deep Copy (Cópia Profunda)
+        // Importante: Clona o objeto para não modificar o banco de dados original
         const mapInstance = JSON.parse(JSON.stringify(template));
 
         return mapInstance;
@@ -37,6 +39,7 @@ export const MapGenerator = {
 
     /**
      * Define o ponto de spawn aleatório para a expedição.
+     * Regra: Não pode ser um ponto de trânsito (TRANSIT) ou saída.
      * @param {object} mapInstance - O mapa gerado.
      * @returns {string} O ID do nó escolhido.
      */
