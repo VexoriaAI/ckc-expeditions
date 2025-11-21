@@ -1,17 +1,26 @@
 /* ====================================================================
 // SYSTEM: MapGenerator.js
-// UPDATE: (Fase 4.0 - Lake Rancid)
-// Adiciona o template 'LAKE_RANCID_TEMPLATE' à lista de geração.
+// UPDATE: (Fase 4.0 - Todos os Biomas)
+// Importa e registra TODOS os templates de mapa criados.
 // ==================================================================== */
 
 import { BURNING_RIDGE_TEMPLATE } from '../../database/maps/burning_ridge.js';
-// (NOVO) Importa o template do Lake Rancid
 import { LAKE_RANCID_TEMPLATE } from '../../database/maps/lake_rancid.js';
+// (NOVOS IMPORTS)
+import { ANCIENT_METROPOLIS_TEMPLATE } from '../../database/maps/ancient_metropolis.js';
+import { ABANDONED_MINES_TEMPLATE } from '../../database/maps/abandoned_mines.js';
+import { COVENANT_SWAMP_TEMPLATE } from '../../database/maps/covenant_swamp.js';
+import { WASTELAND_TEMPLATE } from '../../database/maps/wasteland.js';
 
 const TEMPLATES = {
     'BURNING_RIDGE': BURNING_RIDGE_TEMPLATE,
     'LAKE_RANCID': LAKE_RANCID_TEMPLATE,
-    // Futuros biomas serão adicionados aqui...
+    'ANCIENT_METROPOLIS': ANCIENT_METROPOLIS_TEMPLATE,
+    'ABANDONED_MINES': ABANDONED_MINES_TEMPLATE,
+    'COVENANT_SWAMP': COVENANT_SWAMP_TEMPLATE,
+    'WASTELAND': WASTELAND_TEMPLATE,
+    
+    // 'CYBERCITY': ... (Futuro)
 };
 
 export const MapGenerator = {
