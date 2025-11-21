@@ -68,6 +68,13 @@ function handleModalClick(event) {
         closeModal();
         return;
     }
+
+    // (NOVO) Confirmação de Viagem
+    if (target.id === 'btn-confirm-travel') {
+        const targetBiomeId = target.dataset.targetBiome;
+        ExpeditionManager.travelToBiome(targetBiomeId);
+        closeModal();
+    }
     
     // (CORREÇÃO) Ações do Modal de Confirmação de Embed
     if (target.id === 'btn-confirm-embed') {
