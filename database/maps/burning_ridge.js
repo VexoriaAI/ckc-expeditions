@@ -31,7 +31,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'RESOURCE',
             subtype: 'OBSIDIAN_FIELD',
             description: 'Vidro vulcânico afiado.',
-            x: 60, y: 70, // Meio-Direita
+            x: 50, y: 50, // Meio-Direita
             connections: ['br_transit_wasteland', 'br_vents', 'br_magma_pool']
         },
 
@@ -42,7 +42,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'RESOURCE', 
             subtype: 'MAGMA_POOL',
             description: 'Lagos de rocha derretida.',
-            x: 40, y: 75, // Centro-Baixo
+            x: 42, y: 76, // Centro-Baixo
             connections: ['br_transit_wasteland', 'br_old_forge', 'br_obsidian_field']
         },
 
@@ -53,7 +53,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'COMBAT',
             subtype: 'VOLCANIC_VENT',
             description: 'Gases tóxicos.',
-            x: 30, y: 40, // Meio-Esquerda
+            x: 60, y: 20 // Meio-Esquerda
             connections: ['br_obsidian_field', 'br_peak_crater']
         },
 
@@ -64,7 +64,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'COMBAT',
             subtype: 'VOLCANIC_PEAK', 
             description: 'O ponto mais alto e perigoso.',
-            x: 15, y: 15, // Canto Superior Esquerdo
+            x: 25, y: 18, // Canto Superior Esquerdo
             connections: ['br_vents']
         },
         
@@ -75,7 +75,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'EVENT',
             subtype: 'RUINS',
             description: 'Forja antiga.',
-            x: 15, y: 70, // Canto Inferior Esquerdo
+            x: 20, y: 63, // Canto Inferior Esquerdo
             connections: ['br_magma_pool']
         }
     ]
