@@ -9,12 +9,12 @@ import { WORLD_BIOMES } from '../../../database/maps/world_map.js';
 // Coordenadas visuais aproximadas para os biomas no mapa global (0-100%)
 const BIOME_COORDINATES = {
     'BURNING_RIDGE': { x: 20, y: 20 },
-    'LAKE_RANCID': { x: 70, y: 20 },
-    'ABANDONED_MINES': { x: 45, y: 35 },
-    'ANCIENT_METROPOLIS': { x: 10, y: 75 },
+    'LAKE_RANCID': { x: 67, y: 18 },
+    'ABANDONED_MINES': { x: 35, y: 45 },
+    'ANCIENT_METROPOLIS': { x: 17, y: 79 },
     'WASTELAND': { x: 55, y: 70 },
-    'COVENANT_SWAMP': { x: 90, y: 50 },
-    'CYBERCITY': { x: 50, y: 90 }
+    'COVENANT_SWAMP': { x: 90, y: 450 },
+    'CYBERCITY': { x: 50, y: 95 }
 };
 
 export const renderWorldMap = (state) => {
