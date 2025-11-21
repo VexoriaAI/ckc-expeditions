@@ -1,24 +1,21 @@
 /* ====================================================================
 // SYSTEM: ExpeditionManager.js
-// UPDATE: (Fase 4.0 - Passo 2.2)
-// - Integração com MapGenerator.
-// - Gera o mapa dinamicamente em startExpedition.
-// - Salva 'currentMap' no estado.
-// - Ações agora leem de 'state.expedition.currentMap' e 'node.subtype'.
+// UPDATE: (Fase 4.0 - Fix Spawn Logic)
+// - Mapeia corretamente TODAS as tribos para seus biomas iniciais.
+// - Corrige o bug onde Radioactives iam para Wasteland.
 // ==================================================================== */
 
 import { getState, updateState, setCurrentScreen, INITIAL_STATE, openModal } from '../core/GameState.js';
 import { MOCK_KIDZ_NFTS } from '../../database/mock_wallet.js'; 
-// (ATUALIZADO) Importa definições globais e o Gerador
-import { WORLD_BIOMES } from '../../database/maps/world_map.js';
-import { MapGenerator } from './MapGenerator.js';
-
+import { MAP_NODES, MAP_BIOMES, SPAWN_NODE_ID } from '../../database/maps.js';
 import { DROP_TABLES } from '../../database/drops.js'; 
 import { SPAWN_LOGIC } from '../../database/spawn_logic.js';
 import { ENEMIES_BY_BIOME } from '../../database/enemies.js'; 
 import { EquipmentSystem } from './EquipmentSystem.js';
 import { calculateFinalStats } from './StatCalculationSystem.js';
 import { CombatSystem } from './CombatSystem.js'; 
+// Importa o MapGenerator para criar os mapas dinâmicos
+import { MapGenerator } from './MapGenerator.js';
 
 // --- Helpers ---
 
@@ -26,17 +23,16 @@ const getKidDataById = (kidId) => {
     return MOCK_KIDZ_NFTS.find(kid => kid.id === kidId);
 };
 
-const rollDice = (min, max) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-// (ATUALIZADO) Helper para pegar o nó atual do mapa salvo no estado
+// (Helper atualizado para usar o mapa gerado, não estático)
 const getCurrentNode = (expedition) => {
     if (!expedition || !expedition.currentMap || !expedition.position) return null;
     return expedition.currentMap.nodes.find(n => n.id === expedition.position.nodeId);
 };
 
-// (ATUALIZADO) Helper para calcular custo (por enquanto fixo em 1)
+const rollDice = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 const calculateMPCost = (nodeA, nodeB) => {
     return 1; 
 };
@@ -60,10 +56,19 @@ export const ExpeditionManager = {
         const equippedItems = EquipmentSystem.getEquippedItems();
         const finalStats = calculateFinalStats(kidStaticData, equippedItems);
         
-        // 1. Define o Bioma Inicial baseado na Tribo (Lógica de MVP)
-        let startBiomeId = 'WASTELAND'; // Padrão
-        if (kidStaticData.tribe === 'VOLCANICS') startBiomeId = 'BURNING_RIDGE';
-        // (Futuro: Adicionar mapeamento para outras tribos)
+        // (CORREÇÃO) Mapeamento completo de Tribo -> Bioma Inicial
+        const TRIBE_HOME_BIOMES = {
+            'VOLCANICS': 'BURNING_RIDGE',
+            'RADIOACTIVES': 'LAKE_RANCID',
+            'NOCTURNALS': 'ANCIENT_METROPOLIS', // (Usará gerador genérico por enquanto)
+            'UNDERGROUNDERS': 'ABANDONED_MINES', // (Usará gerador genérico por enquanto)
+            'REPTILIANS': 'COVENANT_SWAMP'       // (Usará gerador genérico por enquanto)
+        };
+
+        // Define o bioma inicial (ou Wasteland se a tribo não estiver mapeada)
+        const startBiomeId = TRIBE_HOME_BIOMES[kidStaticData.tribe] || 'WASTELAND';
+
+        console.log(`ExpeditionManager: Generating map for ${kidStaticData.tribe} -> ${startBiomeId}`);
 
         // 2. Gera o Mapa Procedural
         const mapInstance = MapGenerator.generateBiomeMap(startBiomeId);
@@ -73,7 +78,7 @@ export const ExpeditionManager = {
         
         // Encontra o nó inicial para o log
         const startNode = mapInstance.nodes.find(n => n.id === startNodeId);
-        const biomeName = WORLD_BIOMES[startBiomeId]?.name || startBiomeId;
+        const biomeName = mapInstance.name; // Usa o nome da instância gerada
 
         const expeditionData = {
             kidStats: finalStats, 
@@ -87,7 +92,7 @@ export const ExpeditionManager = {
             currentDay: 1, 
             maxDays: 10,
             
-            // (NOVO) Salva o mapa gerado no estado
+            // Salva o mapa gerado no estado
             currentMap: mapInstance,
             
             position: { nodeId: startNodeId }, 
@@ -111,7 +116,6 @@ export const ExpeditionManager = {
         const state = getState();
         let { expedition } = state; 
         
-        // Validação de segurança
         if (!expedition.currentMap) return;
 
         const currentNode = getCurrentNode(expedition);
@@ -147,7 +151,6 @@ export const ExpeditionManager = {
 
     /**
      * Executa a ação "Collect Resources".
-     * Agora usa 'node.subtype' para buscar a tabela de drops.
      */
     collectResources: function() {
         const state = getState();
@@ -160,11 +163,11 @@ export const ExpeditionManager = {
         }
         expedition.currentAP -= 1; 
 
-        // 1. Identifica o Tipo de Nó (Subtype)
+        // Identifica o Tipo de Nó (Subtype)
         const currentNode = getCurrentNode(expedition);
-        const nodeType = currentNode.subtype; // Ex: 'OBSIDIAN_FIELD'
+        const nodeType = currentNode.subtype; 
         
-        // 2. Busca a tabela de loot específica do tipo de nó
+        // Busca a tabela de loot específica do tipo de nó
         const lootTable = DROP_TABLES[nodeType]?.collect;
 
         if (!lootTable || lootTable.length === 0) {
@@ -243,7 +246,6 @@ export const ExpeditionManager = {
 
     /**
      * Executa a ação "Investigate".
-     * Agora usa 'node.subtype' para drops e 'biome' para spawn logic.
      */
     investigate: function() {
         const state = getState();
@@ -257,13 +259,11 @@ export const ExpeditionManager = {
         expedition.currentAP -= 1;
 
         const currentNode = getCurrentNode(expedition);
-        // Nota: SPAWN_LOGIC ainda usa chaves de Bioma (ex: 'BURNING_RIDGE'), não Subtipo
         const biomeId = expedition.currentMap.id; 
         const eventTable = SPAWN_LOGIC[biomeId]?.investigate;
         
         if (!eventTable) {
-             console.warn(`Investigate: Sem tabela de spawn para ${biomeId}. Usando fallback.`);
-             // (Fallback silencioso ou erro)
+             console.warn(`Investigate: Sem tabela de spawn para ${biomeId}.`);
              return;
         }
 
@@ -284,16 +284,19 @@ export const ExpeditionManager = {
             
             case "ambush":
                 const rarity = eventResult.enemyRarity || 'common';
-                const enemyData = ENEMIES_BY_BIOME[biomeId][rarity]; // Usa Bioma para inimigos
+                // Usa Bioma para inimigos
+                const enemyData = ENEMIES_BY_BIOME[biomeId] ? ENEMIES_BY_BIOME[biomeId][rarity] : null;
+                
                 if (enemyData) {
                     expedition.log.unshift(`AMBUSH! A ${enemyData.name} attacks at ${currentNode.name}!`);
                     updateState({ expedition: expedition });
                     this.handleCombatExecution(enemyData);
+                } else {
+                    console.warn(`Inimigo não encontrado para ${biomeId} ${rarity}`);
                 }
                 break;
 
             case "loot":
-                // Usa Subtipo do Nó para loot específico (Obsidian Field, Magma Pool, etc.)
                 const lootTable = DROP_TABLES[currentNode.subtype]?.investigate;
                 if (!lootTable) return;
                 
