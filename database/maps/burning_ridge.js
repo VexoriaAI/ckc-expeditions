@@ -53,7 +53,7 @@ export const BURNING_RIDGE_TEMPLATE = {
             type: 'COMBAT',
             subtype: 'VOLCANIC_VENT',
             description: 'Gases tóxicos.',
-            x: 60, y: 20 // Meio-Esquerda
+            x: 60, y: 20, // (CORREÇÃO: Vírgula adicionada aqui)
             connections: ['br_obsidian_field', 'br_peak_crater']
         },
 
