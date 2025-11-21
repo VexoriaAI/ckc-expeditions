@@ -12,7 +12,7 @@ const BIOME_COORDINATES = {
     'LAKE_RANCID': { x: 67, y: 18 },
     'ABANDONED_MINES': { x: 35, y: 45 },
     'ANCIENT_METROPOLIS': { x: 17, y: 79 },
-    'WASTELAND': { x: 55, y: 70 },
+    'WASTELAND': { x: 58, y: 70 },
     'COVENANT_SWAMP': { x: 90, y: 45 },
     'CYBERCITY': { x: 50, y: 95 }
 };
