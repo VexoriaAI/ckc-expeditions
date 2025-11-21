@@ -34,7 +34,7 @@ export const MOCK_KIDZ_NFTS = [
         id: '#303',
         name: 'Vaz',
         tribe: 'REPTILIANS',
-        level: 4,
+        level: 7,
         spritePath: 'assets/characters/reptilians_1.png',
         baseStats: { maxHP: 125, attack: 10, defense: 7, speed: 4, ap: 2, hpRegen: 2, lifesteal: 1 }
     },
@@ -60,7 +60,7 @@ export const MOCK_KIDZ_NFTS = [
         id: '#99',
         name: 'Hazmat',
         tribe: 'RADIOACTIVES',
-        level: 6,
+        level: 5,
         spritePath: 'assets/characters/radioactives_3.png', // Placeholder visual
         baseStats: { maxHP: 140, attack: 6, defense: 10, speed: 3, ap: 2, toxinResist: 25, hpRegen: 4 }
     },
@@ -68,7 +68,7 @@ export const MOCK_KIDZ_NFTS = [
         id: '#777',
         name: 'Jackpot',
         tribe: 'UNDERGROUNDERS',
-        level: 8,
+        level: 6,
         spritePath: 'assets/characters/undergrounders_1.png', // Placeholder visual (Undergrounder usa visual similar a Volcanic por enqto)
         baseStats: { maxHP: 130, attack: 8, defense: 15, speed: 2, ap: 2, blockChance: 10, blockAmount: 5, energyResist: 10 }
     },
